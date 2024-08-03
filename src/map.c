@@ -98,7 +98,7 @@ char* astrmap(MAP* map) {
     size_t i = 0;
 
     /* Opening brace */
-    snprintf(str, 2, "{");
+    str = astrcat(str, "{");
 
     /* Elements */
     while((map = nextmap(map))) {

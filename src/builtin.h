@@ -1,21 +1,21 @@
-#ifndef EVAL_H_
-#define EVAL_H_
+#ifndef BUILTIN_H_
+#define BUILTIN_H_
+
+#include <inttypes.h>
 
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
 */
 
-typedef struct VALUE VALUE;
-typedef struct NODE NODE;
-typedef struct SYM_TABLE SYM_TABLE;
+typedef struct MAP MAP;
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-VALUE* eval(NODE* node, SYM_TABLE* table);
+MAP* builtin();
 
 
-#endif /* EVAL_H_ */
+#endif /* BUILTIN_H_ */

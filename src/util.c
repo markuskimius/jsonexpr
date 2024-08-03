@@ -79,8 +79,7 @@ char* astrencode(const char* src) {
     const char* cp = src;
 
     /* Opening quote */
-    dest[0] = '"';
-    dest[1] = '\0';
+    dest = astrcat(dest, "\"");
 
     /* Decode each character */
     while(*cp) {
@@ -93,10 +92,11 @@ char* astrencode(const char* src) {
                 dest = astrcat(dest, buf);
                 break;
 
+            case '\b' : buf[0] = 'b'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
+            case '\f' : buf[0] = 'f'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
             case '\n' : buf[0] = 'n'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
             case '\r' : buf[0] = 'r'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
             case '\t' : buf[0] = 't'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
-            case '\v' : buf[0] = 'v'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
             default   : dest = astrcat(dest, buf); break;
         }
 

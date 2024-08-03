@@ -1,5 +1,5 @@
-#ifndef AST_H_
-#define AST_H_
+#ifndef NODE_H_
+#define NODE_H_
 
 #include <inttypes.h>
 
@@ -10,13 +10,14 @@
 
 enum {
     NULL_N = 256,
-    INT64_N,
-    DOUBLE_N,
+    BOOL_N,
+    INT_N,
+    FLOAT_N,
     STRING_N,
     ARRAY_N,
     OBJECT_N,
-    LVALUE_N,
-    FNCALL_N,
+    SYMBOL_N,
+    CALL_N,
     IDENT_N,
     UPLUS_N,
     UMINUS_N,
@@ -27,26 +28,24 @@ enum {
 * TYPES
 */
 
-typedef struct AST_NODE {
+typedef struct NODE {
     int type;
-    struct AST_NODE* left;
-    struct AST_NODE* right;
+    struct NODE* left;
+    struct NODE* right;
     union {
-        int64_t i64;
-        double f64;
-        char* str;
-        char* name;
+        int64_t i;
+        double f;
+        char* s;
     } value;
-} AST_NODE;
+} NODE;
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-AST_NODE* newnode(int type, AST_NODE* left, AST_NODE* right);
-AST_NODE* newleaf(int type, void* value);
-AST_NODE* parse(const char* code);
+NODE* newnode(int type, NODE* left, NODE* right);
+NODE* newleaf(int type, void* value);
 
 
-#endif /* AST_H_ */
+#endif /* NODE_H_ */

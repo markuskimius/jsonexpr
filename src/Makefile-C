@@ -1,11 +1,5 @@
-BINARIES=jsonexpr.wasm
-PREFIX=/opt/wasm
+BINARIES=jsonexpr
 CC=clang
-LD=wasm-ld
-CPPFLAGS=-I$(PREFIX)/include --target=wasm32 -nostdlib
-LDFLAGS=-L$(PREFIX)/lib --export=newtable --export=parse --export=eval --export=strvalue --export=gettype \
-	--export=getint64 --export=getdouble --export=getstring --export=gettable
-LDLIBS=-lc-wasm
 
 
 ##############################################################################
@@ -22,8 +16,8 @@ clean:
 ##############################################################################
 # MAIN
 
-jsonexpr.wasm: builtin.o eval.o func.o main.o map.o node.o nvector.o oper.o symtable.o ufunc.o util.o value.o vector.o parse.tab.o lex.yy.o
-	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
+jsonexpr: builtin.o eval.o func.o main.o map.o node.o nvector.o oper.o symtable.o ufunc.o util.o value.o vector.o parse.tab.o lex.yy.o
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 builtin.o: builtin.c builtin.h eval.h func.h map.h node.h ufunc.h value.h
 

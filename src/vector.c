@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "vector.h"
-#include "value.h"
 #include "util.h"
+#include "value.h"
+#include "vector.h"
 
 
 /* ***************************************************************************

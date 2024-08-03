@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "builtins.h"
-#include "ast.h"
-#include "map.h"
+#include "builtin.h"
 #include "eval.h"
 #include "func.h"
+#include "map.h"
+#include "node.h"
 #include "ufunc.h"
 #include "value.h"
 
@@ -15,7 +15,7 @@
 */
 
 typedef struct USERFN {
-    AST_NODE* body;
+    NODE* body;
 } USERFN;
 
 
@@ -31,20 +31,33 @@ static size_t nufunc = 0;
 * PRIVATE FUNCTIONS
 */
 
-static VALUE* FUNCTION(size_t argc, AST_NODE** argv, SYM_TABLE* table) {
+static VALUE* FUNCTION(size_t argc, NODE** argv, SYM_TABLE* table) {
     char name[64];
+    char* sig = NULL;
+    VALUE* spec = eval(argv[0], table);
+    VALUE* result = newnull();
 
     snprintf(name, sizeof(name), "FUNCTION#%zd()", ++nufunc);
 
-    return newuserfunc(newufunc(name, argv[1], 0, MAXARGS));
+    switch(spec->type) {
+        case STRING_V:
+            break;
+
+        default:
+            fprintf(stderr, "Invalid argument type, expected string but got %c\n", spec->type);
+    }
+
+    freevalue(spec);
+
+    return newuserfunc(newufunc(argv[1], name, sig));
 }
 
 
-static VALUE* PRINT(size_t argc, AST_NODE** argv, SYM_TABLE* table) {
+static VALUE* PRINT(size_t argc, NODE** argv, SYM_TABLE* table) {
     VALUE* last = newnull();
 
     for(size_t i=0; i<argc; i++) {
-        AST_NODE* node = argv[i];
+        NODE* node = argv[i];
 
         if(last) freevalue(last);
         last = eval(node, table);
@@ -63,12 +76,12 @@ static VALUE* PRINT(size_t argc, AST_NODE** argv, SYM_TABLE* table) {
 * PUBLIC FUNCTIONS
 */
 
-MAP* builtins() {
+MAP* builtin() {
     if(!BUILTINS) {
         BUILTINS = newmap();
 
-        setmap(BUILTINS, "FUNCTION", newbuiltin(newfunc("FUNCTION()", FUNCTION, 2,       2)));
-        setmap(BUILTINS, "PRINT"   , newbuiltin(newfunc("PRINT()"   , PRINT   , 0, MAXARGS)));
+        setmap(BUILTINS, "FUNCTION", newbuiltin(newfunc(FUNCTION, "FUNCTION()", "SN")));
+        setmap(BUILTINS, "PRINT"   , newbuiltin(newfunc(PRINT   , "PRINT()"   , "*")));
     }
 
     return BUILTINS;

@@ -20,6 +20,7 @@ typedef struct UFUNC UFUNC;
 
 typedef enum {
     NULL_V      = 'N',
+    BOOL_V      = 'B',
     INT64_V     = 'I',
     DOUBLE_V    = 'D',
     STRING_V    = 'S',
@@ -27,6 +28,7 @@ typedef enum {
     OBJECT_V    = 'O',
     BUILTIN_V   = 'F',
     USERFUNC_V  = 'f',
+    NODE_V      = 'T',
 } value_t;
 
 
@@ -57,6 +59,7 @@ typedef struct VALUE {
 */
 
 VALUE* newnull();
+VALUE* newbool(int64_t i64);
 VALUE* newint64(int64_t i64);
 VALUE* newdouble(double f64);
 VALUE* newstring(const char* str);

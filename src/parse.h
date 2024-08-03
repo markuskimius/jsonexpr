@@ -1,21 +1,21 @@
-#ifndef BUILTINS_H_
-#define BUILTINS_H_
+#ifndef PARSE_H_
+#define PARSE_H_
 
-#include <inttypes.h>
+#include "parse.tab.h"
 
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
 */
 
-typedef struct MAP MAP;
+typedef struct NODE NODE;
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-MAP* builtins();
+NODE* parse(const char* code);
 
 
-#endif /* BUILTINS_H_ */
+#endif /* PARSE_H_ */

@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "symtable.h"
-#include "builtins.h"
-#include "value.h"
 #include "map.h"
+#include "builtin.h"
+#include "symtable.h"
+#include "value.h"
 
 
 /* ***************************************************************************
@@ -18,7 +18,7 @@ SYM_TABLE* newtable(SYM_TABLE* parent) {
 
     /* Add built-in symbols */
     if(!parent) {
-        MAP* bi = builtins();
+        MAP* bi = builtin();
 
         while((bi = nextmap(bi))) {
             setmap(table->symbols, bi->key, bi->value);

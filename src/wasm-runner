@@ -28,7 +28,7 @@ import sys
 import errno
 import getopts
 from wasmer import engine, Store, Module, Instance, ImportObject, Function, Memory, MemoryType
-from wasmer_compiler_llvm import Compiler
+from wasmer_compiler_cranelift import Compiler
 
 __copyright__ = "Copyright 2024 Mark Kim"
 __license__ = "Apache 2.0"
@@ -99,7 +99,7 @@ class WasmIface:
 
     def strdup(self, string):
         if string not in self.addrByString:
-            addr = self.instance.exports.malloc(len(string)+1)
+            addr = self.instance.exports.calloc(1, len(string)+1)
             self.memory8[addr:addr+len(string)] = string.encode("utf-8")
             self.memory8[addr+len(string)] = 0
         
@@ -113,7 +113,7 @@ class WasmIface:
         while(self.memory8[addr+len] != 0):
             len += 1
 
-        return bytearray(self.memory8[addr:addr+len]).decode("utf-8")
+        return bytearray(self.memory8[addr:addr+len]).decode("latin1")
 
 
 def doMyThing():
@@ -151,20 +151,72 @@ def doMyThing():
 
             # code = wasm.strdup('1; 2; 3; "Hello, world!"; -((3 + 4) / 2.0 * 3.0); HELLO = "Hello" + ", world!"; "Bye, " + -12329123489134821234.1234 + "!"; HELLO = [1,[2,"Hello, world!",4],5]; HELLO[1][1]')
             # code = wasm.strdup('1; 2; 3; "Hello, world!"; -((3 + 4) / 2.0 * 3.0); HELLO = "Hello" + ", world!"; "Bye, " + -12329123489134821234.1234 + "!"; HELLO = [1,[2,"Hello, world!",4],5]; HELLO[1][2] = "Bye, cruel world!"; HELLO')
+            # code = wasm.strdup('''
+            #     MYARRAY = [
+            #         123,
+            #         456,
+            #         789,
+            #         true,
+            #         false,
+            #         null,
+            #     ];
+
+            #     MYARRAY[1] = FUNCTION("$",
+            #         PRINT("Bye, world!");
+            #     );
+
+            #     MYARRAY[1](5);
+            #     MYARRAY
+            # ''')
             code = wasm.strdup('''
-                MYARRAY = [
-                    123,
-                    456,
-                    789,
-                ];
-
-                MYARRAY[1] = FUNCTION("$",
-                    PRINT("Bye, world!");
-                );
-
-                MYARRAY[1]();
-                MYARRAY
+                {
+                  "menu": {
+                    "id": "file",
+                    "value": "File",
+                    "popup": {
+                        "menuitem": [
+                          {
+                            "value": "New",
+                            "onclick": "CreateNewDoc()"
+                          },
+                          {
+                            "value": "Open",
+                            "onclick": "OpenDoc()"
+                          },
+                          {
+                            "value": "Close",
+                            "onclick": "CloseDoc()"
+                          }
+                        ]
+                    }
+                  }
+                };
             ''')
+            # code = wasm.strdup('''
+            #     {
+            #       "menu": {
+            #         "id": "file",
+            #         "value": "File",
+            #         "popup": {
+            #         }
+            #       }
+            #     }
+            # ''')
+            # code = wasm.strdup('''
+            #     MYOBJ = {
+            #         "hello" : 123,
+            #         "myfn"  : 789,
+            #         "world" : 456,
+            #     };
+
+            #     MYOBJ.myfn = FUNCTION("$",
+            #         PRINT("Bye, world!");
+            #     );
+
+            #     MYOBJ.myfn();
+            #     MYOBJ["myfn"]();
+            #     MYOBJ
+            # ''')
             ast = instance.exports.parse(code)
             result = instance.exports.eval(ast, 0)
             svalue = instance.exports.strvalue(result);
@@ -172,7 +224,7 @@ def doMyThing():
 
             if   type == 'N' : print("NULL")
             elif type == 'I' : print(f"i64 : {wasm.strat(svalue)}")
-            elif type == 'D' : print(f"f64 : {wasm.strat(svalue)}")
+            elif type == 'D' : print(f"dbl : {wasm.strat(svalue)}")
             elif type == 'S' : print(f"str : {wasm.strat(svalue)}")
             elif type == 'A' : print(f"arr : {wasm.strat(svalue)}")
             elif type == 'O' : print(f"obj : {wasm.strat(svalue)}")

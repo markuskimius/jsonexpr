@@ -1,7 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "func.h"
-#include "ast.h"
+#include "node.h"
 #include "value.h"
 #include "symtable.h"
 
@@ -10,13 +11,12 @@
 * PUBLIC FUNCTIONS
 */
 
-FUNC* newfunc(const char* name, FUNC_HANDLER handler, size_t minargs, size_t maxargs) {
+FUNC* newfunc(FUNC_HANDLER handler, const char* name, const char* sig) {
     FUNC* func = calloc(1, sizeof(FUNC));
 
     func->handler = handler;
-    func->minargs = minargs;
-    func->maxargs = maxargs;
     func->name = strdup(name);
+    func->sig = strdup(sig);
 
     return func;
 }
@@ -24,6 +24,7 @@ FUNC* newfunc(const char* name, FUNC_HANDLER handler, size_t minargs, size_t max
 
 void freefunc(FUNC* func) {
     free(func->name);
+    free(func->sig);
     free(func);
 }
 
@@ -33,7 +34,11 @@ char* astrfunc(FUNC* func) {
 }
 
 
-VALUE* funcexec(FUNC* func, size_t argc, AST_NODE** argv, SYM_TABLE* table) {
-/* TODO */
-    return func->handler(argc, argv, table);
+VALUE* funcexec(FUNC* func, size_t argc, NODE** argv, SYM_TABLE* table) {
+    VALUE* value = newnull();
+
+/* TODO validate */
+    value = func->handler(argc, argv, table);
+
+    return value;
 }

@@ -9,7 +9,7 @@
 */
 
 typedef struct VALUE VALUE;
-typedef struct AST_NODE AST_NODE;
+typedef struct NODE NODE;
 typedef struct SYM_TABLE SYM_TABLE;
 
 
@@ -27,10 +27,9 @@ typedef struct SYM_TABLE SYM_TABLE;
 */
 
 typedef struct UFUNC {
-    AST_NODE* handler;
-    size_t minargs;
-    size_t maxargs;
+    NODE* handler;
     char* name;
+    char* sig;
 } UFUNC;
 
 
@@ -38,10 +37,10 @@ typedef struct UFUNC {
 * PUBLIC FUNCTIONS
 */
 
-UFUNC* newufunc(const char* name, AST_NODE* handler, size_t minargs, size_t maxargs);
+UFUNC* newufunc(NODE* handler, const char* name, const char* sig);
 void freeufunc(UFUNC* ufunc);
 char* astrufunc(UFUNC* ufunc);
-VALUE* ufuncexec(UFUNC* ufunc, size_t argc, AST_NODE** argv, SYM_TABLE* table);
+VALUE* ufuncexec(UFUNC* ufunc, size_t argc, NODE** argv, SYM_TABLE* table);
 
 
 #endif /* UFUNC_H_ */

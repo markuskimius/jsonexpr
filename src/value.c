@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "func.h"
+#include "map.h"
+#include "util.h"
+#include "ufunc.h"
 #include "value.h"
 #include "vector.h"
-#include "util.h"
-#include "map.h"
-#include "func.h"
-#include "ufunc.h"
 
 
 /* ***************************************************************************
@@ -29,6 +29,17 @@ VALUE* newnull() {
     }
 
     return null;
+}
+
+
+VALUE* newbool(int64_t i64) {
+    VALUE* value = calloc(1, sizeof(VALUE));
+
+    value->type = BOOL_V;
+    value->count = 1;
+    value->value.i64 = i64;
+
+    return value;
 }
 
 
@@ -147,7 +158,8 @@ char* strvalue(VALUE* value) {
 
         /* Generate new representation */
         switch(value->type) {
-            case NULL_V     : value->astrvalue = strdup("NULL"); break;
+            case NULL_V     : value->astrvalue = strdup("null"); break;
+            case BOOL_V     : value->astrvalue = value->value.i64 ? strdup("true") : strdup("false"); break;
             case INT64_V    : value->astrvalue = astri64(value->value.i64); break;
             case DOUBLE_V   : value->astrvalue = astrf64(value->value.f64); break;
             case STRING_V   : value->astrvalue = strdup(value->value.str); break;
@@ -160,13 +172,13 @@ char* strvalue(VALUE* value) {
 
         /* Default */
         if(!value->astrvalue) {
-            value->astrvalue = strdup("NULL");
+            value->astrvalue = strdup("null");
         }
 
         return value->astrvalue;
     }
 
-    return "NULL";
+    return "null";
 }
 
 
@@ -180,7 +192,8 @@ char* strencoded(VALUE* value) {
 
         /* Generate new representation */
         switch(value->type) {
-            case NULL_V     : value->astrencoded = strdup("NULL"); break;
+            case NULL_V     : value->astrencoded = strdup("null"); break;
+            case BOOL_V     : value->astrencoded = value->value.i64 ? strdup("true") : strdup("false"); break;
             case INT64_V    : value->astrencoded = astri64(value->value.i64); break;
             case DOUBLE_V   : value->astrencoded = astrf64(value->value.f64); break;
             case STRING_V   : value->astrencoded = astrencode(value->value.str); break;
@@ -193,13 +206,13 @@ char* strencoded(VALUE* value) {
 
         /* Default */
         if(!value->astrencoded) {
-            value->astrencoded = strdup("NULL");
+            value->astrencoded = strdup("null");
         }
 
         return value->astrencoded;
     }
 
-    return "NULL";
+    return "null";
 }
 
 

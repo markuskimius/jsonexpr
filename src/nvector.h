@@ -8,7 +8,7 @@
 * FORWARD DECLARATIONS
 */
 
-typedef struct AST_NODE AST_NODE;
+typedef struct NODE NODE;
 
 
 /* ***************************************************************************
@@ -16,7 +16,7 @@ typedef struct AST_NODE AST_NODE;
 */
 
 typedef struct NVEC {
-    AST_NODE** item;
+    NODE** item;
     size_t length;
     size_t capacity;
 } NVEC;
@@ -28,11 +28,11 @@ typedef struct NVEC {
 
 NVEC* newnvec();
 void freenvec(NVEC* vec);
-void pushnvec(NVEC* vec, AST_NODE* item);
-void setnvec(NVEC* vec, size_t index, AST_NODE* item);
+void pushnvec(NVEC* vec, NODE* item);
+void setnvec(NVEC* vec, size_t index, NODE* item);
 void popnvec(NVEC* vec);
-AST_NODE* getnvec(NVEC* vec, size_t index);
-AST_NODE* backnvec(NVEC* vec);
+NODE* getnvec(NVEC* vec, size_t index);
+NODE* backnvec(NVEC* vec);
 
 
 #endif /* NVECTOR_H_ */

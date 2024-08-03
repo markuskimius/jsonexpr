@@ -1,9 +1,10 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ufunc.h"
-#include "ast.h"
 #include "eval.h"
+#include "node.h"
 #include "util.h"
+#include "ufunc.h"
 #include "value.h"
 #include "symtable.h"
 
@@ -12,13 +13,12 @@
 * PUBLIC FUNCTIONS
 */
 
-UFUNC* newufunc(const char* name, AST_NODE* handler, size_t minargs, size_t maxargs) {
+UFUNC* newufunc(NODE* handler, const char* name, const char* sig) {
     UFUNC* ufunc = calloc(1, sizeof(UFUNC));
 
     ufunc->handler = handler;
-    ufunc->minargs = minargs;
-    ufunc->maxargs = maxargs;
     ufunc->name = strdup(name);
+    ufunc->sig = strdup(sig);
 
     return ufunc;
 }
@@ -26,6 +26,7 @@ UFUNC* newufunc(const char* name, AST_NODE* handler, size_t minargs, size_t maxa
 
 void freeufunc(UFUNC* ufunc) {
     free(ufunc->name);
+    free(ufunc->sig);
     free(ufunc);
 }
 
@@ -35,7 +36,11 @@ char* astrufunc(UFUNC* ufunc) {
 }
 
 
-VALUE* ufuncexec(UFUNC* ufunc, size_t argc, AST_NODE** argv, SYM_TABLE* table) {
-/* TODO */
-    return eval(ufunc->handler, table);
+VALUE* ufuncexec(UFUNC* ufunc, size_t argc, NODE** argv, SYM_TABLE* table) {
+    VALUE* value = newnull();
+
+/* TODO - Validate signature */
+    value = eval(ufunc->handler, table);
+
+    return value;
 }

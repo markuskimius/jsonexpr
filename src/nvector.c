@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "nvector.h"
 #include "util.h"
+#include "nvector.h"
 
 
 /* ***************************************************************************
@@ -19,7 +19,7 @@
 NVEC* newnvec() {
     NVEC* vec = calloc(1, sizeof(NVEC));
 
-    vec->item = calloc(INITSIZE, sizeof(AST_NODE*));
+    vec->item = calloc(INITSIZE, sizeof(NODE*));
     vec->length = 0;
     vec->capacity = INITSIZE;
 
@@ -33,7 +33,7 @@ void freenvec(NVEC* vec) {
 }
 
 
-void pushnvec(NVEC* vec, AST_NODE* item) {
+void pushnvec(NVEC* vec, NODE* item) {
     /* Allocate more memory if needed */
     if(vec->length+1 >= vec->capacity) {
         vec->item = realloc(vec->item, vec->capacity*2);
@@ -46,7 +46,7 @@ void pushnvec(NVEC* vec, AST_NODE* item) {
 }
 
 
-void setnvec(NVEC* vec, size_t index, AST_NODE* item) {
+void setnvec(NVEC* vec, size_t index, NODE* item) {
     if(index == vec->length) {
         pushnvec(vec, item);
     }
@@ -66,8 +66,8 @@ void popnvec(NVEC* vec) {
 }
 
 
-AST_NODE* getnvec(NVEC* vec, size_t index) {
-    AST_NODE* item = NULL;
+NODE* getnvec(NVEC* vec, size_t index) {
+    NODE* item = NULL;
 
     if(index < vec->length) item = vec->item[index];
 
@@ -75,8 +75,8 @@ AST_NODE* getnvec(NVEC* vec, size_t index) {
 }
 
 
-AST_NODE* backnvec(NVEC* vec) {
-    AST_NODE* item = NULL;
+NODE* backnvec(NVEC* vec) {
+    NODE* item = NULL;
 
     if(vec->length) item = vec->item[vec->length-1];
 
