@@ -6,6 +6,7 @@
 #include "util.h"
 #include "ufunc.h"
 #include "value.h"
+#include "vector.h"
 #include "symtable.h"
 
 
@@ -36,7 +37,7 @@ char* astrufunc(UFUNC* ufunc) {
 }
 
 
-VALUE* ufuncexec(UFUNC* ufunc, size_t argc, NODE** argv, SYM_TABLE* table) {
+VALUE* ufuncexec(UFUNC* ufunc, VEC* args, SYM_TABLE* table) {
     VALUE* value = newnull();
 
 /* TODO - Validate signature */

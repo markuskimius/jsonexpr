@@ -220,19 +220,8 @@ def doMyThing():
             ast = instance.exports.parse(code)
             result = instance.exports.eval(ast, 0)
             svalue = instance.exports.strvalue(result);
-            type = chr(instance.exports.gettype(result))
 
-            if   type == 'N' : print("NULL")
-            elif type == 'I' : print(f"i64 : {wasm.strat(svalue)}")
-            elif type == 'D' : print(f"dbl : {wasm.strat(svalue)}")
-            elif type == 'S' : print(f"str : {wasm.strat(svalue)}")
-            elif type == 'A' : print(f"arr : {wasm.strat(svalue)}")
-            elif type == 'O' : print(f"obj : {wasm.strat(svalue)}")
-            elif type == 'F' : print(f"bfn : {wasm.strat(svalue)}")
-            elif type == 'f' : print(f"ufn : {wasm.strat(svalue)}")
-            else             : print(f"Invalid node type: '{type}' ({ord(type)})")
-
-            # instance.exports._start()
+            print(wasm.strat(svalue))
 
 
 ##############################################################################

@@ -8,7 +8,6 @@
 #include "ufunc.h"
 #include "value.h"
 #include "vector.h"
-#include "nvector.h"
 #include "symtable.h"
 
 
@@ -170,15 +169,15 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
 }
 
 
-static void getnodelist(NVEC* nvec, NODE* node) {
+static void getnodelist(VEC* list, NODE* node) {
     switch(node->type) {
         case ',':
-            if(node->left) getnodelist(nvec, node->left);
-            if(node->right) getnodelist(nvec, node->right);
+            if(node->left) getnodelist(list, node->left);
+            if(node->right) getnodelist(list, node->right);
             break;
 
         default:
-            pushnvec(nvec, node);
+            pushvec(list, newnodevalue(node));
             break;
     }
 }
@@ -187,20 +186,20 @@ static void getnodelist(NVEC* nvec, NODE* node) {
 static VALUE* call(SYM_TABLE* table, NODE* node) {
     VALUE* func = gettable2(table, node->left);
     VALUE* value = newnull();
-    NVEC* nvec = newnvec();
+    VEC* args = newvec();
 
     /* Get arguments */
-    if(node->right) getnodelist(nvec, node->right);
+    if(node->right) getnodelist(args, node->right);
 
     /* Call the function */
     switch(func->type) {
-        case BUILTIN_V  : value = funcexec(func->value.bfn, nvec->length, nvec->item, table); break;
-        case USERFUNC_V : value = ufuncexec(func->value.ufn, nvec->length, nvec->item, table); break;
+        case BUILTIN_V  : value = funcexec(func->value.bfn, args, table); break;
+        case USERFUNC_V : value = ufuncexec(func->value.ufn, args, table); break;
         default         : fprintf(stderr, "%s: Invalid value type: '%c' (%d)\n", __FUNCTION__, func->type, func->type); break;
     }
 
     /* Free arguments */
-    freenvec(nvec);
+    freevec(args);
 
     return value;
 }

@@ -22,14 +22,14 @@ clean:
 ##############################################################################
 # MAIN
 
-jsonexpr.wasm: builtin.o eval.o func.o main.o map.o node.o nvector.o oper.o symtable.o ufunc.o util.o value.o vector.o parse.tab.o lex.yy.o
+jsonexpr.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o ufunc.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
-builtin.o: builtin.c builtin.h eval.h func.h map.h node.h ufunc.h value.h
+builtin.o: builtin.c builtin.h eval.h func.h map.h node.h ufunc.h value.h vector.h
 
-eval.o: eval.c eval.h func.h map.h node.h oper.h ufunc.h value.h vector.h nvector.h symtable.h
+eval.o: eval.c eval.h func.h map.h node.h oper.h ufunc.h value.h vector.h symtable.h
 
-func.o: func.c func.h node.h value.h symtable.h
+func.o: func.c func.h node.h value.h vector.h symtable.h
 
 main.o: main.c eval.h map.h util.h parse.h value.h vector.h
 
@@ -37,13 +37,11 @@ map.o: map.c map.h util.h value.h vector.h
 
 node.o: node.c node.h
 
-nvector.o: nvector.c util.h nvector.h
-
 oper.o: oper.c map.h node.h oper.h util.h parse.h value.h vector.h
 
 symtable.o: symtable.c map.h builtin.h symtable.h value.h
 
-ufunc.o: ufunc.c eval.h node.h util.h ufunc.h value.h symtable.h
+ufunc.o: ufunc.c eval.h node.h util.h ufunc.h value.h vector.h symtable.h
 
 util.o: util.c util.h
 

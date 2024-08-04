@@ -4,6 +4,7 @@
 #include "func.h"
 #include "node.h"
 #include "value.h"
+#include "vector.h"
 #include "symtable.h"
 
 
@@ -34,11 +35,11 @@ char* astrfunc(FUNC* func) {
 }
 
 
-VALUE* funcexec(FUNC* func, size_t argc, NODE** argv, SYM_TABLE* table) {
+VALUE* funcexec(FUNC* func, VEC* args, SYM_TABLE* table) {
     VALUE* value = newnull();
 
 /* TODO validate */
-    value = func->handler(argc, argv, table);
+    value = func->handler(args, table);
 
     return value;
 }

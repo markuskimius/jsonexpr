@@ -8,8 +8,8 @@
 * FORWARD DECLARATIONS
 */
 
+typedef struct VEC VEC;
 typedef struct VALUE VALUE;
-typedef struct NODE NODE;
 typedef struct SYM_TABLE SYM_TABLE;
 
 
@@ -26,7 +26,7 @@ typedef struct SYM_TABLE SYM_TABLE;
 * TYPES
 */
 
-typedef VALUE* (*FUNC_HANDLER)(size_t argc, NODE** argv, SYM_TABLE* table);
+typedef VALUE* (*FUNC_HANDLER)(VEC* args, SYM_TABLE* table);
 
 typedef struct FUNC {
     FUNC_HANDLER handler;
@@ -42,7 +42,7 @@ typedef struct FUNC {
 FUNC* newfunc(FUNC_HANDLER handler, const char* name, const char* spec);
 void freefunc(FUNC* func);
 char* astrfunc(FUNC* func);
-VALUE* funcexec(FUNC* func, size_t argc, NODE** argv, SYM_TABLE* table);
+VALUE* funcexec(FUNC* func, VEC* args, SYM_TABLE* table);
 
 
 #endif /* FUNC_H_ */

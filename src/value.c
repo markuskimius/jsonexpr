@@ -120,6 +120,17 @@ VALUE* newuserfunc(UFUNC* ufunc) {
 }
 
 
+VALUE* newnodevalue(NODE* node) {
+    VALUE* value = calloc(1, sizeof(VALUE));
+
+    value->type = NODE_V;
+    value->count = 1;
+    value->value.node = node;
+
+    return value;
+}
+
+
 VALUE* dupvalue(VALUE* value) {
     value->count++;
 
@@ -131,6 +142,7 @@ void freevalue(VALUE* value) {
     if(value && --value->count == 0) {
         switch(value->type) {
             case NULL_V     : /* Do not free null */ return;
+            case BOOL_V     : break;
             case INT64_V    : break;
             case DOUBLE_V   : break;
             case STRING_V   : free(value->value.str); break;
@@ -138,6 +150,7 @@ void freevalue(VALUE* value) {
             case OBJECT_V   : freemap(value->value.map); break;
             case BUILTIN_V  : freefunc(value->value.bfn); break;
             case USERFUNC_V : freeufunc(value->value.ufn); break;
+            case NODE_V     : break;
             default         : fprintf(stderr, "%s: Invalid value type '%c' (%d)\n", __FUNCTION__, value->type, value->type); break;
         }
 
@@ -167,6 +180,7 @@ char* strvalue(VALUE* value) {
             case OBJECT_V   : value->astrvalue = astrmap(value->value.map); break;
             case BUILTIN_V  : value->astrvalue = astrfunc(value->value.bfn); break;
             case USERFUNC_V : value->astrvalue = astrufunc(value->value.ufn); break;
+            case NODE_V     : value->astrvalue = strdup("NODE"); break;
             default         : fprintf(stderr, "%s: Invalid value type '%c' (%d)\n", __FUNCTION__, value->type, value->type); break;
         }
 
@@ -201,6 +215,7 @@ char* strencoded(VALUE* value) {
             case OBJECT_V   : value->astrencoded = astrmap(value->value.map); break;
             case BUILTIN_V  : value->astrencoded = astrfunc(value->value.bfn); break;
             case USERFUNC_V : value->astrencoded = astrufunc(value->value.ufn); break;
+            case NODE_V     : value->astrencoded = strdup("NODE"); break;
             default         : fprintf(stderr, "%s: Invalid value type '%c' (%d)\n", __FUNCTION__, value->type, value->type); break;
         }
 

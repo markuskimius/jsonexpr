@@ -8,6 +8,7 @@
 #include "node.h"
 #include "ufunc.h"
 #include "value.h"
+#include "vector.h"
 
 
 /* ***************************************************************************
@@ -31,10 +32,10 @@ static size_t nufunc = 0;
 * PRIVATE FUNCTIONS
 */
 
-static VALUE* FUNCTION(size_t argc, NODE** argv, SYM_TABLE* table) {
+static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
     char name[64];
     char* sig = NULL;
-    VALUE* spec = eval(argv[0], table);
+    VALUE* spec = eval(args->item[0]->value.node, table);
     VALUE* result = newnull();
 
     snprintf(name, sizeof(name), "FUNCTION#%zd()", ++nufunc);
@@ -49,15 +50,15 @@ static VALUE* FUNCTION(size_t argc, NODE** argv, SYM_TABLE* table) {
 
     freevalue(spec);
 
-    return newuserfunc(newufunc(argv[1], name, sig));
+    return newuserfunc(newufunc(args->item[1]->value.node, name, sig));
 }
 
 
-static VALUE* PRINT(size_t argc, NODE** argv, SYM_TABLE* table) {
+static VALUE* PRINT(VEC* args, SYM_TABLE* table) {
     VALUE* last = newnull();
 
-    for(size_t i=0; i<argc; i++) {
-        NODE* node = argv[i];
+    for(size_t i=0; i<args->length; i++) {
+        NODE* node = args->item[i]->value.node;
 
         if(last) freevalue(last);
         last = eval(node, table);

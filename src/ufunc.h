@@ -10,6 +10,7 @@
 
 typedef struct VALUE VALUE;
 typedef struct NODE NODE;
+typedef struct VEC VEC;
 typedef struct SYM_TABLE SYM_TABLE;
 
 
@@ -40,7 +41,7 @@ typedef struct UFUNC {
 UFUNC* newufunc(NODE* handler, const char* name, const char* sig);
 void freeufunc(UFUNC* ufunc);
 char* astrufunc(UFUNC* ufunc);
-VALUE* ufuncexec(UFUNC* ufunc, size_t argc, NODE** argv, SYM_TABLE* table);
+VALUE* ufuncexec(UFUNC* ufunc, VEC* args, SYM_TABLE* table);
 
 
 #endif /* UFUNC_H_ */

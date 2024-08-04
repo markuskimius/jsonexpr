@@ -12,6 +12,7 @@ typedef struct MAP MAP;
 typedef struct VEC VEC;
 typedef struct FUNC FUNC;
 typedef struct UFUNC UFUNC;
+typedef struct NODE NODE;
 
 
 /* ***************************************************************************
@@ -19,7 +20,7 @@ typedef struct UFUNC UFUNC;
 */
 
 typedef enum {
-    NULL_V      = 'N',
+    NULL_V      = '0',
     BOOL_V      = 'B',
     INT64_V     = 'I',
     DOUBLE_V    = 'D',
@@ -28,7 +29,7 @@ typedef enum {
     OBJECT_V    = 'O',
     BUILTIN_V   = 'F',
     USERFUNC_V  = 'f',
-    NODE_V      = 'T',
+    NODE_V      = 'N',
 } value_t;
 
 
@@ -48,6 +49,7 @@ typedef struct VALUE {
         VEC* vec;
         FUNC* bfn;
         UFUNC* ufn;
+        NODE* node;
     } value;
     char* astrvalue;
     char* astrencoded;
@@ -67,6 +69,7 @@ VALUE* newarray(VEC* vec);
 VALUE* newobject(MAP* map);
 VALUE* newbuiltin(FUNC* func);
 VALUE* newuserfunc(UFUNC* ufunc);
+VALUE* newnodevalue(NODE* node);
 VALUE* dupvalue(VALUE* value);
 void freevalue(VALUE* value);
 char* strvalue(VALUE* value);
