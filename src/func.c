@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+#include <ctype.h>
+#include "eval.h"
 #include "func.h"
 #include "node.h"
 #include "value.h"
@@ -35,11 +38,62 @@ char* astrfunc(FUNC* func) {
 }
 
 
-VALUE* funcexec(FUNC* func, VEC* args, SYM_TABLE* table) {
-    VALUE* value = newnull();
+VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
+    VEC* args = newvec();
+    const char* cp = sig;
+    int isok = 1;
 
-/* TODO validate */
-    value = func->handler(args, table);
+    for(size_t i=0; i<nodes->length; i++) {
+        VALUE* value = nodes->item[i];
+        NODE* node = value->value.node;
 
-    return value;
+        /* value must be a node */
+        assert(value->type == NODE_V);
+
+        /* evaluate */
+        if(strchr("BIDSAOF?", *cp)) {
+            VALUE* v = eval(node, table);
+
+            if(*cp != '?' && tolower(v->type) != tolower(*cp)) {
+                fprintf(stderr, "%s: Invalid argument type, expected %c, got %c\n", __FUNCTION__, *cp, v->type);
+                isok = 0;
+            }
+
+            pushvec(args, v);
+            cp++;
+        }
+        /* no evaluate */
+        else if(*cp == '.') {
+            /* No validation */
+            pushvec(args, dupvalue(value));
+            cp++;
+        }
+        /* many arguments */
+        else if(*cp == '*') {
+            if(*(cp+1) == '*') pushvec(args, dupvalue(nodes->item[i]));
+            else pushvec(args, eval(node, table));
+
+            /* do not advance cp */
+        }
+    }
+
+    if(!isok) {
+        freevec(args);
+        args = NULL;
+    }
+
+    return args;
+}
+
+
+VALUE* funcexec(FUNC* func, VEC* nodes, SYM_TABLE* table) {
+    VEC* args = funcargs(func->sig, nodes, table);
+    VALUE* result = newnull();
+
+    if(args) {
+        result = func->handler(args, table);
+        freevec(args);
+    }
+
+    return result;
 }

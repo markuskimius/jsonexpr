@@ -161,37 +161,37 @@ def doMyThing():
             #         null,
             #     ];
 
-            #     MYARRAY[1] = FUNCTION("$",
+            #     MYARRAY[1] = FUNCTION("?",
             #         PRINT("Bye, world!");
             #     );
 
             #     MYARRAY[1](5);
             #     MYARRAY
             # ''')
-            code = wasm.strdup('''
-                {
-                  "menu": {
-                    "id": "file",
-                    "value": "File",
-                    "popup": {
-                        "menuitem": [
-                          {
-                            "value": "New",
-                            "onclick": "CreateNewDoc()"
-                          },
-                          {
-                            "value": "Open",
-                            "onclick": "OpenDoc()"
-                          },
-                          {
-                            "value": "Close",
-                            "onclick": "CloseDoc()"
-                          }
-                        ]
-                    }
-                  }
-                };
-            ''')
+            # code = wasm.strdup('''
+            #     {
+            #       "menu": {
+            #         "id": "file",
+            #         "value": "File",
+            #         "popup": {
+            #             "menuitem": [
+            #               {
+            #                 "value": "New",
+            #                 "onclick": "CreateNewDoc()"
+            #               },
+            #               {
+            #                 "value": "Open",
+            #                 "onclick": "OpenDoc()"
+            #               },
+            #               {
+            #                 "value": "Close",
+            #                 "onclick": "CloseDoc()"
+            #               }
+            #             ]
+            #         }
+            #       }
+            #     };
+            # ''')
             # code = wasm.strdup('''
             #     {
             #       "menu": {
@@ -209,14 +209,23 @@ def doMyThing():
             #         "world" : 456,
             #     };
 
-            #     MYOBJ.myfn = FUNCTION("$",
+            #     MYOBJ.myfn = FUNCTION("",
             #         PRINT("Bye, world!");
             #     );
 
             #     MYOBJ.myfn();
             #     MYOBJ["myfn"]();
-            #     MYOBJ
+            #     MYOBJ;
             # ''')
+            code = wasm.strdup('''
+                PRINT("Hello, world!");
+
+                myfn = FUNCTION("S",
+                    PRINT("Goodbye,", ARG[0]);
+                );
+
+                myfn("world!");
+            ''')
             ast = instance.exports.parse(code)
             result = instance.exports.eval(ast, 0)
             svalue = instance.exports.strvalue(result);

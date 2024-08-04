@@ -186,20 +186,20 @@ static void getnodelist(VEC* list, NODE* node) {
 static VALUE* call(SYM_TABLE* table, NODE* node) {
     VALUE* func = gettable2(table, node->left);
     VALUE* value = newnull();
-    VEC* args = newvec();
+    VEC* nodes = newvec();
 
     /* Get arguments */
-    if(node->right) getnodelist(args, node->right);
+    if(node->right) getnodelist(nodes, node->right);
 
     /* Call the function */
     switch(func->type) {
-        case BUILTIN_V  : value = funcexec(func->value.bfn, args, table); break;
-        case USERFUNC_V : value = ufuncexec(func->value.ufn, args, table); break;
+        case BUILTIN_V  : value = funcexec(func->value.bfn, nodes, table); break;
+        case USERFUNC_V : value = ufuncexec(func->value.ufn, nodes, table); break;
         default         : fprintf(stderr, "%s: Invalid value type: '%c' (%d)\n", __FUNCTION__, func->type, func->type); break;
     }
 
     /* Free arguments */
-    freevec(args);
+    freevec(nodes);
 
     return value;
 }

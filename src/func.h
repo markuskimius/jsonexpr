@@ -42,7 +42,8 @@ typedef struct FUNC {
 FUNC* newfunc(FUNC_HANDLER handler, const char* name, const char* spec);
 void freefunc(FUNC* func);
 char* astrfunc(FUNC* func);
-VALUE* funcexec(FUNC* func, VEC* args, SYM_TABLE* table);
+VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table);
+VALUE* funcexec(FUNC* func, VEC* nodes, SYM_TABLE* table);
 
 
 #endif /* FUNC_H_ */

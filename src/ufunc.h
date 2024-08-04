@@ -41,7 +41,7 @@ typedef struct UFUNC {
 UFUNC* newufunc(NODE* handler, const char* name, const char* sig);
 void freeufunc(UFUNC* ufunc);
 char* astrufunc(UFUNC* ufunc);
-VALUE* ufuncexec(UFUNC* ufunc, VEC* args, SYM_TABLE* table);
+VALUE* ufuncexec(UFUNC* ufunc, VEC* nodes, SYM_TABLE* table);
 
 
 #endif /* UFUNC_H_ */

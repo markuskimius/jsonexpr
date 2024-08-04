@@ -15,9 +15,10 @@ typedef struct VALUE VALUE;
 
 typedef struct MAP {
     VALUE* value;
-    const char* key;
+    char* key;
     struct MAP* next[256];
     struct MAP* prev;
+    size_t nchildren;
 } MAP;
 
 
@@ -29,6 +30,7 @@ MAP* newmap();
 void freemap(MAP* map);
 char* astrmap(MAP* map);
 void setmap(MAP* map, const char* key, VALUE* value);
+void unsetmap(MAP* map, const char* key);
 VALUE* getmap(MAP* map, const char* key);
 MAP* nextmap(const MAP* map);
 

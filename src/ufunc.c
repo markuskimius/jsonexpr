@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "eval.h"
+#include "func.h"
 #include "node.h"
+#include "map.h"
 #include "util.h"
 #include "ufunc.h"
 #include "value.h"
@@ -37,11 +39,18 @@ char* astrufunc(UFUNC* ufunc) {
 }
 
 
-VALUE* ufuncexec(UFUNC* ufunc, VEC* args, SYM_TABLE* table) {
-    VALUE* value = newnull();
+VALUE* ufuncexec(UFUNC* ufunc, VEC* nodes, SYM_TABLE* table) {
+    VEC* args = funcargs(ufunc->sig, nodes, table);
+    VALUE* result = newnull();
 
-/* TODO - Validate signature */
-    value = eval(ufunc->handler, table);
+    if(args) {
+        settable(table, "ARG", newarray(args));
 
-    return value;
+        result = eval(ufunc->handler, table);
+
+        unsettable(table, "ARG");
+        /* unsettable handles free */
+    }
+
+    return result;
 }

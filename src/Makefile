@@ -29,7 +29,7 @@ builtin.o: builtin.c builtin.h eval.h func.h map.h node.h ufunc.h value.h vector
 
 eval.o: eval.c eval.h func.h map.h node.h oper.h ufunc.h value.h vector.h symtable.h
 
-func.o: func.c func.h node.h value.h vector.h symtable.h
+func.o: func.c eval.h func.h node.h value.h vector.h symtable.h
 
 main.o: main.c eval.h map.h util.h parse.h value.h vector.h
 
@@ -41,7 +41,7 @@ oper.o: oper.c map.h node.h oper.h util.h parse.h value.h vector.h
 
 symtable.o: symtable.c map.h builtin.h symtable.h value.h
 
-ufunc.o: ufunc.c eval.h node.h util.h ufunc.h value.h vector.h symtable.h
+ufunc.o: ufunc.c eval.h func.h node.h util.h ufunc.h value.h vector.h symtable.h
 
 util.o: util.c util.h
 

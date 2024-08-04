@@ -35,7 +35,7 @@ oper.o: oper.c map.h node.h oper.h util.h parse.h value.h vector.h
 
 symtable.o: symtable.c map.h builtin.h symtable.h value.h
 
-ufunc.o: ufunc.c eval.h node.h util.h ufunc.h value.h vector.h symtable.h
+ufunc.o: ufunc.c eval.h func.h node.h util.h ufunc.h value.h vector.h symtable.h
 
 util.o: util.c util.h
 

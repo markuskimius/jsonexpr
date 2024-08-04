@@ -33,24 +33,53 @@ static size_t nufunc = 0;
 */
 
 static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
-    char name[64];
-    char* sig = NULL;
-    VALUE* spec = eval(args->item[0]->value.node, table);
-    VALUE* result = newnull();
+    VALUE* spec = args->item[0];
+    char* sig = strvalue(spec);
+    int isok = 1;
 
-    snprintf(name, sizeof(name), "FUNCTION#%zd()", ++nufunc);
+    if(spec->type == STRING_V) {
+        int nstars = 0;
 
-    switch(spec->type) {
-        case STRING_V:
-            break;
+        /* Validate the signature argument */
+        for(size_t i=0; i<strlen(sig); i++) {
+            /* Validate signature */
+            if(!strchr("BIDSAOF?.*", sig[i])) {
+                fprintf(stderr, "%s: Invalid function argument signature: %c\n", __FUNCTION__, sig[i]);
+                isok = 0;
+                break;
+            }
 
-        default:
-            fprintf(stderr, "Invalid argument type, expected string but got %c\n", spec->type);
+            /* Signature can only end with a star */
+            if(nstars && sig[i] != '*') {
+                fprintf(stderr, "%s: '*' must terminate function argument signature\n", __FUNCTION__);
+                isok = 0;
+                break;
+            }
+
+            /* Maximum # of stars is 2 */
+            if(sig[i] == '*' && nstars == 2) {
+                fprintf(stderr, "%s: Too many '*', maximum is 2\n", __FUNCTION__);
+                isok = 0;
+                break;
+            }
+
+            if(sig[i] == '*') nstars++;
+        }
+    }
+    else {
+        fprintf(stderr, "%s: Invalid argument type, expected string but got %c\n", __FUNCTION__, spec->type);
+        isok = 0;
     }
 
-    freevalue(spec);
+    if(isok) {
+        char name[64];
 
-    return newuserfunc(newufunc(args->item[1]->value.node, name, sig));
+        snprintf(name, sizeof(name), "FUNCTION#%zd()", ++nufunc);
+
+        return newuserfunc(newufunc(args->item[1]->value.node, name, sig));
+    }
+
+    return newnull();
 }
 
 
@@ -58,10 +87,8 @@ static VALUE* PRINT(VEC* args, SYM_TABLE* table) {
     VALUE* last = newnull();
 
     for(size_t i=0; i<args->length; i++) {
-        NODE* node = args->item[i]->value.node;
-
         if(last) freevalue(last);
-        last = eval(node, table);
+        last = dupvalue(args->item[i]);
 
         if(i > 0) printf(" ");
         printf("%s", strvalue(last));
@@ -81,7 +108,7 @@ MAP* builtin() {
     if(!BUILTINS) {
         BUILTINS = newmap();
 
-        setmap(BUILTINS, "FUNCTION", newbuiltin(newfunc(FUNCTION, "FUNCTION()", "SN")));
+        setmap(BUILTINS, "FUNCTION", newbuiltin(newfunc(FUNCTION, "FUNCTION()", "S.")));
         setmap(BUILTINS, "PRINT"   , newbuiltin(newfunc(PRINT   , "PRINT()"   , "*")));
     }
 

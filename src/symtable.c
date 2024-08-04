@@ -53,3 +53,15 @@ void settable(SYM_TABLE* table, const char* name, VALUE* value) {
         setmap(table->symbols, name, value);
     }
 }
+
+
+void unsettable(SYM_TABLE* table, const char* name) {
+    /* Unset at this level if the symbol exists at this level */
+    if(getmap(table->symbols, name)) {
+        unsetmap(table->symbols, name);
+    }
+    /* Unset in parent if the symbol exists at the higher level */
+    else if(table->parent && gettable(table->parent, name)) {
+        unsettable(table->parent, name);
+    }
+}

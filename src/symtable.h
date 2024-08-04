@@ -27,6 +27,7 @@ typedef struct SYM_TABLE {
 SYM_TABLE* newtable(SYM_TABLE* parent);
 VALUE* gettable(SYM_TABLE* table, const char* name);
 void settable(SYM_TABLE* table, const char* name, VALUE* value);
+void unsettable(SYM_TABLE* table, const char* name);
 
 
 #endif /* SYMTABLE_H_ */

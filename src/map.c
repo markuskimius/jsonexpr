@@ -19,7 +19,7 @@
 */
 
 static void _setmap(MAP* map, const char* key0, const char* keyi, VALUE* value) {
-    int ni = (unsigned)*keyi;
+    int ni = *(const unsigned char*)keyi;
     MAP* nn = map->next[ni];
 
     /* Terminal node -> assign the value to this node */
@@ -35,15 +35,48 @@ static void _setmap(MAP* map, const char* key0, const char* keyi, VALUE* value) 
     if(!nn) {
         nn = map->next[ni] = newmap();
         nn->prev = map;
+        map->nchildren++;
     }
 
     /* Traverse to next node */
     _setmap(nn, key0, keyi+1, value);
 }
 
+static int _unsetmap(MAP* map, const char* key) {
+    int ni = *(const unsigned char*)key;
+    MAP* nn = map->next[ni];
+    int freed = 0;
+
+    /* Terminal node -> remove the value at this node */
+    if(ni == 0) {
+        if(map->key) free(map->key);
+        if(map->value) freevalue(map->value);
+
+        map->key = NULL;
+        map->value = NULL;
+    }
+    /* Traverse to the next node */
+    else if(nn) {
+        int cfreed = _unsetmap(nn, key+1);
+
+        if(cfreed) {
+            map->next[ni] = NULL;
+            map->nchildren--;
+        }
+    }
+
+    /* Free this node if it has no children */
+    if(map->nchildren == 0) {
+        free(map);
+        freed = 1;
+    }
+
+    return freed;
+}
+
 
 static MAP* _nextmap(const MAP* map, const char* lastkey, int i) {
-    int ni = (unsigned) lastkey[i] + 1;
+    int ni = *((const unsigned char*)lastkey + i) + 1;
 
     /* Next child, if any */
     while(ni < NDEGREE) {
@@ -123,6 +156,11 @@ char* astrmap(MAP* map) {
 
 void setmap(MAP* map, const char* key, VALUE* value) {
     return _setmap(map, key, key, value);
+}
+
+
+void unsetmap(MAP* map, const char* key) {
+    _unsetmap(map, key);
 }
 
 
