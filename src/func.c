@@ -50,6 +50,12 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
         /* value must be a node */
         assert(value->type == NODE_V);
 
+        /* check too many arguments */
+        if(*cp == '\0') {
+            fprintf(stderr, "%s: too many arguments, expected %ld, got %zu\n", __FUNCTION__, (cp-sig), nodes->length);
+            isok = 0;
+        }
+
         /* evaluate */
         if(strchr("BIDSAOF?", *cp)) {
             VALUE* v = eval(node, table);
@@ -75,6 +81,14 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
             /* do not advance cp */
         }
+
+        if(!isok) break;
+    }
+
+    /* check too few arguments */
+    if(isok && !strchr("*", *cp)) {
+        fprintf(stderr, "%s: too few arguments, expected > %ld, got %zu\n", __FUNCTION__, (cp-sig), nodes->length);
+        isok = 0;
     }
 
     if(!isok) {
