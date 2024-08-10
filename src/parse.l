@@ -61,11 +61,11 @@ static void yynextline() {
 {INT}{EXP}              { yylval.token = dbltoken(FLOAT_T, &yylloc, yytext, strtod(yytext, NULL)); return FLOAT_T; }
 [_a-zA-Z][_a-zA-Z0-9]*  { yylval.token = strtoken(IDENT_T, &yylloc, yytext, yytext); return IDENT_T; }
 "{"                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }
-"}"                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }
+"}"                     { return yytext[0]; }
 "["                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }
-"]"                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }
+"]"                     { return yytext[0]; }
 "("                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }
-")"                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }
+")"                     { return yytext[0]; }
 ":"                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }
 ","                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }
 ";"                     { yylval.token = newtoken(yytext[0], &yylloc, yytext); return yytext[0]; }

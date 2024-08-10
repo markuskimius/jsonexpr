@@ -60,7 +60,7 @@ TOKEN* astrtoken(int type, const YYLTYPE* start, const YYLTYPE* end, char* text,
     return token;
 }
 
-void freetok(TOKEN* token) {
+void freetoken(TOKEN* token) {
     switch(token->type) {
         case IDENT_T:
         case STRING_T:

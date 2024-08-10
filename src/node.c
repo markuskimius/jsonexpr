@@ -8,12 +8,13 @@
 * PUBLIC FUNCTIONS
 */
 
-NODE* newnode(int type, NODE* left, NODE* right) {
+NODE* newnode(int type, TOKEN* token, NODE* left, NODE* right) {
     NODE* node = calloc(1, sizeof(NODE));
 
     node->type = type;
     node->left = left;
     node->right = right;
+    node->token = token;
 
     return node;
 }

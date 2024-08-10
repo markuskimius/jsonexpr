@@ -31,7 +31,7 @@ TOKEN* inttoken(int type, const YYLTYPE* loc, const char* text, int64_t i);
 TOKEN* dbltoken(int type, const YYLTYPE* loc, const char* text, double f);
 TOKEN* strtoken(int type, const YYLTYPE* loc, const char* text, const char* s);
 TOKEN* astrtoken(int type, const YYLTYPE* start, const YYLTYPE* end, char* text, char* s);
-void freetok(TOKEN* token);
+void freetoken(TOKEN* token);
 
 
 #endif /* TOKEN_H_ */

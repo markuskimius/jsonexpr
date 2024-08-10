@@ -53,7 +53,7 @@ typedef struct NODE {
 * PUBLIC FUNCTIONS
 */
 
-NODE* newnode(int type, NODE* left, NODE* right);
+NODE* newnode(int type, TOKEN* token, NODE* left, NODE* right);
 NODE* newleaf(int type, TOKEN* token);
 
 
