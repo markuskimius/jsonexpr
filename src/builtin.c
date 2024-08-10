@@ -6,6 +6,7 @@
 #include "func.h"
 #include "map.h"
 #include "node.h"
+#include "throw.h"
 #include "ufunc.h"
 #include "value.h"
 #include "vector.h"
@@ -34,7 +35,7 @@ static size_t nufunc = 0;
 
 static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
     VALUE* spec = args->item[0];
-    char* sig = strvalue(spec);
+    char* sig = strdecoded(spec);
     int isok = 1;
 
     if(spec->type == STRING_V) {
@@ -44,21 +45,21 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
         for(size_t i=0; i<strlen(sig); i++) {
             /* Validate signature */
             if(!strchr("BIDSAOF?.*", sig[i])) {
-                fprintf(stderr, "%s: Invalid function argument signature: %c\n", __FUNCTION__, sig[i]);
+                raise("%s: Invalid function argument signature: %c\n", __FUNCTION__, sig[i]);
                 isok = 0;
                 break;
             }
 
             /* Signature can only end with a star */
             if(nstars && sig[i] != '*') {
-                fprintf(stderr, "%s: '*' must terminate function argument signature\n", __FUNCTION__);
+                raise("%s: '*' must terminate function argument signature\n", __FUNCTION__);
                 isok = 0;
                 break;
             }
 
             /* Maximum # of stars is 2 */
             if(sig[i] == '*' && nstars == 2) {
-                fprintf(stderr, "%s: Too many '*', maximum is 2\n", __FUNCTION__);
+                raise("%s: Too many '*', maximum is 2\n", __FUNCTION__);
                 isok = 0;
                 break;
             }
@@ -67,7 +68,7 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
         }
     }
     else {
-        fprintf(stderr, "%s: Invalid argument type, expected string but got %c\n", __FUNCTION__, spec->type);
+        raise("%s: Invalid argument type, expected string but got %c\n", __FUNCTION__, spec->type);
         isok = 0;
     }
 
@@ -76,27 +77,42 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
 
         snprintf(name, sizeof(name), "FUNCTION#%zd()", ++nufunc);
 
-        return newuserfunc(newufunc(args->item[1]->value.node, name, sig));
+        return ufnvalue(newufunc(args->item[1]->value.node, name, sig, table));
     }
 
-    return newnull();
+    return NULL;
 }
 
 
 static VALUE* PRINT(VEC* args, SYM_TABLE* table) {
-    VALUE* last = newnull();
+    VALUE* last = nullvalue();
 
     for(size_t i=0; i<args->length; i++) {
         if(last) freevalue(last);
         last = dupvalue(args->item[i]);
 
         if(i > 0) printf(" ");
-        printf("%s", strvalue(last));
+        printf("%s", strdecoded(last));
     }
 
     printf("\n");
 
     return last;
+}
+
+
+static VALUE* LEN(VEC* args, SYM_TABLE* table) {
+    VALUE* result = NULL;
+    VALUE* value = args->item[0];
+
+    switch(value->type) {
+        case STRING_V   : result = intvalue(strlen(strdecoded(value))); break;
+        case ARRAY_V    : result = intvalue(value->value.vec->length); break;
+        case OBJECT_V   : result = intvalue(value->value.map->length); break;
+        default         : raise("%s: Invalid value type '%c' (%d)\n", __FUNCTION__, value->type, value->type); break;
+    }
+
+    return result;
 }
 
 
@@ -108,8 +124,9 @@ MAP* builtin() {
     if(!BUILTINS) {
         BUILTINS = newmap();
 
-        setmap(BUILTINS, "FUNCTION", newbuiltin(newfunc(FUNCTION, "FUNCTION()", "S.")));
-        setmap(BUILTINS, "PRINT"   , newbuiltin(newfunc(PRINT   , "PRINT()"   , "*")));
+        setmap(BUILTINS, "FUNCTION", bfnvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
+        setmap(BUILTINS, "PRINT"   , bfnvalue(newfunc(PRINT   , "PRINT()"   , "*")));
+        setmap(BUILTINS, "LEN"     , bfnvalue(newfunc(LEN     , "LEN()"     , "?")));
     }
 
     return BUILTINS;

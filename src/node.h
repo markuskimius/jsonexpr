@@ -5,6 +5,13 @@
 
 
 /* ***************************************************************************
+* FORWARD DECLARATIONS
+*/
+
+typedef struct TOKEN TOKEN;
+
+
+/* ***************************************************************************
 * CONSTANTS
 */
 
@@ -21,6 +28,12 @@ enum {
     IDENT_N,
     UPLUS_N,
     UMINUS_N,
+    EQ_N,
+    NE_N,
+    LT_N,
+    LE_N,
+    GT_N,
+    GE_N,
 };
 
 
@@ -32,11 +45,7 @@ typedef struct NODE {
     int type;
     struct NODE* left;
     struct NODE* right;
-    union {
-        int64_t i;
-        double f;
-        char* s;
-    } value;
+    struct TOKEN* token;
 } NODE;
 
 
@@ -45,7 +54,7 @@ typedef struct NODE {
 */
 
 NODE* newnode(int type, NODE* left, NODE* right);
-NODE* newleaf(int type, void* value);
+NODE* newleaf(int type, TOKEN* token);
 
 
 #endif /* NODE_H_ */

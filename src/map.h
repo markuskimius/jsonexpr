@@ -19,6 +19,7 @@ typedef struct MAP {
     struct MAP* next[256];
     struct MAP* prev;
     size_t nchildren;
+    size_t length;
 } MAP;
 
 
@@ -33,6 +34,8 @@ void setmap(MAP* map, const char* key, VALUE* value);
 void unsetmap(MAP* map, const char* key);
 VALUE* getmap(MAP* map, const char* key);
 MAP* nextmap(const MAP* map);
+
+int cmpmap(MAP* map1, MAP* map2);
 
 
 #endif /* MAP_H_ */

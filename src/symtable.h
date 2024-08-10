@@ -17,6 +17,7 @@ typedef struct VALUE VALUE;
 typedef struct SYM_TABLE {
     struct MAP* symbols;
     struct SYM_TABLE* parent;
+    size_t count;
 } SYM_TABLE;
 
 
@@ -25,9 +26,11 @@ typedef struct SYM_TABLE {
 */
 
 SYM_TABLE* newtable(SYM_TABLE* parent);
-VALUE* gettable(SYM_TABLE* table, const char* name);
+SYM_TABLE* duptable(SYM_TABLE* table);
+void freetable(SYM_TABLE* table);
 void settable(SYM_TABLE* table, const char* name, VALUE* value);
 void unsettable(SYM_TABLE* table, const char* name);
+VALUE* gettable(SYM_TABLE* table, const char* name);
 
 
 #endif /* SYMTABLE_H_ */

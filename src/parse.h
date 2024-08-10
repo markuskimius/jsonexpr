@@ -10,6 +10,12 @@
 
 typedef struct NODE NODE;
 
+extern char* yytext;
+extern const char* yyerrtext;
+extern int yylineno;
+extern int yycolumn;
+extern NODE* yyast;
+
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS

@@ -12,6 +12,7 @@
 
 SYM_TABLE* newtable(SYM_TABLE* parent) {
     SYM_TABLE* table = calloc(1, sizeof(SYM_TABLE));
+    SYM_TABLE* pp = parent;
 
     table->symbols = newmap();
     table->parent = parent;
@@ -25,17 +26,34 @@ SYM_TABLE* newtable(SYM_TABLE* parent) {
         }
     }
 
+    return duptable(table);
+}
+
+
+SYM_TABLE* duptable(SYM_TABLE* table) {
+    table->count++;
+
+    if(table->parent) {
+        duptable(table->parent);
+    }
+
     return table;
 }
 
 
-VALUE* gettable(SYM_TABLE* table, const char* name) {
-    VALUE* value = NULL;
+void freetable(SYM_TABLE* table) {
+    table->count--;
 
-    if(table && !value) value = getmap(table->symbols, name);
-    if(table && !value) value = gettable(table->parent, name);
+    /* Free this table if it's no longer used */
+    if(table->count == 0) {
+        freemap(table->symbols);
+        free(table);
+    }
 
-    return value;
+    /* Reduce parent counter */
+    if(table->parent) {
+        freetable(table->parent);
+    }
 }
 
 
@@ -64,4 +82,14 @@ void unsettable(SYM_TABLE* table, const char* name) {
     else if(table->parent && gettable(table->parent, name)) {
         unsettable(table->parent, name);
     }
+}
+
+
+VALUE* gettable(SYM_TABLE* table, const char* name) {
+    VALUE* value = NULL;
+
+    if(table && !value) value = getmap(table->symbols, name);
+    if(table && !value) value = gettable(table->parent, name);
+
+    return value;
 }

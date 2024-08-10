@@ -4,6 +4,7 @@
 #include "func.h"
 #include "map.h"
 #include "util.h"
+#include "throw.h"
 #include "ufunc.h"
 #include "value.h"
 #include "vector.h"
@@ -20,7 +21,7 @@ VALUE* null = NULL;
 * PUBLIC FUNCTIONS
 */
 
-VALUE* newnull() {
+VALUE* nullvalue() {
     if(!null) {
         null = calloc(1, sizeof(VALUE));
 
@@ -32,18 +33,18 @@ VALUE* newnull() {
 }
 
 
-VALUE* newbool(int64_t i64) {
+VALUE* boolvalue(int64_t i64) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = BOOL_V;
     value->count = 1;
-    value->value.i64 = i64;
+    value->value.i64 = i64 ? 1 : 0;
 
     return value;
 }
 
 
-VALUE* newint64(int64_t i64) {
+VALUE* intvalue(int64_t i64) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = INT64_V;
@@ -54,7 +55,7 @@ VALUE* newint64(int64_t i64) {
 }
 
 
-VALUE* newdouble(double f64) {
+VALUE* dblvalue(double f64) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = DOUBLE_V;
@@ -65,7 +66,7 @@ VALUE* newdouble(double f64) {
 }
 
 
-VALUE* newstring(const char* str) {
+VALUE* strvalue(const char* str) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = STRING_V;
@@ -76,7 +77,7 @@ VALUE* newstring(const char* str) {
 }
 
 
-VALUE* newarray(VEC* vec) {
+VALUE* arrvalue(VEC* vec) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = ARRAY_V;
@@ -87,7 +88,7 @@ VALUE* newarray(VEC* vec) {
 }
 
 
-VALUE* newobject(MAP* map) {
+VALUE* objvalue(MAP* map) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = OBJECT_V;
@@ -98,7 +99,7 @@ VALUE* newobject(MAP* map) {
 }
 
 
-VALUE* newbuiltin(FUNC* func) {
+VALUE* bfnvalue(FUNC* func) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = BUILTIN_V;
@@ -109,7 +110,7 @@ VALUE* newbuiltin(FUNC* func) {
 }
 
 
-VALUE* newuserfunc(UFUNC* ufunc) {
+VALUE* ufnvalue(UFUNC* ufunc) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = USERFUNC_V;
@@ -120,7 +121,7 @@ VALUE* newuserfunc(UFUNC* ufunc) {
 }
 
 
-VALUE* newnodevalue(NODE* node) {
+VALUE* nodevalue(NODE* node) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = NODE_V;
@@ -151,45 +152,45 @@ void freevalue(VALUE* value) {
             case BUILTIN_V  : freefunc(value->value.bfn); break;
             case USERFUNC_V : freeufunc(value->value.ufn); break;
             case NODE_V     : break;
-            default         : fprintf(stderr, "%s: Invalid value type '%c' (%d)\n", __FUNCTION__, value->type, value->type); break;
+            default         : die("Invalid value type '%c' (%d)\n", value->type, value->type); break;
         }
 
-        if(value->astrvalue) free(value->astrvalue);
+        if(value->astrdecoded) free(value->astrdecoded);
         if(value->astrencoded) free(value->astrencoded);
         free(value);
     }
 }
 
 
-char* strvalue(VALUE* value) {
+char* strdecoded(VALUE* value) {
     if(value) {
         /* Reset the previous representation */
-        if(value->astrvalue && value->type != NULL_V) {
-            free(value->astrvalue);
-            value->astrvalue = NULL;
+        if(value->astrdecoded && value->type != NULL_V) {
+            free(value->astrdecoded);
+            value->astrdecoded = NULL;
         }
 
         /* Generate new representation */
         switch(value->type) {
-            case NULL_V     : value->astrvalue = strdup("null"); break;
-            case BOOL_V     : value->astrvalue = value->value.i64 ? strdup("true") : strdup("false"); break;
-            case INT64_V    : value->astrvalue = astri64(value->value.i64); break;
-            case DOUBLE_V   : value->astrvalue = astrf64(value->value.f64); break;
-            case STRING_V   : value->astrvalue = strdup(value->value.str); break;
-            case ARRAY_V    : value->astrvalue = astrvec(value->value.vec); break;
-            case OBJECT_V   : value->astrvalue = astrmap(value->value.map); break;
-            case BUILTIN_V  : value->astrvalue = astrfunc(value->value.bfn); break;
-            case USERFUNC_V : value->astrvalue = astrufunc(value->value.ufn); break;
-            case NODE_V     : value->astrvalue = strdup("NODE"); break;
-            default         : fprintf(stderr, "%s: Invalid value type '%c' (%d)\n", __FUNCTION__, value->type, value->type); break;
+            case NULL_V     : value->astrdecoded = strdup("null"); break;
+            case BOOL_V     : value->astrdecoded = value->value.i64 ? strdup("true") : strdup("false"); break;
+            case INT64_V    : value->astrdecoded = astri64(value->value.i64); break;
+            case DOUBLE_V   : value->astrdecoded = astrf64(value->value.f64); break;
+            case STRING_V   : value->astrdecoded = strdup(value->value.str); break;
+            case ARRAY_V    : value->astrdecoded = astrvec(value->value.vec); break;
+            case OBJECT_V   : value->astrdecoded = astrmap(value->value.map); break;
+            case BUILTIN_V  : value->astrdecoded = astrfunc(value->value.bfn); break;
+            case USERFUNC_V : value->astrdecoded = astrufunc(value->value.ufn); break;
+            case NODE_V     : value->astrdecoded = strdup("NODE"); break;
+            default         : die("Invalid value type '%c' (%d)\n", value->type, value->type); break;
         }
 
         /* Default */
-        if(!value->astrvalue) {
-            value->astrvalue = strdup("null");
+        if(!value->astrdecoded) {
+            value->astrdecoded = strdup("null");
         }
 
-        return value->astrvalue;
+        return value->astrdecoded;
     }
 
     return "null";
@@ -216,7 +217,7 @@ char* strencoded(VALUE* value) {
             case BUILTIN_V  : value->astrencoded = astrfunc(value->value.bfn); break;
             case USERFUNC_V : value->astrencoded = astrufunc(value->value.ufn); break;
             case NODE_V     : value->astrencoded = strdup("NODE"); break;
-            default         : fprintf(stderr, "%s: Invalid value type '%c' (%d)\n", __FUNCTION__, value->type, value->type); break;
+            default         : die("Invalid value type '%c' (%d)\n", value->type, value->type); break;
         }
 
         /* Default */
@@ -228,6 +229,27 @@ char* strencoded(VALUE* value) {
     }
 
     return "null";
+}
+
+
+int cmpvalue(VALUE* value1, VALUE* value2) {
+    int result = 0;
+
+    if     (value1->type == NULL_V     && value2->type == NULL_V    ) result = 0;
+    else if(value1->type == BOOL_V     && value2->type == BOOL_V    ) result = value1->value.i64 < value2->value.i64 ? -1 : value1->value.i64 == value2->value.i64 ? 0 : 1;
+    else if(value1->type == INT64_V    && value2->type == INT64_V   ) result = value1->value.i64 < value2->value.i64 ? -1 : value1->value.i64 == value2->value.i64 ? 0 : 1;
+    else if(value1->type == INT64_V    && value2->type == DOUBLE_V  ) result = value1->value.i64 < value2->value.f64 ? -1 : value1->value.i64 == value2->value.f64 ? 0 : 1;
+    else if(value1->type == DOUBLE_V   && value2->type == INT64_V   ) result = value1->value.f64 < value2->value.i64 ? -1 : value1->value.f64 == value2->value.i64 ? 0 : 1;
+    else if(value1->type == DOUBLE_V   && value2->type == DOUBLE_V  ) result = value1->value.f64 < value2->value.f64 ? -1 : value1->value.f64 == value2->value.f64 ? 0 : 1;
+    else if(value1->type == STRING_V   && value2->type == STRING_V  ) result = strcmp(value1->value.str, value2->value.str);
+    else if(value1->type == ARRAY_V    && value2->type == ARRAY_V   ) result = cmpvec(value1->value.vec, value2->value.vec);
+    else if(value1->type == OBJECT_V   && value2->type == OBJECT_V  ) result = cmpmap(value1->value.map, value2->value.map);
+    else if(value1->type == BUILTIN_V  && value2->type == BUILTIN_V ) result = value1->value.bfn  < value2->value.bfn  ? -1 : value1->value.bfn  == value2->value.bfn  ? 0 : 1;
+    else if(value1->type == USERFUNC_V && value2->type == USERFUNC_V) result = value1->value.ufn  < value2->value.ufn  ? -1 : value1->value.ufn  == value2->value.ufn  ? 0 : 1;
+    else if(value1->type == NODE_V     && value2->type == NODE_V    ) result = value1->value.node < value2->value.node ? -1 : value1->value.node == value2->value.node ? 0 : 1;
+    else                                                              result = value2->type - value1->type;
+
+    return result;
 }
 
 

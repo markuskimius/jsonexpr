@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "util.h"
+#include "throw.h"
 #include "value.h"
 #include "vector.h"
 
@@ -11,6 +12,13 @@
 */
 
 #define INITSIZE 8
+
+
+/* ***************************************************************************
+* MACROS
+*/
+
+#define MAX(a,b) ((a)>(b)?(a):(b))
 
 
 /* ***************************************************************************
@@ -80,7 +88,7 @@ void setvec(VEC* vec, size_t index, VALUE* item) {
         vec->item[index] = item;
     }
     else {
-        fprintf(stderr, "%s: Insert to invalid index %zd (max %zd)\n", __FUNCTION__, index, vec->length);
+        die("Insert to invalid index %zd (max %zd)\n", index, vec->length);
     }
 }
 
@@ -118,8 +126,8 @@ VALUE* backvec(VEC* vec) {
 void _testvec() {
     VEC* vec = newvec();
 
-    pushvec(vec, newstring("Hello, world!"));
-    pushvec(vec, newstring("Bye, world!"));
+    pushvec(vec, strvalue("Hello, world!"));
+    pushvec(vec, strvalue("Bye, world!"));
 
     for(int i=0; i<vec->length; i++) {
         VALUE* value = vec->item[i];
@@ -128,4 +136,20 @@ void _testvec() {
     }
 
     freevec(vec);
+}
+
+
+int cmpvec(VEC* vec1, VEC* vec2) {
+    size_t len = MAX(vec1->length, vec2->length);
+    int cmp = 0;
+
+    for(size_t i=0; i<len; i++) {
+        if     (i<vec1->length && i<vec2->length) cmp = cmpvalue(vec1->item[i], vec2->item[i]);
+        else if(i<vec1->length)                   cmp = 1;
+        else                                      cmp = -1;
+
+        if(cmp != 0) break;
+    }
+
+    return cmp;
 }

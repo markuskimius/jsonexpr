@@ -18,17 +18,19 @@
 * PRIVATE FUNCTIONS
 */
 
-static void _setmap(MAP* map, const char* key0, const char* keyi, VALUE* value) {
+static int _setmap(MAP* map, const char* key0, const char* keyi, VALUE* value) {
     int ni = *(const unsigned char*)keyi;
     MAP* nn = map->next[ni];
+    int incr = 1;
 
     /* Terminal node -> assign the value to this node */
     if(ni == 0) {
         if(!map->key) map->key = strdup(key0);
         if(map->value) freevalue(map->value);
+        if(!map->value) incr++;
         map->value = value;
 
-        return;
+        return incr;
     }
 
     /* Create next node if needed */
@@ -39,7 +41,7 @@ static void _setmap(MAP* map, const char* key0, const char* keyi, VALUE* value) 
     }
 
     /* Traverse to next node */
-    _setmap(nn, key0, keyi+1, value);
+    return _setmap(nn, key0, keyi+1, value);
 }
 
 static int _unsetmap(MAP* map, const char* key) {
@@ -155,11 +157,13 @@ char* astrmap(MAP* map) {
 
 
 void setmap(MAP* map, const char* key, VALUE* value) {
-    return _setmap(map, key, key, value);
+    map->length += _setmap(map, key, key, value);
 }
 
 
 void unsetmap(MAP* map, const char* key) {
+    if(getmap(map, key)) map->length--;
+
     _unsetmap(map, key);
 }
 
@@ -186,7 +190,7 @@ MAP* nextmap(const MAP* map) {
 
 void _printmap(const MAP* map, char c, int depth) {
     for(int i=0; i<depth; i++) printf("  ");
-    printf("[%c] => addr=%p, prev=%p, key=%s, value=%s\n", c, map, map->prev, map->key, strvalue(map->value));
+    printf("[%c] => addr=%p, prev=%p, key=%s, value=%s\n", c, map, map->prev, map->key, strdecoded(map->value));
 
     for(int i=0; i<NDEGREE; i++) {
         const MAP* next = map->next[i];
@@ -201,8 +205,8 @@ void _testmap() {
     const MAP* mapi = map;
 
     /* Set test */
-    setmap(map, "Hello", newstring("world!"));
-    setmap(map, "Bye", newstring("cruel world!"));
+    setmap(map, "Hello", strvalue("world!"));
+    setmap(map, "Bye", strvalue("cruel world!"));
 
     /* Get test */
     printf("Bye, %s\n", strencoded(getmap(map, "Bye")));
@@ -221,4 +225,26 @@ void _testmap() {
 
     /* Free test */
     freemap(map);
+}
+
+
+int cmpmap(MAP* map1, MAP* map2) {
+    int cmp = 0;
+
+    while(1) {
+        map1 = nextmap(map1);
+        map2 = nextmap(map2);
+
+        if(map1 && map2) {
+            cmp = strcmp(map1->key, map2->key);
+            if(cmp == 0) cmp = cmpvalue(map1->value, map2->value);
+        }
+        else if(map1) cmp = 1;
+        else if(map2) cmp = -1;
+        else          break;
+
+        if(cmp != 0) break;
+    }
+
+    return cmp;
 }

@@ -102,11 +102,11 @@ class WasmIface:
             addr = self.instance.exports.calloc(1, len(string)+1)
             self.memory8[addr:addr+len(string)] = string.encode("utf-8")
             self.memory8[addr+len(string)] = 0
-        
+
             self.addrByString[string] = addr
 
         return self.addrByString[string]
-        
+
     def strat(self, addr):
         len = 0
 
@@ -217,18 +217,41 @@ def doMyThing():
             #     MYOBJ["myfn"]();
             #     MYOBJ;
             # ''')
-            code = wasm.strdup('''
-                PRINT("Hello, world!");
+            # code = wasm.strdup('''
+            #     PRINT("Hello, world!");
 
-                myfn = FUNCTION("S",
-                    PRINT("Goodbye,", ARG[0]);
+            #     myfn = FUNCTION("*",
+            #         PRINT(ARG);
+            #     );
+
+            #     myfn("Hello", "world!");
+            #     null;
+            # ''')
+            code = wasm.strdup('''
+                memo = [ 0, 1 ];
+                fib = FUNCTION("I",
+                    x = ARG[0];
+
+# TODO
+# - Implement IF.
+# - Better error message than "call: Invalid value type: '' (0)" when the function is undefined.
+#   --> Need to make token return token with all state info. Need node to save the token.
+
+                    IF(x >= LEN(memo),
+                        x1 = fib(x-1);
+                        x2 = fib(x-2);
+
+                        memo[x] = x1 + x2
+                    );
+
+                    memo[x]
                 );
 
-                myfn("world!");
+                fib(20);
             ''')
             ast = instance.exports.parse(code)
             result = instance.exports.eval(ast, 0)
-            svalue = instance.exports.strvalue(result);
+            svalue = instance.exports.strdecoded(result);
 
             print(wasm.strat(svalue))
 

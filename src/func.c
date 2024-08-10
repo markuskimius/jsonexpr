@@ -6,6 +6,7 @@
 #include "eval.h"
 #include "func.h"
 #include "node.h"
+#include "throw.h"
 #include "value.h"
 #include "vector.h"
 #include "symtable.h"
@@ -52,7 +53,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
         /* check too many arguments */
         if(*cp == '\0') {
-            fprintf(stderr, "%s: too many arguments, expected %ld, got %zu\n", __FUNCTION__, (cp-sig), nodes->length);
+            raise("%s: too many arguments, expected %ld, got %zu\n", __FUNCTION__, (cp-sig), nodes->length);
             isok = 0;
         }
 
@@ -61,7 +62,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
             VALUE* v = eval(node, table);
 
             if(*cp != '?' && tolower(v->type) != tolower(*cp)) {
-                fprintf(stderr, "%s: Invalid argument type, expected %c, got %c\n", __FUNCTION__, *cp, v->type);
+                raise("%s: Invalid argument type, expected %c, got %c\n", __FUNCTION__, *cp, v->type);
                 isok = 0;
             }
 
@@ -87,7 +88,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
     /* check too few arguments */
     if(isok && !strchr("*", *cp)) {
-        fprintf(stderr, "%s: too few arguments, expected > %ld, got %zu\n", __FUNCTION__, (cp-sig), nodes->length);
+        raise("%s: too few arguments, expected > %ld, got %zu\n", __FUNCTION__, (cp-sig), nodes->length);
         isok = 0;
     }
 
@@ -102,7 +103,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
 VALUE* funcexec(FUNC* func, VEC* nodes, SYM_TABLE* table) {
     VEC* args = funcargs(func->sig, nodes, table);
-    VALUE* result = newnull();
+    VALUE* result = NULL;
 
     if(args) {
         result = func->handler(args, table);

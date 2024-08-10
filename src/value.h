@@ -44,14 +44,13 @@ typedef struct VALUE {
         int64_t i64;
         double f64;
         char* str;
-        char* name;
-        MAP* map;
         VEC* vec;
+        MAP* map;
         FUNC* bfn;
         UFUNC* ufn;
         NODE* node;
     } value;
-    char* astrvalue;
+    char* astrdecoded;
     char* astrencoded;
 } VALUE;
 
@@ -60,20 +59,23 @@ typedef struct VALUE {
 * PUBLIC FUNCTIONS
 */
 
-VALUE* newnull();
-VALUE* newbool(int64_t i64);
-VALUE* newint64(int64_t i64);
-VALUE* newdouble(double f64);
-VALUE* newstring(const char* str);
-VALUE* newarray(VEC* vec);
-VALUE* newobject(MAP* map);
-VALUE* newbuiltin(FUNC* func);
-VALUE* newuserfunc(UFUNC* ufunc);
-VALUE* newnodevalue(NODE* node);
+VALUE* nullvalue();
+VALUE* boolvalue(int64_t i64);
+VALUE* intvalue(int64_t i64);
+VALUE* dblvalue(double f64);
+VALUE* strvalue(const char* str);
+VALUE* arrvalue(VEC* vec);
+VALUE* objvalue(MAP* map);
+VALUE* bfnvalue(FUNC* func);
+VALUE* ufnvalue(UFUNC* ufunc);
+VALUE* nodevalue(NODE* node);
 VALUE* dupvalue(VALUE* value);
 void freevalue(VALUE* value);
-char* strvalue(VALUE* value);
+
+char* strdecoded(VALUE* value);
 char* strencoded(VALUE* value);
+
+int cmpvalue(VALUE* value1, VALUE* value2);
 
 
 /* ***************************************************************************

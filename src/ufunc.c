@@ -16,18 +16,20 @@
 * PUBLIC FUNCTIONS
 */
 
-UFUNC* newufunc(NODE* handler, const char* name, const char* sig) {
+UFUNC* newufunc(NODE* handler, const char* name, const char* sig, SYM_TABLE* ctx) {
     UFUNC* ufunc = calloc(1, sizeof(UFUNC));
 
     ufunc->handler = handler;
     ufunc->name = strdup(name);
     ufunc->sig = strdup(sig);
+    ufunc->ctx = duptable(ctx);
 
     return ufunc;
 }
 
 
 void freeufunc(UFUNC* ufunc) {
+    freetable(ufunc->ctx);
     free(ufunc->name);
     free(ufunc->sig);
     free(ufunc);
@@ -41,15 +43,15 @@ char* astrufunc(UFUNC* ufunc) {
 
 VALUE* ufuncexec(UFUNC* ufunc, VEC* nodes, SYM_TABLE* table) {
     VEC* args = funcargs(ufunc->sig, nodes, table);
-    VALUE* result = newnull();
+    VALUE* result = NULL;
 
     if(args) {
-        settable(table, "ARG", newarray(args));
+        SYM_TABLE* ctx = newtable(ufunc->ctx);
 
-        result = eval(ufunc->handler, table);
+        settable(ctx, "ARG", arrvalue(args));
+        result = eval(ufunc->handler, ctx);
 
-        unsettable(table, "ARG");
-        /* unsettable handles free */
+        freetable(ctx);
     }
 
     return result;

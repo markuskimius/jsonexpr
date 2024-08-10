@@ -35,5 +35,7 @@ void popvec(VEC* vec);
 VALUE* getvec(VEC* vec, size_t index);
 VALUE* backvec(VEC* vec);
 
+int cmpvec(VEC* vec1, VEC* vec2);
+
 
 #endif /* VECTOR_H_ */
