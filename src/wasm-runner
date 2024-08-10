@@ -232,11 +232,6 @@ def doMyThing():
                 fib = FUNCTION("I",
                     x = ARG[0];
 
-# TODO
-# - Implement IF.
-# - Better error message than "call: Invalid value type: '' (0)" when the function is undefined.
-#   --> Need to make token return token with all state info. Need node to save the token.
-
                     IF(x >= LEN(memo),
                         x1 = fib(x-1);
                         x2 = fib(x-2);

@@ -79,7 +79,9 @@ void pushvec(VEC* vec, VALUE* item) {
 }
 
 
-void setvec(VEC* vec, size_t index, VALUE* item) {
+int setvec(VEC* vec, size_t index, VALUE* item) {
+    int isok = 1;
+
     if(index == vec->length) {
         pushvec(vec, item);
     }
@@ -88,8 +90,11 @@ void setvec(VEC* vec, size_t index, VALUE* item) {
         vec->item[index] = item;
     }
     else {
-        die("Insert to invalid index %zd (max %zd)\n", index, vec->length);
+        raise("Insert to invalid index %zd (max %zd)", index, vec->length);
+        isok = 0;
     }
+
+    return isok;
 }
 
 

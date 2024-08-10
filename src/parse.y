@@ -9,9 +9,48 @@
 extern int yylex();
 
 void yyerror(const char* s) {
-    throw(newtoken(BAD_T, &yylloc, yytext), s);
+    throwtoken(newtoken(BAD_T, &yylloc), s);
 }
 %}
+
+%code requires {
+#define YYLTYPE_IS_DECLARED
+
+typedef struct YYLTYPE {
+    char** code;
+    size_t first_pos;
+    size_t first_line;
+    size_t first_column;
+    size_t last_pos;
+    size_t last_line;
+    size_t last_column;
+} YYLTYPE;
+
+# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
+    do                                                                  \
+      if (N)                                                            \
+        {                                                               \
+          (Current).code         = YYRHSLOC (Rhs, 1).code;              \
+          (Current).first_pos    = YYRHSLOC (Rhs, 1).first_pos;         \
+          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
+          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
+          (Current).last_pos     = YYRHSLOC (Rhs, N).last_pos;          \
+          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
+          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          (Current).code         = (Current).code        =              \
+            YYRHSLOC (Rhs, 0).code;                                     \
+          (Current).first_pos    = (Current).last_pos    =              \
+            YYRHSLOC (Rhs, 0).last_pos;                                 \
+          (Current).first_line   = (Current).last_line   =              \
+            YYRHSLOC (Rhs, 0).last_line;                                \
+          (Current).first_column = (Current).last_column =              \
+            YYRHSLOC (Rhs, 0).last_column;                              \
+        }                                                               \
+    while (0)
+}
 
 %locations
 
@@ -21,25 +60,14 @@ void yyerror(const char* s) {
 %token<token> FLOAT_T
 %token<token> STRING_T
 %token<token> IDENT_T
-%token<token> '{'
-%token<token> '['
-%token<token> '('
-%token<token> ':'
-%token<token> ','
-%token<token> ';'
-%token<token> '.'
-%token<token> '='
-%token<token> '*'
-%token<token> '/'
-%token<token> '%'
-%token<token> '+'
-%token<token> '-'
-%token<token> EQ_T
-%token<token> NE_T
-%token<token> LT_T
-%token<token> LE_T
-%token<token> GT_T
-%token<token> GE_T
+%token<loc>   '('
+%token<loc>   ')'
+%token<loc>   '+'
+%token<loc>   '-'
+%token<loc>   '['
+%token<loc>   ']'
+%token<loc>   '{'
+%token<loc>   '}'
 %token        BAD_T
 
 %start      start
@@ -56,6 +84,7 @@ void yyerror(const char* s) {
 %union {
     struct NODE* node;
     struct TOKEN* token;
+    YYLTYPE loc;
 }
 
 %type<node> start
@@ -76,48 +105,48 @@ expr        : NULL_T                { $$ = newleaf(NULL_N, $1);                 
             | INT_T                 { $$ = newleaf(INT_N, $1);                      }
             | FLOAT_T               { $$ = newleaf(FLOAT_N, $1);                    }
             | STRING_T              { $$ = newleaf(STRING_N, $1);                   }
-            | expr ';'              { $$ = $1; freetoken($2);                       }
-            | '(' expr ')'          { $$ = $2; freetoken($1);                       }
-            | '[' ']'               { $$ = newnode(ARRAY_N, $1, NULL, NULL);        }
-            | '[' list ']'          { $$ = newnode(ARRAY_N, $1, $2, NULL);          }
-            | '{' '}'               { $$ = newnode(OBJECT_N, $1, NULL, NULL);       }
-            | '{' members '}'       { $$ = newnode(OBJECT_N, $1, $2, NULL);         }
-            | symbol                { $$ = newnode(SYMBOL_N, $1->token, $1, NULL);  }
-            | symbol '(' ')'        { $$ = newnode(CALL_N, $2, $1, NULL);           }
-            | symbol '(' list ')'   { $$ = newnode(CALL_N, $2, $1, $3);             }
-            | symbol '=' expr       { $$ = newnode('=', $2, $1, $3);                }
-            | '+' expr              { $$ = newnode(UPLUS_N, $1, $2, NULL);          }
-            | '-' expr              { $$ = newnode(UMINUS_N, $1, $2, NULL);         }
-            | expr '+' expr         { $$ = newnode('+', $2, $1, $3);                }
-            | expr '-' expr         { $$ = newnode('-', $2, $1, $3);                }
-            | expr '*' expr         { $$ = newnode('*', $2, $1, $3);                }
-            | expr '/' expr         { $$ = newnode('/', $2, $1, $3);                }
-            | expr '%' expr         { $$ = newnode('%', $2, $1, $3);                }
-            | expr EQ_T expr        { $$ = newnode(EQ_N, $2, $1, $3);               }
-            | expr NE_T expr        { $$ = newnode(NE_N, $2, $1, $3);               }
-            | expr LT_T expr        { $$ = newnode(LT_N, $2, $1, $3);               }
-            | expr LE_T expr        { $$ = newnode(LE_N, $2, $1, $3);               }
-            | expr GT_T expr        { $$ = newnode(GT_N, $2, $1, $3);               }
-            | expr GE_T expr        { $$ = newnode(GE_N, $2, $1, $3);               }
-            | expr ';' expr         { $$ = newnode(';', $2, $1, $3);                }
+            | expr ';'              { $$ = $1;                                      }
+            | '(' expr ')'          { $$ = $2;                                      }
+            | '[' ']'               { $$ = newnode(ARRAY_N, NULL, NULL, &$1, &$2);  }
+            | '[' list ']'          { $$ = newnode(ARRAY_N, $2, NULL, &$1, &$3);    }
+            | '{' '}'               { $$ = newnode(OBJECT_N, NULL, NULL, &$1, &$2); }
+            | '{' members '}'       { $$ = newnode(OBJECT_N, $2, NULL, &$1, &$3);   }
+            | symbol                { $$ = newnode(SYMBOL_N, $1, NULL, NULL, NULL); }
+            | symbol '(' ')'        { $$ = newnode(CALL_N, $1, NULL, NULL, &$3);    }
+            | symbol '(' list ')'   { $$ = newnode(CALL_N, $1, $3, NULL, &$4);      }
+            | symbol '=' expr       { $$ = newnode('=', $1, $3, NULL, NULL);        }
+            | '+' expr              { $$ = newnode(UPLUS_N, $2, NULL, &$1, NULL);   }
+            | '-' expr              { $$ = newnode(UMINUS_N, $2, NULL, &$1, NULL);  }
+            | expr '+' expr         { $$ = newnode('+', $1, $3, NULL, NULL);        }
+            | expr '-' expr         { $$ = newnode('-', $1, $3, NULL, NULL);        }
+            | expr '*' expr         { $$ = newnode('*', $1, $3, NULL, NULL);        }
+            | expr '/' expr         { $$ = newnode('/', $1, $3, NULL, NULL);        }
+            | expr '%' expr         { $$ = newnode('%', $1, $3, NULL, NULL);        }
+            | expr EQ_T expr        { $$ = newnode(EQ_N, $1, $3, NULL, NULL);       }
+            | expr NE_T expr        { $$ = newnode(NE_N, $1, $3, NULL, NULL);       }
+            | expr LT_T expr        { $$ = newnode(LT_N, $1, $3, NULL, NULL);       }
+            | expr LE_T expr        { $$ = newnode(LE_N, $1, $3, NULL, NULL);       }
+            | expr GT_T expr        { $$ = newnode(GT_N, $1, $3, NULL, NULL);       }
+            | expr GE_T expr        { $$ = newnode(GE_N, $1, $3, NULL, NULL);       }
+            | expr ';' expr         { $$ = newnode(';', $1, $3, NULL, NULL);        }
             ;
 
-list        : expr                  { $$ = newnode(',', $1->token, $1, NULL);       }
-            | expr ','              { $$ = newnode(',', $2, $1, NULL);              }
-            | expr ',' list         { $$ = newnode(',', $2, $1, $3);                }
+list        : expr                  { $$ = newnode(',', $1, NULL, NULL, NULL);      }
+            | expr ','              { $$ = newnode(',', $1, NULL, NULL, NULL);      }
+            | expr ',' list         { $$ = newnode(',', $1, $3, NULL, NULL);        }
             ;
 
-pair        : expr ':' expr         { $$ = newnode(':', $2, $1, $3);                }
+pair        : expr ':' expr         { $$ = newnode(':', $1, $3, NULL, NULL);        }
             ;
 
-members     : pair                  { $$ = newnode(',', $1->token, $1, NULL);       }
-            | pair ','              { $$ = newnode(',', $2, $1, NULL);              }
-            | pair ',' members      { $$ = newnode(',', $2, $1, $3);                }
+members     : pair                  { $$ = newnode(',', $1, NULL, NULL, NULL);      }
+            | pair ','              { $$ = newnode(',', $1, NULL, NULL, NULL);      }
+            | pair ',' members      { $$ = newnode(',', $1, $3, NULL, NULL);        }
             ;
 
 symbol      : IDENT_T               { $$ = newleaf(IDENT_N, $1);                    }
-            | symbol '[' expr ']'   { $$ = newnode('[', $2, $1, $3);                }
-            | symbol '.' symbol     { $$ = newnode('.', $2, $1, $3);                }
+            | symbol '[' expr ']'   { $$ = newnode('[', $1, $3, NULL, &$4);         }
+            | symbol '.' symbol     { $$ = newnode('.', $1, $3, NULL, NULL);        }
             ;
 
 %%

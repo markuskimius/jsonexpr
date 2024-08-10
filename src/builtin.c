@@ -45,21 +45,21 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
         for(size_t i=0; i<strlen(sig); i++) {
             /* Validate signature */
             if(!strchr("BIDSAOF?.*", sig[i])) {
-                raise("%s: Invalid function argument signature: %c\n", __FUNCTION__, sig[i]);
+                raise("Invalid function argument signature: %c", sig[i]);
                 isok = 0;
                 break;
             }
 
             /* Signature can only end with a star */
             if(nstars && sig[i] != '*') {
-                raise("%s: '*' must terminate function argument signature\n", __FUNCTION__);
+                raise("'*' must terminate function argument signature");
                 isok = 0;
                 break;
             }
 
             /* Maximum # of stars is 2 */
             if(sig[i] == '*' && nstars == 2) {
-                raise("%s: Too many '*', maximum is 2\n", __FUNCTION__);
+                raise("Too many '*', maximum is 2");
                 isok = 0;
                 break;
             }
@@ -68,7 +68,7 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
         }
     }
     else {
-        raise("%s: Invalid argument type, expected string but got %c\n", __FUNCTION__, spec->type);
+        raise("Invalid argument type, expected string but got %c", spec->type);
         isok = 0;
     }
 
@@ -109,7 +109,7 @@ static VALUE* LEN(VEC* args, SYM_TABLE* table) {
         case STRING_V   : result = intvalue(strlen(strdecoded(value))); break;
         case ARRAY_V    : result = intvalue(value->value.vec->length); break;
         case OBJECT_V   : result = intvalue(value->value.map->length); break;
-        default         : raise("%s: Invalid value type '%c' (%d)\n", __FUNCTION__, value->type, value->type); break;
+        default         : raise("Type has no length: '%c' (%d)", value->type, value->type); break;
     }
 
     return result;

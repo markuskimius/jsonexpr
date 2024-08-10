@@ -30,7 +30,7 @@ VEC* newvec();
 void freevec(VEC* vec);
 char* astrvec(VEC* vec);
 void pushvec(VEC* vec, VALUE* item);
-void setvec(VEC* vec, size_t index, VALUE* item);
+int setvec(VEC* vec, size_t index, VALUE* item);
 void popvec(VEC* vec);
 VALUE* getvec(VEC* vec, size_t index);
 VALUE* backvec(VEC* vec);

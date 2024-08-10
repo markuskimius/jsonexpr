@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "node.h"
 #include "throw.h"
 #include "token.h"
 
@@ -40,7 +41,7 @@ void raise(const char* format, ...) {
 }
 
 
-void throw(TOKEN* token, const char* format, ...) {
+void thrownode(NODE* node, const char* format, ...) {
     va_list ap;
 
     if(error_text) free(error_text);
@@ -49,6 +50,20 @@ void throw(TOKEN* token, const char* format, ...) {
     vasprintf(&error_text, format, ap);
     va_end(ap);
 
-    fprintf(stderr, "%s: %s at line %d, col %d\n", token->text, error_text, token->loc.first_line, token->loc.first_column);
+    fprintf(stderr, "%s: %s at line %zu, col %zu\n", nodetext(node), error_text, node->loc.first_line, node->loc.first_column);
+    exit(1);
+}
+
+
+void throwtoken(TOKEN* token, const char* format, ...) {
+    va_list ap;
+
+    if(error_text) free(error_text);
+
+    va_start(ap, format);
+    vasprintf(&error_text, format, ap);
+    va_end(ap);
+
+    fprintf(stderr, "%s: %s at line %zu, col %zu\n", tokentext(token), error_text, token->loc.first_line, token->loc.first_column);
     exit(1);
 }

@@ -53,7 +53,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
         /* check too many arguments */
         if(*cp == '\0') {
-            raise("%s: too many arguments, expected %ld, got %zu\n", __FUNCTION__, (cp-sig), nodes->length);
+            raise("Too many arguments, expected %ld, got %zu", (cp-sig), nodes->length);
             isok = 0;
         }
 
@@ -62,7 +62,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
             VALUE* v = eval(node, table);
 
             if(*cp != '?' && tolower(v->type) != tolower(*cp)) {
-                raise("%s: Invalid argument type, expected %c, got %c\n", __FUNCTION__, *cp, v->type);
+                raise("Invalid argument type, expected %c, got %c", *cp, v->type);
                 isok = 0;
             }
 
@@ -88,7 +88,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
     /* check too few arguments */
     if(isok && !strchr("*", *cp)) {
-        raise("%s: too few arguments, expected > %ld, got %zu\n", __FUNCTION__, (cp-sig), nodes->length);
+        raise("Too few arguments, expected > %ld, got %zu", (cp-sig), nodes->length);
         isok = 0;
     }
 

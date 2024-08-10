@@ -6,6 +6,7 @@
 * FORWARD DECLARATIONS
 */
 
+typedef struct NODE NODE;
 typedef struct TOKEN TOKEN;
 
 
@@ -29,7 +30,8 @@ extern char* error_text;
 
 void _die(const char* file, const char* func, size_t line, const char* format, ...);
 void raise(const char* format, ...);
-void throw(TOKEN* token, const char* format, ...);
+void thrownode(NODE* node, const char* format, ...);
+void throwtoken(TOKEN* token, const char* format, ...);
 
 
 #endif /* EXCEPTION_H_ */

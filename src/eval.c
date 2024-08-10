@@ -51,7 +51,7 @@ static MAP* newpair(NODE* node, SYM_TABLE* table, MAP* list) {
         }
 
         default:
-            throw(node->token, "%s: Pair expected, got '%c' (%d)\n", __FUNCTION__, node->type, node->type);
+            thrownode(node, "Pair expected, got '%c' (%d)", node->type, node->type);
             break;
     }
 
@@ -70,7 +70,7 @@ static MAP* newpairlist(NODE* node, SYM_TABLE* table, MAP* list) {
                 break;
 
             default:
-                throw(node->token, "%s: Pairlist expected, got '%c' (%d)\n", __FUNCTION__, node->type, node->type);
+                thrownode(node, "Pairlist expected, got '%c' (%d)", node->type, node->type);
                 break;
         }
     }
@@ -80,7 +80,7 @@ static MAP* newpairlist(NODE* node, SYM_TABLE* table, MAP* list) {
 
 
 static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
-    VALUE* value = nullvalue();
+    VALUE* value = NULL;
 
     switch(node->type) {
         case IDENT_N:
@@ -91,11 +91,12 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             VALUE* left = gettable2(table, node->left);
             VALUE* right = eval(node->right, table);
 
-            if     (left->type == ARRAY_V  && right->type == INT64_V ) value = getvec(left->value.vec, right->value.i64);
+            if     (!left)                                             thrownode(node, "No such element");
+            else if(left->type == ARRAY_V  && right->type == INT64_V ) value = getvec(left->value.vec, right->value.i64);
             else if(left->type == OBJECT_V && right->type == STRING_V) value = getmap(left->value.map, right->value.str);
-            else if(left->type == ARRAY_V                            ) throw(node->token, "%s: Integer expected, got '%c' (%d)\n", __FUNCTION__, right->type, right->type);
-            else if(left->type == OBJECT_V                           ) throw(node->token, "%s: String expected, got '%c' (%d)\n", __FUNCTION__, right->type, right->type);
-            else                                                       throw(node->token, "%s: Array or object expected, got '%c' (%d)\n", __FUNCTION__, left->type, left->type);
+            else if(left->type == ARRAY_V                            ) thrownode(node, "Integer expected, got '%c' (%d)", right->type, right->type);
+            else if(left->type == OBJECT_V                           ) thrownode(node, "String expected, got '%c' (%d)", right->type, right->type);
+            else                                                       thrownode(node, "Array or object expected, got '%c' (%d)", left->type, left->type);
 
             freevalue(right);
             break;
@@ -105,15 +106,16 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             VALUE* left = gettable2(table, node->left);
             NODE* right = node->right;
 
-            if     (left->type == OBJECT_V && right->type == IDENT_N) value = getmap(left->value.map, right->token->value.s);
-            else if(left->type == OBJECT_V                          ) throw(node->token, "%s: Identifier expected, got '%c' (%d)\n", __FUNCTION__, right->type, right->type);
-            else                                                      throw(node->token, "%s: Object expected, got '%c' (%d)\n", __FUNCTION__, left->type, left->type);
+            if     (!left)                                            thrownode(node, "No such item");
+            else if(left->type == OBJECT_V && right->type == IDENT_N) value = getmap(left->value.map, right->token->value.s);
+            else if(left->type == OBJECT_V                          ) thrownode(node, "Identifier expected, got '%c' (%d)", right->type, right->type);
+            else                                                      thrownode(node, "Object expected, got '%c' (%d)", left->type, left->type);
 
             break;
         }
 
         default:
-            throw(node->token, "%s: Invalid node type: '%c' (%d)\n", __FUNCTION__, node->type, node->type);
+            thrownode(node, "Invalid node type: '%c' (%d)", node->type, node->type);
             break;
     }
 
@@ -131,14 +133,19 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
             VALUE* left = gettable2(table, node->left);
             VALUE* right = eval(node->right, table);
 
-            if(left->type == ARRAY_V && right->type == INT64_V) {
-                setvec(left->value.vec, right->value.i64, value);
+            if(!left) {
+                thrownode(node->left, "No such element");
+            }
+            else if(left->type == ARRAY_V && right->type == INT64_V) {
+                if(!setvec(left->value.vec, right->value.i64, value)) {
+                    thrownode(node, "%s", error_text);
+                }
             }
             else if(left->type != ARRAY_V) {
-                throw(node->token, "%s: Array expected, got '%c' (%d)\n", __FUNCTION__, left->type, left->type);
+                thrownode(node, "Array expected, got '%c' (%d)", left->type, left->type);
             }
             else {
-                throw(node->token, "%s: Integer expected, got '%c' (%d)\n", __FUNCTION__, right->type, right->type);
+                thrownode(node, "Integer expected, got '%c' (%d)", right->type, right->type);
             }
 
             freevalue(right);
@@ -149,21 +156,24 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
             VALUE* left = gettable2(table, node->left);
             NODE* right = node->right;
 
-            if(left->type == OBJECT_V && right->type == IDENT_N) {
+            if(!left) {
+                thrownode(node->left, "No such item");
+            }
+            else if(left->type == OBJECT_V && right->type == IDENT_N) {
                 setmap(left->value.map, right->token->value.s, value);
             }
             else if(left->type != OBJECT_V) {
-                throw(node->token, "%s: Object expected, got '%c' (%d)\n", __FUNCTION__, left->type, left->type);
+                thrownode(node, "Object expected, got '%c' (%d)", left->type, left->type);
             }
             else {
-                throw(node->token, "%s: Identifier expected, got '%c' (%d)\n", __FUNCTION__, right->type, right->type);
+                thrownode(node, "Identifier expected, got '%c' (%d)", right->type, right->type);
             }
 
             break;
         }
 
         default:
-            throw(node->token, "%s: Invalid node type: '%c' (%d)\n", __FUNCTION__, node->type, node->type);
+            thrownode(node, "Invalid node type: '%c' (%d)", node->type, node->type);
             break;
     }
 
@@ -194,10 +204,15 @@ static VALUE* call(SYM_TABLE* table, NODE* node) {
     if(node->right) getnodelist(nodes, node->right);
 
     /* Call the function */
-    switch(func->type) {
-        case BUILTIN_V  : value = funcexec(func->value.bfn, nodes, table); break;
-        case USERFUNC_V : value = ufuncexec(func->value.ufn, nodes, table); break;
-        default         : throw(node->left->token, "No such function"); break;
+    if(func) {
+        switch(func->type) {
+            case BUILTIN_V  : value = funcexec(func->value.bfn, nodes, table); break;
+            case USERFUNC_V : value = ufuncexec(func->value.ufn, nodes, table); break;
+            default         : thrownode(node->left, "Not a function"); break;
+        }
+    }
+    else {
+        thrownode(node->left, "Not a function");
     }
 
     /* Free arguments */
@@ -205,7 +220,7 @@ static VALUE* call(SYM_TABLE* table, NODE* node) {
 
     /* Error handling */
     if(value == NULL) {
-        throw(node->left->token, "%s", error_text);
+        thrownode(node->left, "%s", error_text);
     }
 
     return value;
@@ -252,7 +267,7 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case UPLUS_N    : result = op_uplus(eval(node->left, table)); break;
             case UMINUS_N   : result = op_uminus(eval(node->left, table)); break;
             case ';'        : freevalue(eval(node->left, table)); result = eval(node->right, table); break;
-            default         : throw(node->token, "%s: Invalid node type: '%c' (%d)\n", __FUNCTION__, node->type, node->type); break;
+            default         : thrownode(node, "Invalid node type: '%c' (%d)", node->type, node->type); break;
         }
     }
 

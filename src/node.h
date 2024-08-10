@@ -2,6 +2,7 @@
 #define NODE_H_
 
 #include <inttypes.h>
+#include "parse.h"
 
 
 /* ***************************************************************************
@@ -46,6 +47,8 @@ typedef struct NODE {
     struct NODE* left;
     struct NODE* right;
     struct TOKEN* token;
+    YYLTYPE loc;
+    char* text;
 } NODE;
 
 
@@ -53,8 +56,9 @@ typedef struct NODE {
 * PUBLIC FUNCTIONS
 */
 
-NODE* newnode(int type, TOKEN* token, NODE* left, NODE* right);
+NODE* newnode(int type, NODE* left, NODE* right, YYLTYPE* start, YYLTYPE* end);
 NODE* newleaf(int type, TOKEN* token);
+const char* nodetext(NODE* node);
 
 
 #endif /* NODE_H_ */

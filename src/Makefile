@@ -35,11 +35,11 @@ main.o: main.c eval.h map.h util.h parse.h value.h vector.h
 
 map.o: map.c map.h util.h value.h vector.h
 
-node.o: node.c node.h
+node.o: node.c node.h token.h
 
 oper.o: oper.c map.h node.h oper.h util.h parse.h value.h vector.h
 
-throw.o: throw.c throw.h token.h
+throw.o: throw.c node.h throw.h token.h
 
 token.o: token.c token.h
 
@@ -67,6 +67,9 @@ parse.h: parse.tab.h
 	touch $@
 
 token.h: parse.h
+	touch $@
+
+node.h: parse.h
 	touch $@
 
 
