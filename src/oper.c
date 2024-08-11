@@ -76,7 +76,7 @@ VALUE* op_plus(VALUE* lvalue, VALUE* rvalue) {
         size_t len = strlen(lvalue->value.str) + IBUFSIZE;
 
         lvalue->value.str = realloc(lvalue->value.str, len);
-        snprintf(lvalue->value.str, len, "%s%lld", lvalue->value.str, rvalue->value.i64);
+        snprintf(lvalue->value.str, len, "%s%ld", lvalue->value.str, rvalue->value.i64);
         result = lvalue;
     }
     else if(lvalue->type == STRING_V && rvalue->type == DOUBLE_V) {
@@ -90,7 +90,7 @@ VALUE* op_plus(VALUE* lvalue, VALUE* rvalue) {
         size_t len = strlen(rvalue->value.str) + IBUFSIZE;
 
         rvalue->value.str = realloc(rvalue->value.str, len);
-        snprintf(rvalue->value.str, len, "%s%lld", rvalue->value.str, lvalue->value.i64);
+        snprintf(rvalue->value.str, len, "%s%ld", rvalue->value.str, lvalue->value.i64);
         result = rvalue;
     }
     else if(lvalue->type == DOUBLE_V && rvalue->type == STRING_V) {

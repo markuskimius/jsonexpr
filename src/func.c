@@ -56,9 +56,8 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
             raise("Too many arguments, expected %ld, got %zu", (cp-sig), nodes->length);
             isok = 0;
         }
-
         /* evaluate */
-        if(strchr("BIDSAOF?", *cp)) {
+        else if(strchr("BIDSAOF?", *cp)) {
             VALUE* v = eval(node, table);
 
             if(*cp != '?' && tolower(v->type) != tolower(*cp)) {

@@ -232,6 +232,24 @@ char* strencoded(VALUE* value) {
 }
 
 
+int istrue(VALUE* value) {
+    int result = 0;
+
+    if     (value->type == NULL_V    ) result = 0;
+    else if(value->type == BOOL_V    ) result = value->value.i64 ? 1 : 0;
+    else if(value->type == INT64_V   ) result = value->value.i64 ? 1 : 0;
+    else if(value->type == DOUBLE_V  ) result = value->value.f64 ? 1 : 0;
+    else if(value->type == STRING_V  ) result = strlen(value->value.str) ? 1 : 0;
+    else if(value->type == ARRAY_V   ) result = value->value.vec->length ? 1 : 0;
+    else if(value->type == OBJECT_V  ) result = value->value.map->length ? 1 : 0;
+    else if(value->type == BUILTIN_V ) result = 1;
+    else if(value->type == USERFUNC_V) result = 1;
+    else if(value->type == NODE_V    ) result = 1;
+
+    return result;
+}
+
+
 int cmpvalue(VALUE* value1, VALUE* value2) {
     int result = 0;
 

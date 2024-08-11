@@ -109,7 +109,9 @@ void popvec(VEC* vec) {
 VALUE* getvec(VEC* vec, size_t index) {
     VALUE* item = NULL;
 
-    if(index < vec->length) item = vec->item[index];
+    if(index < vec->length) {
+        item = vec->item[index];
+    }
 
     return item;
 }

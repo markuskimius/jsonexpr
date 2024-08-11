@@ -11,19 +11,14 @@
 
 NODE* newnode(int type, NODE* left, NODE* right, YYLTYPE* start, YYLTYPE* end) {
     NODE* node = calloc(1, sizeof(NODE));
-    YYLTYPE* first = start ? start : left->loc.first_pos <= right->loc.first_pos ? &left->loc : &right->loc;
-    YYLTYPE* last = end ? end : left->loc.last_pos >= right->loc.last_pos ? &left->loc : &right->loc;
 
     node->type = type;
     node->left = left;
     node->right = right;
-    node->loc = left->loc;
-    node->loc.first_pos = first->first_pos;
-    node->loc.first_line = first->first_line;
-    node->loc.first_column = first->first_column;
-    node->loc.last_pos = last->last_pos;
-    node->loc.last_line = last->last_line;
-    node->loc.last_column = last->last_column;
+    node->loc = *start;
+    node->loc.last_pos = end->last_pos;
+    node->loc.last_line = end->last_line;
+    node->loc.last_column = end->last_column;
 
     return node;
 }
@@ -34,7 +29,7 @@ NODE* newleaf(int type, TOKEN* token) {
 
     node->type = type;
     node->token = token;
-    node->loc = token->loc;
+    node->loc = token ? token->loc : yylloc;
 
     return node;
 }

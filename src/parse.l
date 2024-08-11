@@ -125,6 +125,7 @@ NODE* parse(const char* code) {
     yypos = 0;
     yylineno = 1;
     yycolumn = 1;
+//    yydebug = 1;
 
     if(code) {
         YY_BUFFER_STATE bp = yy_scan_string(code);

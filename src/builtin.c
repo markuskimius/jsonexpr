@@ -116,6 +116,26 @@ static VALUE* LEN(VEC* args, SYM_TABLE* table) {
 }
 
 
+static VALUE* IF(VEC* args, SYM_TABLE* table) {
+    VALUE* result = NULL;
+
+    for(size_t i=0; i<(args->length & ~1UL); i+=2) {
+        VALUE* cond = eval(args->item[i]->value.node, table);
+
+        if(istrue(cond)) {
+            result = eval(args->item[i+1]->value.node, table);
+            break;
+        }
+    }
+
+    if(!result && (args->length % 2)) {
+        result = eval(args->item[args->length-1]->value.node, table);
+    }
+
+    return result ? result : nullvalue();
+}
+
+
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
@@ -127,6 +147,7 @@ MAP* builtin() {
         setmap(BUILTINS, "FUNCTION", bfnvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
         setmap(BUILTINS, "PRINT"   , bfnvalue(newfunc(PRINT   , "PRINT()"   , "*")));
         setmap(BUILTINS, "LEN"     , bfnvalue(newfunc(LEN     , "LEN()"     , "?")));
+        setmap(BUILTINS, "IF"      , bfnvalue(newfunc(IF      , "IF()"      , ".**")));
     }
 
     return BUILTINS;

@@ -80,7 +80,7 @@ static MAP* newpairlist(NODE* node, SYM_TABLE* table, MAP* list) {
 
 
 static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
-    VALUE* value = NULL;
+    VALUE* value = nullvalue();
 
     switch(node->type) {
         case IDENT_N:
@@ -91,12 +91,17 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             VALUE* left = gettable2(table, node->left);
             VALUE* right = eval(node->right, table);
 
-            if     (!left)                                             thrownode(node, "No such element");
-            else if(left->type == ARRAY_V  && right->type == INT64_V ) value = getvec(left->value.vec, right->value.i64);
-            else if(left->type == OBJECT_V && right->type == STRING_V) value = getmap(left->value.map, right->value.str);
-            else if(left->type == ARRAY_V                            ) thrownode(node, "Integer expected, got '%c' (%d)", right->type, right->type);
-            else if(left->type == OBJECT_V                           ) thrownode(node, "String expected, got '%c' (%d)", right->type, right->type);
-            else                                                       thrownode(node, "Array or object expected, got '%c' (%d)", left->type, left->type);
+            if(left->type == ARRAY_V  && right->type == INT64_V ) {
+                value = getvec(left->value.vec, right->value.i64);
+                if(!value) thrownode(node, "Invalid index, max %ld, got %ld", left->value.vec->length-1, right->value.i64);
+            }
+            else if(left->type == OBJECT_V && right->type == STRING_V) {
+                value = getmap(left->value.map, right->value.str);
+                if(!value) thrownode(node, "Invalid key, %s", strencoded(right));
+            }
+            else if(left->type == ARRAY_V ) thrownode(node, "Integer expected, got '%c' (%d)", right->type, right->type);
+            else if(left->type == OBJECT_V) thrownode(node, "String expected, got '%c' (%d)", right->type, right->type);
+            else                            thrownode(node, "Array or object expected, got '%c' (%d)", left->type, left->type);
 
             freevalue(right);
             break;
@@ -106,8 +111,7 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             VALUE* left = gettable2(table, node->left);
             NODE* right = node->right;
 
-            if     (!left)                                            thrownode(node, "No such item");
-            else if(left->type == OBJECT_V && right->type == IDENT_N) value = getmap(left->value.map, right->token->value.s);
+            if     (left->type == OBJECT_V && right->type == IDENT_N) value = getmap(left->value.map, right->token->value.s);
             else if(left->type == OBJECT_V                          ) thrownode(node, "Identifier expected, got '%c' (%d)", right->type, right->type);
             else                                                      thrownode(node, "Object expected, got '%c' (%d)", left->type, left->type);
 
@@ -117,6 +121,10 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
         default:
             thrownode(node, "Invalid node type: '%c' (%d)", node->type, node->type);
             break;
+    }
+
+    if(!value) {
+        thrownode(node, "Invalid symbol");
     }
 
     return value;
@@ -141,12 +149,8 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
                     thrownode(node, "%s", error_text);
                 }
             }
-            else if(left->type != ARRAY_V) {
-                thrownode(node, "Array expected, got '%c' (%d)", left->type, left->type);
-            }
-            else {
-                thrownode(node, "Integer expected, got '%c' (%d)", right->type, right->type);
-            }
+            else if(left->type != ARRAY_V) thrownode(node, "Array expected, got '%c' (%d)", left->type, left->type);
+            else                           thrownode(node, "Integer expected, got '%c' (%d)", right->type, right->type);
 
             freevalue(right);
             break;
@@ -156,18 +160,10 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
             VALUE* left = gettable2(table, node->left);
             NODE* right = node->right;
 
-            if(!left) {
-                thrownode(node->left, "No such item");
-            }
-            else if(left->type == OBJECT_V && right->type == IDENT_N) {
-                setmap(left->value.map, right->token->value.s, value);
-            }
-            else if(left->type != OBJECT_V) {
-                thrownode(node, "Object expected, got '%c' (%d)", left->type, left->type);
-            }
-            else {
-                thrownode(node, "Identifier expected, got '%c' (%d)", right->type, right->type);
-            }
+            if     (!left                                           ) thrownode(node->left, "No such item");
+            else if(left->type == OBJECT_V && right->type == IDENT_N) setmap(left->value.map, right->token->value.s, value);
+            else if(left->type != OBJECT_V                          ) thrownode(node, "Object expected, got '%c' (%d)", left->type, left->type);
+            else                                                      thrownode(node, "Identifier expected, got '%c' (%d)", right->type, right->type);
 
             break;
         }

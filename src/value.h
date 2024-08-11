@@ -75,6 +75,7 @@ void freevalue(VALUE* value);
 char* strdecoded(VALUE* value);
 char* strencoded(VALUE* value);
 
+int istrue(VALUE* value);
 int cmpvalue(VALUE* value1, VALUE* value2);
 
 

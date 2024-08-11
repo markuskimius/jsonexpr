@@ -46,7 +46,7 @@ char* utf8str(uint32_t c) {
 char* astri64(uint64_t src) {
     char* dest = calloc(1, IBUFSIZE);
 
-    snprintf(dest, IBUFSIZE, "%lld", src);
+    snprintf(dest, IBUFSIZE, "%lu", src);
 
     return dest;
 }
@@ -65,10 +65,11 @@ char* astrf64(double src) {
 * Like strcat, but dest is assumed to be reallocatable.
 */
 char* astrcat(char* dest, const char* src) {
-    size_t len = strlen(dest) + strlen(src) + 1;
+    size_t dlen = strlen(dest);
+    size_t slen = strlen(src);
 
-    dest = realloc(dest, len);
-    snprintf(dest, len, "%s%s", dest, src);
+    dest = realloc(dest, dlen+slen+1);
+    snprintf(dest+dlen, slen+1, "%s", src);
 
     return dest;
 }
@@ -103,6 +104,8 @@ char* astrencode(const char* src) {
         cp++;
     }
 
+printf("src=%s\n", src);
+printf("dest=%s\n", dest);
     /* Closing quote */
     dest = astrcat(dest, "\"");
 

@@ -1,22 +1,29 @@
-BINARIES=jsonexpr.wasm
-PREFIX=/opt/wasm
-CC=clang
-LD=wasm-ld
-CPPFLAGS=-I$(PREFIX)/include --target=wasm32 -nostdlib
-LDFLAGS=-L$(PREFIX)/lib --export=newtable --export=freetable --export=parse --export=eval --export=strdecoded \
-	--export=gettype --export=getint64 --export=getdouble --export=getstring --export=gettable
-LDLIBS=-lc-wasm
+CC:=clang
+CPPFLAGS:=-g
+
+ifeq ($(findstring wasm,$(TARGET)),wasm)
+	LD:=wasm-ld
+	PREFIX:=/opt/wasm
+	CPPFLAGS:=-I$(PREFIX)/include --target=wasm32 -nostdlib $(CPPFLAGS)
+	LDFLAGS:=-L$(PREFIX)/lib --export=newtable --export=freetable --export=parse --export=eval --export=strdecoded \
+		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=gettable
+	LDLIBS:=-lc-wasm
+endif
 
 
 ##############################################################################
 # PHONIES
 
-.PHONY: all clean
+.PHONY: all c wasm clean
 
-all: $(BINARIES)
+c:
+	make TARGET:=c jsonexpr
+
+wasm:
+	make TARGET=wasm jsonexpr.wasm
 
 clean:
-	$(RM) $(BINARIES) *.o *.output *.tab.c *.tab.h *.yy.c
+	$(RM) jsonexpr.wasm jsonexpr *.o *.output *.tab.c *.tab.h *.yy.c
 
 
 ##############################################################################
@@ -24,6 +31,9 @@ clean:
 
 jsonexpr.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o token.o ufunc.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
+
+jsonexpr: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o token.o ufunc.o util.o value.o vector.o parse.tab.o lex.yy.o
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 builtin.o: builtin.c builtin.h eval.h func.h map.h node.h ufunc.h value.h vector.h
 
@@ -58,7 +68,7 @@ parse.tab.o: parse.tab.c parse.tab.h node.h parse.h throw.h token.h
 lex.yy.o: lex.yy.c node.h parse.h throw.h token.h util.h
 
 parse.tab.c parse.tab.h: parse.y
-	bison -t -v -d -Wcounterexamples $<
+	bison -t -v -d $<
 
 lex.yy.c: parse.l
 	flex $<
