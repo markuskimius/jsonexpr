@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include "node.h"
 #include "throw.h"
-#include "token.h"
+#include "util.h"
 
 
 /* ***************************************************************************
@@ -43,29 +43,20 @@ void raise(const char* format, ...) {
 }
 
 
-void thrownode(NODE* node, const char* format, ...) {
+void throw(YYLTYPE* loc, const char* format, ...) {
     va_list ap;
+    char* text = textat(loc);
     char* buf;
 
     va_start(ap, format);
     vasprintf(&buf, format, ap);
     va_end(ap);
 
-    fprintf(stderr, "%s: %s at line %zu, col %zu\n", nodetext(node), buf, node->loc.first_line, node->loc.first_column);
-    free(buf);
-    exit(1);
-}
+printf("%s\n", *loc->codeptr);
+printf("%lu %lu\n", loc->first_pos, loc->last_pos);
 
-
-void throwtoken(TOKEN* token, const char* format, ...) {
-    va_list ap;
-    char* buf;
-
-    va_start(ap, format);
-    vasprintf(&buf, format, ap);
-    va_end(ap);
-
-    fprintf(stderr, "%s: %s at line %zu, col %zu\n", tokentext(token), buf, token->loc.first_line, token->loc.first_column);
+    fprintf(stderr, "%s: %s at line %zu, col %zu\n", text, buf, loc->first_line, loc->first_column);
+    free(text);
     free(buf);
     exit(1);
 }

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "eval.h"
+#include "node.h"
 #include "map.h"
 #include "util.h"
 #include "parse.h"
@@ -13,26 +14,35 @@
 int main() {
     NODE* ast = parse(R(
         memo = [ 0, 1 ];
-        fib = FUNCTION("I",
+        fib = FUNCTION("?",
             x = ARG[0];
 
             IF(x >= LEN(memo),
-                x2 = fib(x-2);
                 x1 = fib(x-1);
+                x2 = fib(x-2);
 
-                memo[x] = x1 + x2
+                memo[x] = x1 + x2;
             );
 
-            memo[x]
+            memo[x];
         );
 
-        fib(9);
+        fib(50);
     ));
 
-    VALUE* result = eval(ast, NULL);
+    /*
+    if(1) {
+        char* tree = nodetree(ast);
+        printf("%s\n", tree);
+        free(tree);
+    }
+    */
 
-    printf("%s\n", strencoded(result));
-    freevalue(result);
+    if(1) {
+        VALUE* result = eval(ast, NULL);
+        printf("%s\n", strencoded(result));
+        freevalue(result);
+    }
 
     return 0;
 }

@@ -4,12 +4,12 @@
 #include "node.h"
 #include "parse.h"
 #include "throw.h"
-#include "token.h"
+#include "value.h"
 
 extern int yylex();
 
 void yyerror(const char* s) {
-    throwtoken(newtoken(BAD_T, &yylloc), s);
+    throw(&yylloc, s);
 }
 %}
 
@@ -17,7 +17,7 @@ void yyerror(const char* s) {
 #define YYLTYPE_IS_DECLARED
 
 typedef struct YYLTYPE {
-    char** code;
+    char** codeptr;
     size_t first_pos;
     size_t first_line;
     size_t first_column;
@@ -26,65 +26,54 @@ typedef struct YYLTYPE {
     size_t last_column;
 } YYLTYPE;
 
-# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
-    do                                                                  \
-      if (N)                                                            \
-        {                                                               \
-          (Current).code         = YYRHSLOC (Rhs, 1).code;              \
-          (Current).first_pos    = YYRHSLOC (Rhs, 1).first_pos;         \
-          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
-          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
-          (Current).last_pos     = YYRHSLOC (Rhs, N).last_pos;          \
-          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
-          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
-        }                                                               \
-      else                                                              \
-        {                                                               \
-          (Current).code         = (Current).code        =              \
-            YYRHSLOC (Rhs, 0).code;                                     \
-          (Current).first_pos    = (Current).last_pos    =              \
-            YYRHSLOC (Rhs, 0).last_pos;                                 \
-          (Current).first_line   = (Current).last_line   =              \
-            YYRHSLOC (Rhs, 0).last_line;                                \
-          (Current).first_column = (Current).last_column =              \
-            YYRHSLOC (Rhs, 0).last_column;                              \
-        }                                                               \
-    while (0)
+#define YYLLOC_DEFAULT(Current, Rhs, N) do {                    \
+    if(N) {                                                     \
+        (Current).codeptr      = YYRHSLOC(Rhs, 1).codeptr;      \
+        (Current).first_pos    = YYRHSLOC(Rhs, 1).first_pos;    \
+        (Current).first_line   = YYRHSLOC(Rhs, 1).first_line;   \
+        (Current).first_column = YYRHSLOC(Rhs, 1).first_column; \
+        (Current).last_pos     = YYRHSLOC(Rhs, N).last_pos;     \
+        (Current).last_line    = YYRHSLOC(Rhs, N).last_line;    \
+        (Current).last_column  = YYRHSLOC(Rhs, N).last_column;  \
+    }                                                           \
+    else {                                                      \
+        (Current).codeptr      = YYRHSLOC(Rhs, 0).codeptr;      \
+        (Current).first_pos    = YYRHSLOC(Rhs, 0).first_pos;    \
+        (Current).first_line   = YYRHSLOC(Rhs, 0).first_line;   \
+        (Current).first_column = YYRHSLOC(Rhs, 0).first_column; \
+        (Current).last_pos     = YYRHSLOC(Rhs, 0).last_pos;     \
+        (Current).last_line    = YYRHSLOC(Rhs, 0).last_line;    \
+        (Current).last_column  = YYRHSLOC(Rhs, 0).last_column;  \
+    }                                                           \
+} while(0)
 }
 
 %locations
 
-%token<token> NULL_T
-%token<token> BOOL_T
-%token<token> INT_T
-%token<token> FLOAT_T
-%token<token> STRING_T
-%token<token> IDENT_T
-%token<loc>   '('
-%token<loc>   ')'
-%token<loc>   '+'
-%token<loc>   '-'
-%token<loc>   '['
-%token<loc>   ']'
-%token<loc>   '{'
-%token<loc>   '}'
-%token        BAD_T
+%token    NULL_T
+%token<i> BOOL_T
+%token<i> INT_T
+%token<f> FLOAT_T
+%token<s> STRING_T
+%token<s> IDENT_T
+%token    BAD_T
 
-%start      start
-%left       ';'
-%left       ','
-%left       ':'
-%right      '='
-%left       EQ_T NE_T
-%left       LT_T LE_T GT_T GE_T
-%left       '+' '-'
-%left       '*' '/' '%'
-%left       '{' '[' '(' '.'
+%start    start
+%left     ';'
+%left     ','
+%left     ':'
+%right    '='
+%left     EQ_T NE_T
+%left     LT_T LE_T GT_T GE_T
+%left     '+' '-'
+%left     '*' '/' '%'
+%left     '{' '[' '(' '.'
 
 %union {
     struct NODE* node;
-    struct TOKEN* token;
-    YYLTYPE loc;
+    int64_t i;
+    double f;
+    char* s;
 }
 
 %type<node> start
@@ -96,57 +85,57 @@ typedef struct YYLTYPE {
 
 %%
 
-start       :                       { yyast = $$ = newleaf(NULL_N, NULL);   }
-            | expr                  { yyast = $$ = $1;                      }
+start       :                       { yyast = $$ = newinode(NULL_N, 0, &yylloc);            }
+            | expr                  { yyast = $$ = $1;                                      }
             ;
 
-expr        : NULL_T                { $$ = newleaf(NULL_N, $1);     }
-            | BOOL_T                { $$ = newleaf(BOOL_N, $1);     }
-            | INT_T                 { $$ = newleaf(INT_N, $1);      }
-            | FLOAT_T               { $$ = newleaf(FLOAT_N, $1);    }
-            | STRING_T              { $$ = newleaf(STRING_N, $1);   }
-            | expr ';'              { $$ = $1;                      }
-            | '(' expr ')'          { $$ = $2;                      }
-            | '[' ']'               { $$ = newnode(   ARRAY_N, NULL, NULL,      &$1,      &$2);   }
-            | '[' list ']'          { $$ = newnode(   ARRAY_N,   $2, NULL,      &$1,      &$3);   }
-            | '{' '}'               { $$ = newnode(  OBJECT_N, NULL, NULL,      &$1,      &$2);   }
-            | '{' members '}'       { $$ = newnode(  OBJECT_N,   $2, NULL,      &$1,      &$3);   }
-            | symbol                { $$ = newnode(  SYMBOL_N,   $1, NULL, &$1->loc, &$1->loc);   }
-            | symbol '(' ')'        { $$ = newnode(    CALL_N,   $1, NULL, &$1->loc,      &$3);   }
-            | symbol '(' list ')'   { $$ = newnode(    CALL_N,   $1,   $3, &$1->loc,      &$4);   }
-            | symbol '=' expr       { $$ = newnode(       '=',   $1,   $3, &$1->loc, &$3->loc);   }
-            | '+' expr              { $$ = newnode(   UPLUS_N,   $2, NULL,      &$1, &$2->loc);   }
-            | '-' expr              { $$ = newnode(  UMINUS_N,   $2, NULL,      &$1, &$2->loc);   }
-            | expr '+' expr         { $$ = newnode(       '+',   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr '-' expr         { $$ = newnode(       '-',   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr '*' expr         { $$ = newnode(       '*',   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr '/' expr         { $$ = newnode(       '/',   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr '%' expr         { $$ = newnode(       '%',   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr EQ_T expr        { $$ = newnode(      EQ_N,   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr NE_T expr        { $$ = newnode(      NE_N,   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr LT_T expr        { $$ = newnode(      LT_N,   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr LE_T expr        { $$ = newnode(      LE_N,   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr GT_T expr        { $$ = newnode(      GT_N,   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr GE_T expr        { $$ = newnode(      GE_N,   $1,   $3, &$1->loc, &$3->loc);   }
-            | expr ';' expr         { $$ = newnode(       ';',   $1,   $3, &$1->loc, &$3->loc);   }
+expr        : NULL_T                { $$ = newinode(NULL_N, 0, &@$);                        }
+            | BOOL_T                { $$ = newinode(BOOL_N, $1, &@$);                       }
+            | INT_T                 { $$ = newinode(INT_N, $1, &@$);                        }
+            | FLOAT_T               { $$ = newfnode(FLOAT_N, $1, &@$);                      }
+            | STRING_T              { $$ = newsnode(STRING_N, $1, &@$);                     }
+            | expr ';'              { $$ = $1;                                              }
+            | '(' expr ')'          { $$ = $2;                                              }
+            | '[' ']'               { $$ = newnode( ARRAY_N, NULL, NULL, &@$);              }
+            | '[' list ']'          { $$ = newnode( ARRAY_N,   $2, NULL, &@$);              }
+            | '{' '}'               { $$ = newnode(OBJECT_N, NULL, NULL, &@$);              }
+            | '{' members '}'       { $$ = newnode(OBJECT_N,   $2, NULL, &@$);              }
+            | symbol                { $$ = newnode(SYMBOL_N,   $1, NULL, &@$);              }
+            | symbol '(' ')'        { $$ = newnode(  CALL_N,   $1, NULL, &@$);              }
+            | symbol '(' list ')'   { $$ = newnode(  CALL_N,   $1,   $3, &@$);              }
+            | symbol '=' expr       { $$ = newnode(     '=',   $1,   $3, &@$);              }
+            | '+' expr              { $$ = newnode( UPLUS_N,   $2, NULL, &@$);              }
+            | '-' expr              { $$ = newnode(UMINUS_N,   $2, NULL, &@$);              }
+            | expr '+' expr         { $$ = newnode(     '+',   $1,   $3, &@$);              }
+            | expr '-' expr         { $$ = newnode(     '-',   $1,   $3, &@$);              }
+            | expr '*' expr         { $$ = newnode(     '*',   $1,   $3, &@$);              }
+            | expr '/' expr         { $$ = newnode(     '/',   $1,   $3, &@$);              }
+            | expr '%' expr         { $$ = newnode(     '%',   $1,   $3, &@$);              }
+            | expr EQ_T expr        { $$ = newnode(    EQ_N,   $1,   $3, &@$);              }
+            | expr NE_T expr        { $$ = newnode(    NE_N,   $1,   $3, &@$);              }
+            | expr LT_T expr        { $$ = newnode(    LT_N,   $1,   $3, &@$);              }
+            | expr LE_T expr        { $$ = newnode(    LE_N,   $1,   $3, &@$);              }
+            | expr GT_T expr        { $$ = newnode(    GT_N,   $1,   $3, &@$);              }
+            | expr GE_T expr        { $$ = newnode(    GE_N,   $1,   $3, &@$);              }
+            | expr ';' expr         { $$ = newnode(     ';',   $1,   $3, &@$);              }
             ;
 
-list        : expr                  { $$ = newnode(       ',',   $1, NULL, &$1->loc, &$1->loc);   }
-            | expr ','              { $$ = newnode(       ',',   $1, NULL, &$1->loc, &$1->loc);   }
-            | expr ',' list         { $$ = newnode(       ',',   $1,   $3, &$1->loc, &$3->loc);   }
+list        : expr                  { $$ = newnode(     ',',   $1, NULL, &@$);              }
+            | expr ','              { $$ = newnode(     ',',   $1, NULL, &@$);              }
+            | expr ',' list         { $$ = newnode(     ',',   $1,   $3, &@$);              }
             ;
 
-pair        : expr ':' expr         { $$ = newnode(       ':',   $1,   $3, &$1->loc, &$3->loc);   }
+pair        : expr ':' expr         { $$ = newnode(     ':',   $1,   $3, &@$);              }
             ;
 
-members     : pair                  { $$ = newnode(       ',',   $1, NULL, &$1->loc, &$1->loc);   }
-            | pair ','              { $$ = newnode(       ',',   $1, NULL, &$1->loc, &$1->loc);   }
-            | pair ',' members      { $$ = newnode(       ',',   $1,   $3, &$1->loc, &$3->loc);   }
+members     : pair                  { $$ = newnode(     ',',   $1, NULL, &@$);              }
+            | pair ','              { $$ = newnode(     ',',   $1, NULL, &@$);              }
+            | pair ',' members      { $$ = newnode(     ',',   $1,   $3, &@$);              }
             ;
 
-symbol      : IDENT_T               { $$ = newleaf(IDENT_N, $1);    }
-            | symbol '[' expr ']'   { $$ = newnode(       '[',   $1,   $3, &$1->loc, &$4);        }
-            | symbol '.' symbol     { $$ = newnode(       '.',   $1,   $3, &$1->loc, &$3->loc);   }
+symbol      : IDENT_T               { $$ = newsnode( IDENT_N, $1, &@$);                     }
+            | symbol '[' expr ']'   { $$ = newnode(     '[',   $1,   $3, &@$);              }
+            | symbol '.' symbol     { $$ = newnode(     '.',   $1,   $3, &@$);              }
             ;
 
 %%

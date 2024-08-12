@@ -20,10 +20,10 @@
 VALUE* op_times(VALUE* lvalue, VALUE* rvalue) {
     VALUE* result = nullvalue();
 
-    if     (lvalue->type == INT64_V  && rvalue->type == INT64_V ) result = intvalue(lvalue->value.i64 * rvalue->value.i64);
-    else if(lvalue->type == INT64_V  && rvalue->type == DOUBLE_V) result = dblvalue(lvalue->value.i64 * rvalue->value.f64);
-    else if(lvalue->type == DOUBLE_V && rvalue->type == INT64_V ) result = dblvalue(lvalue->value.f64 * rvalue->value.i64);
-    else if(lvalue->type == DOUBLE_V && rvalue->type == DOUBLE_V) result = dblvalue(lvalue->value.f64 * rvalue->value.f64);
+    if     (lvalue->type == INT_V   && rvalue->type == INT_V )  result = intvalue(lvalue->value.i * rvalue->value.i);
+    else if(lvalue->type == INT_V   && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.i * rvalue->value.f);
+    else if(lvalue->type == FLOAT_V && rvalue->type == INT_V )  result = dblvalue(lvalue->value.f * rvalue->value.i);
+    else if(lvalue->type == FLOAT_V && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.f * rvalue->value.f);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -35,10 +35,10 @@ VALUE* op_times(VALUE* lvalue, VALUE* rvalue) {
 VALUE* op_divby(VALUE* lvalue, VALUE* rvalue) {
     VALUE* result = nullvalue();
 
-    if     (lvalue->type == INT64_V  && rvalue->type == INT64_V  && rvalue->value.i64 != 0) result = intvalue(lvalue->value.i64 / rvalue->value.i64);
-    else if(lvalue->type == INT64_V  && rvalue->type == DOUBLE_V) result = dblvalue(lvalue->value.i64 / rvalue->value.f64);
-    else if(lvalue->type == DOUBLE_V && rvalue->type == INT64_V ) result = dblvalue(lvalue->value.f64 / rvalue->value.i64);
-    else if(lvalue->type == DOUBLE_V && rvalue->type == DOUBLE_V) result = dblvalue(lvalue->value.f64 / rvalue->value.f64);
+    if     (lvalue->type == INT_V   && rvalue->type == INT_V  && rvalue->value.i != 0) result = intvalue(lvalue->value.i / rvalue->value.i);
+    else if(lvalue->type == INT_V   && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.i / rvalue->value.f);
+    else if(lvalue->type == FLOAT_V && rvalue->type == INT_V  ) result = dblvalue(lvalue->value.f / rvalue->value.i);
+    else if(lvalue->type == FLOAT_V && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.f / rvalue->value.f);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -50,8 +50,8 @@ VALUE* op_divby(VALUE* lvalue, VALUE* rvalue) {
 VALUE* op_mod(VALUE* lvalue, VALUE* rvalue) {
     VALUE* result = nullvalue();
 
-    if(lvalue->type == INT64_V  && rvalue->type == INT64_V && rvalue->value.i64 != 0) {
-        result = intvalue(lvalue->value.i64 % rvalue->value.i64);
+    if(lvalue->type == INT_V && rvalue->type == INT_V && rvalue->value.i != 0) {
+        result = intvalue(lvalue->value.i % rvalue->value.i);
     }
 
     freevalue(lvalue);
@@ -64,40 +64,40 @@ VALUE* op_mod(VALUE* lvalue, VALUE* rvalue) {
 VALUE* op_plus(VALUE* lvalue, VALUE* rvalue) {
     VALUE* result = nullvalue();
 
-    if     (lvalue->type == INT64_V  && rvalue->type == INT64_V ) result = intvalue(lvalue->value.i64 + rvalue->value.i64);
-    else if(lvalue->type == INT64_V  && rvalue->type == DOUBLE_V) result = dblvalue(lvalue->value.i64 + rvalue->value.f64);
-    else if(lvalue->type == DOUBLE_V && rvalue->type == INT64_V ) result = dblvalue(lvalue->value.f64 + rvalue->value.i64);
-    else if(lvalue->type == DOUBLE_V && rvalue->type == DOUBLE_V) result = dblvalue(lvalue->value.f64 + rvalue->value.f64);
+    if     (lvalue->type == INT_V    && rvalue->type == INT_V   ) result = intvalue(lvalue->value.i + rvalue->value.i);
+    else if(lvalue->type == INT_V    && rvalue->type == FLOAT_V ) result = dblvalue(lvalue->value.i + rvalue->value.f);
+    else if(lvalue->type == FLOAT_V  && rvalue->type == INT_V   ) result = dblvalue(lvalue->value.f + rvalue->value.i);
+    else if(lvalue->type == FLOAT_V  && rvalue->type == FLOAT_V ) result = dblvalue(lvalue->value.f + rvalue->value.f);
     else if(lvalue->type == STRING_V && rvalue->type == STRING_V) {
-        lvalue->value.str = astrcat(lvalue->value.str, rvalue->value.str);
+        lvalue->value.s = astrcat(lvalue->value.s, rvalue->value.s);
         result = lvalue;
     }
-    else if(lvalue->type == STRING_V && rvalue->type == INT64_V ) {
-        size_t len = strlen(lvalue->value.str) + IBUFSIZE;
+    else if(lvalue->type == STRING_V && rvalue->type == INT_V ) {
+        size_t len = strlen(lvalue->value.s) + IBUFSIZE;
 
-        lvalue->value.str = realloc(lvalue->value.str, len);
-        snprintf(lvalue->value.str, len, "%s%ld", lvalue->value.str, rvalue->value.i64);
+        lvalue->value.s = realloc(lvalue->value.s, len);
+        snprintf(lvalue->value.s, len, "%s%ld", lvalue->value.s, rvalue->value.i);
         result = lvalue;
     }
-    else if(lvalue->type == STRING_V && rvalue->type == DOUBLE_V) {
-        size_t len = strlen(lvalue->value.str) + DBUFSIZE;
+    else if(lvalue->type == STRING_V && rvalue->type == FLOAT_V) {
+        size_t len = strlen(lvalue->value.s) + DBUFSIZE;
 
-        lvalue->value.str = realloc(lvalue->value.str, len);
-        snprintf(lvalue->value.str, len, "%s%lf", lvalue->value.str, rvalue->value.f64);
+        lvalue->value.s = realloc(lvalue->value.s, len);
+        snprintf(lvalue->value.s, len, "%s%lf", lvalue->value.s, rvalue->value.f);
         result = lvalue;
     }
-    else if(lvalue->type == INT64_V  && rvalue->type == STRING_V) {
-        size_t len = strlen(rvalue->value.str) + IBUFSIZE;
+    else if(lvalue->type == INT_V && rvalue->type == STRING_V) {
+        size_t len = strlen(rvalue->value.s) + IBUFSIZE;
 
-        rvalue->value.str = realloc(rvalue->value.str, len);
-        snprintf(rvalue->value.str, len, "%s%ld", rvalue->value.str, lvalue->value.i64);
+        rvalue->value.s = realloc(rvalue->value.s, len);
+        snprintf(rvalue->value.s, len, "%s%ld", rvalue->value.s, lvalue->value.i);
         result = rvalue;
     }
-    else if(lvalue->type == DOUBLE_V && rvalue->type == STRING_V) {
-        size_t len = strlen(rvalue->value.str) + DBUFSIZE;
+    else if(lvalue->type == FLOAT_V && rvalue->type == STRING_V) {
+        size_t len = strlen(rvalue->value.s) + DBUFSIZE;
 
-        rvalue->value.str = realloc(rvalue->value.str, len);
-        snprintf(rvalue->value.str, len, "%s%lf", rvalue->value.str, lvalue->value.f64);
+        rvalue->value.s = realloc(rvalue->value.s, len);
+        snprintf(rvalue->value.s, len, "%s%lf", rvalue->value.s, lvalue->value.f);
         result = rvalue;
     }
 
@@ -111,10 +111,10 @@ VALUE* op_plus(VALUE* lvalue, VALUE* rvalue) {
 VALUE* op_minus(VALUE* lvalue, VALUE* rvalue) {
     VALUE* result = nullvalue();
 
-    if     (lvalue->type == INT64_V  && rvalue->type == INT64_V ) result = intvalue(lvalue->value.i64 - rvalue->value.i64);
-    else if(lvalue->type == INT64_V  && rvalue->type == DOUBLE_V) result = dblvalue(lvalue->value.i64 - rvalue->value.f64);
-    else if(lvalue->type == DOUBLE_V && rvalue->type == INT64_V ) result = dblvalue(lvalue->value.f64 - rvalue->value.i64);
-    else if(lvalue->type == DOUBLE_V && rvalue->type == DOUBLE_V) result = dblvalue(lvalue->value.f64 - rvalue->value.f64);
+    if     (lvalue->type == INT_V   && rvalue->type == INT_V )  result = intvalue(lvalue->value.i - rvalue->value.i);
+    else if(lvalue->type == INT_V   && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.i - rvalue->value.f);
+    else if(lvalue->type == FLOAT_V && rvalue->type == INT_V )  result = dblvalue(lvalue->value.f - rvalue->value.i);
+    else if(lvalue->type == FLOAT_V && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.f - rvalue->value.f);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -186,8 +186,8 @@ VALUE* op_ge(VALUE* lvalue, VALUE* rvalue) {
 VALUE* op_uplus(VALUE* value) {
     VALUE* result = nullvalue();
 
-    if      (value->type == INT64_V)  result = intvalue(value->value.i64);
-    else if (value->type == DOUBLE_V) result = dblvalue(value->value.f64);
+    if      (value->type == INT_V)  result = intvalue(value->value.i);
+    else if (value->type == FLOAT_V) result = dblvalue(value->value.f);
 
     freevalue(value);
 
@@ -198,8 +198,8 @@ VALUE* op_uplus(VALUE* value) {
 VALUE* op_uminus(VALUE* value) {
     VALUE* result = nullvalue();
 
-    if      (value->type == INT64_V)  result = intvalue(-value->value.i64);
-    else if (value->type == DOUBLE_V) result = dblvalue(-value->value.f64);
+    if      (value->type == INT_V)  result = intvalue(-value->value.i);
+    else if (value->type == FLOAT_V) result = dblvalue(-value->value.f);
 
     freevalue(value);
 

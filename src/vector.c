@@ -68,8 +68,8 @@ char* astrvec(VEC* vec) {
 
 void pushvec(VEC* vec, VALUE* item) {
     /* Allocate more memory if needed */
-    if(vec->length+1 >= vec->capacity) {
-        vec->item = realloc(vec->item, vec->capacity*2);
+    if(vec->length >= vec->capacity) {
+        vec->item = realloc(vec->item, vec->capacity*2 * sizeof(VALUE*));
         vec->capacity *= 2;
     }
 
@@ -139,7 +139,7 @@ void _testvec() {
     for(int i=0; i<vec->length; i++) {
         VALUE* value = vec->item[i];
 
-        printf("%s\n", value->value.str);
+        printf("%s\n", value->value.s);
     }
 
     freevec(vec);

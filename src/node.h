@@ -9,7 +9,8 @@
 * FORWARD DECLARATIONS
 */
 
-typedef struct TOKEN TOKEN;
+typedef struct VALUE VALUE;
+typedef struct YYLTYPE YYLTYPE;
 
 
 /* ***************************************************************************
@@ -17,7 +18,7 @@ typedef struct TOKEN TOKEN;
 */
 
 enum {
-    NULL_N = 256,
+    NULL_N = 0x100,
     BOOL_N,
     INT_N,
     FLOAT_N,
@@ -35,6 +36,7 @@ enum {
     LE_N,
     GT_N,
     GE_N,
+    MAX_N
 };
 
 
@@ -46,9 +48,13 @@ typedef struct NODE {
     int type;
     struct NODE* left;
     struct NODE* right;
-    struct TOKEN* token;
-    YYLTYPE loc;
-    char* text;
+
+    union {
+        int64_t i;
+        double f;
+        char* s;
+    } value;
+    struct YYLTYPE loc;
 } NODE;
 
 
@@ -56,9 +62,12 @@ typedef struct NODE {
 * PUBLIC FUNCTIONS
 */
 
-NODE* newnode(int type, NODE* left, NODE* right, YYLTYPE* start, YYLTYPE* end);
-NODE* newleaf(int type, TOKEN* token);
-const char* nodetext(NODE* node);
+NODE* newnode(int type, NODE* left, NODE* right, YYLTYPE* loc);
+NODE* newinode(int type, int64_t i, YYLTYPE* loc);
+NODE* newfnode(int type, double f, YYLTYPE* loc);
+NODE* newsnode(int type, char* s, YYLTYPE* loc);
+char* nodetree(NODE* node);
+const char* nodetype(NODE* node);
 
 
 #endif /* NODE_H_ */

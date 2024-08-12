@@ -17,35 +17,32 @@ FRAC    ([.][0-9]+)
 EXP     ([eE][-+]?[0-9]+)
 
 %{
-#include "node.h"
 #include "parse.h"
 #include "throw.h"
-#include "token.h"
 #include "util.h"
 
-#define YYSTRING_MINSIZE 8
+#define YYCODE_INITSIZE 80
+#define YYSTR_INITSIZE 8
 
-char* yycode = NULL;
-char* yystring = NULL;
+char** yycodeptr = NULL;
 size_t yypos = 0;
 size_t yycolumn = 1;
-YYLTYPE yystart;
-NODE* yyast;
+char* yystrvalue = NULL;
+NODE* yyast = NULL;
 
 #define YY_USER_ACTION                          \
     if(YY_START == INITIAL) {                   \
-        yylloc.code = &yycode;                  \
+        yylloc.codeptr = yycodeptr;             \
         yylloc.first_pos = yypos;               \
         yylloc.first_line = yylineno;           \
         yylloc.first_column = yycolumn;         \
-        yylloc.last_pos = yypos;                \
     }                                           \
-    yycode = astrcat(yycode, yytext);           \
     yypos += yyleng;                            \
+    yycolumn += yyleng;                         \
     yylloc.last_pos = yypos;                    \
     yylloc.last_line = yylineno;                \
-    yylloc.last_column = yycolumn + yyleng - 1; \
-    yycolumn += yyleng;
+    yylloc.last_column = yycolumn;              \
+    *yycodeptr = astrcat(*yycodeptr, yytext);   \
 
 static void yynextline() {
     yycolumn = 1;
@@ -57,57 +54,57 @@ static void yynextline() {
 
 [ \r\t]                 ; /* Ignore whitespaces */
 [\n]                    { yynextline(); }
-"null"                  { yylval.token = newtoken(NULL_T, &yylloc); return NULL_T; }
-"true"                  { yylval.token = inttoken(BOOL_T, &yylloc, 1); return BOOL_T; }
-"false"                 { yylval.token = inttoken(BOOL_T, &yylloc, 0); return BOOL_T; }
-{INT}                   { yylval.token = inttoken(INT_T, &yylloc, strtoll(yytext, NULL, 0)); return INT_T; }
-0{OCT}+                 { yylval.token = inttoken(INT_T, &yylloc, strtoll(yytext, NULL, 0)); return INT_T; }
-0[xX]{HEX}+             { yylval.token = inttoken(INT_T, &yylloc, strtoll(yytext, NULL, 0)); return INT_T; }
-{INT}{FRAC}{EXP}        { yylval.token = dbltoken(FLOAT_T, &yylloc, strtod(yytext, NULL)); return FLOAT_T; }
-{INT}{FRAC}             { yylval.token = dbltoken(FLOAT_T, &yylloc, strtod(yytext, NULL)); return FLOAT_T; }
-{INT}{EXP}              { yylval.token = dbltoken(FLOAT_T, &yylloc, strtod(yytext, NULL)); return FLOAT_T; }
-[_a-zA-Z][_a-zA-Z0-9]*  { yylval.token = strtoken(IDENT_T, &yylloc, yytext); return IDENT_T; }
-"{"                     { yylval.loc = yylloc; return yytext[0]; }
-"}"                     { yylval.loc = yylloc; return yytext[0]; }
-"["                     { yylval.loc = yylloc; return yytext[0]; }
-"]"                     { yylval.loc = yylloc; return yytext[0]; }
-"("                     { yylval.loc = yylloc; return yytext[0]; }
-")"                     { yylval.loc = yylloc; return yytext[0]; }
-":"                     { yylval.loc = yylloc; return yytext[0]; }
-","                     { yylval.loc = yylloc; return yytext[0]; }
-";"                     { yylval.loc = yylloc; return yytext[0]; }
-"."                     { yylval.loc = yylloc; return yytext[0]; }
-"="                     { yylval.loc = yylloc; return yytext[0]; }
-"*"                     { yylval.loc = yylloc; return yytext[0]; }
-"/"                     { yylval.loc = yylloc; return yytext[0]; }
-"%"                     { yylval.loc = yylloc; return yytext[0]; }
-"+"                     { yylval.loc = yylloc; return yytext[0]; }
-"-"                     { yylval.loc = yylloc; return yytext[0]; }
-"=="                    { yylval.loc = yylloc; return EQ_T; }
-"!="                    { yylval.loc = yylloc; return NE_T; }
-"<="                    { yylval.loc = yylloc; return LE_T; }
-"<"                     { yylval.loc = yylloc; return LT_T; }
-">="                    { yylval.loc = yylloc; return GE_T; }
-">"                     { yylval.loc = yylloc; return GT_T; }
-["]                     { BEGIN(STRING); yylloc = yystart; yystring = calloc(1, YYSTRING_MINSIZE); }
-<STRING>[^"\\\n]+       { yystring = astrcat(yystring, yytext); }
-<STRING>\n              { yystring = astrcat(yystring, yytext); yynextline(); }
-<STRING>\\U{HEX8}       { yystring = astrcat(yystring, utf8str(strtoll(yytext+2, NULL, 16))); }
-<STRING>\\u{HEX4}       { yystring = astrcat(yystring, utf8str(strtoll(yytext+2, NULL, 16))); }
-<STRING>\\x{HEX2}       { yystring = astrcat(yystring, utf8str(strtoll(yytext+2, NULL, 16))); }
-<STRING>\\X{HEX2}       { yystring = astrcat(yystring, utf8str(strtoll(yytext+2, NULL, 16))); }
-<STRING>\\[\"]          { yystring = astrcat(yystring, "\""); }
-<STRING>\\\\            { yystring = astrcat(yystring, "\\"); }
-<STRING>\\[/]           { yystring = astrcat(yystring, "/");  }
-<STRING>\\b             { yystring = astrcat(yystring, "\b"); }
-<STRING>\\f             { yystring = astrcat(yystring, "\f"); }
-<STRING>\\n             { yystring = astrcat(yystring, "\n"); }
-<STRING>\\r             { yystring = astrcat(yystring, "\r"); }
-<STRING>\\t             { yystring = astrcat(yystring, "\t"); }
+"null"                  { return NULL_T; }
+"true"                  { yylval.i = 1; return BOOL_T; }
+"false"                 { yylval.i = 0; return BOOL_T; }
+{INT}                   { yylval.i = strtoll(yytext, NULL, 0); return INT_T; }
+0{OCT}+                 { yylval.i = strtoll(yytext, NULL, 0); return INT_T; }
+0[xX]{HEX}+             { yylval.i = strtoll(yytext, NULL, 0); return INT_T; }
+{INT}{FRAC}{EXP}        { yylval.f = strtod(yytext, NULL); return FLOAT_T; }
+{INT}{FRAC}             { yylval.f = strtod(yytext, NULL); return FLOAT_T; }
+{INT}{EXP}              { yylval.f = strtod(yytext, NULL); return FLOAT_T; }
+[_a-zA-Z][_a-zA-Z0-9]*  { yylval.s = strdup(yytext); return IDENT_T; }
+"{"                     { return yytext[0]; }
+"}"                     { return yytext[0]; }
+"["                     { return yytext[0]; }
+"]"                     { return yytext[0]; }
+"("                     { return yytext[0]; }
+")"                     { return yytext[0]; }
+":"                     { return yytext[0]; }
+","                     { return yytext[0]; }
+";"                     { return yytext[0]; }
+"."                     { return yytext[0]; }
+"="                     { return yytext[0]; }
+"*"                     { return yytext[0]; }
+"/"                     { return yytext[0]; }
+"%"                     { return yytext[0]; }
+"+"                     { return yytext[0]; }
+"-"                     { return yytext[0]; }
+"=="                    { return EQ_T; }
+"!="                    { return NE_T; }
+"<="                    { return LE_T; }
+"<"                     { return LT_T; }
+">="                    { return GE_T; }
+">"                     { return GT_T; }
+["]                     { BEGIN(STRING); yystrvalue = calloc(1, YYSTR_INITSIZE); }
+<STRING>[^"\\\n]+       { yystrvalue = astrcat(yystrvalue, yytext); }
+<STRING>\n              { yystrvalue = astrcat(yystrvalue, yytext); yynextline(); }
+<STRING>\\U{HEX8}       { yystrvalue = astrcat(yystrvalue, utf8str(strtoll(yytext+2, NULL, 16))); }
+<STRING>\\u{HEX4}       { yystrvalue = astrcat(yystrvalue, utf8str(strtoll(yytext+2, NULL, 16))); }
+<STRING>\\x{HEX2}       { yystrvalue = astrcat(yystrvalue, utf8str(strtoll(yytext+2, NULL, 16))); }
+<STRING>\\X{HEX2}       { yystrvalue = astrcat(yystrvalue, utf8str(strtoll(yytext+2, NULL, 16))); }
+<STRING>\\[\"]          { yystrvalue = astrcat(yystrvalue, "\""); }
+<STRING>\\\\            { yystrvalue = astrcat(yystrvalue, "\\"); }
+<STRING>\\[/]           { yystrvalue = astrcat(yystrvalue, "/");  }
+<STRING>\\b             { yystrvalue = astrcat(yystrvalue, "\b"); }
+<STRING>\\f             { yystrvalue = astrcat(yystrvalue, "\f"); }
+<STRING>\\n             { yystrvalue = astrcat(yystrvalue, "\n"); }
+<STRING>\\r             { yystrvalue = astrcat(yystrvalue, "\r"); }
+<STRING>\\t             { yystrvalue = astrcat(yystrvalue, "\t"); }
 <STRING>\\\n            { yynextline(); }
-<STRING>\\              { throwtoken(newtoken(BAD_T, &yylloc), "String with bad backslash sequence"); return BAD_T; }
-<STRING><<EOF>>         { throwtoken(newtoken(BAD_T, &yylloc), "String missing terminating quote"); return BAD_T; }
-<STRING>\"              { BEGIN(INITIAL); yylval.token = astrtoken(STRING_T, &yystart, &yylloc, yystring); return STRING_T; }
+<STRING>\\              { throw(&yylloc, "String with bad backslash sequence"); return BAD_T; }
+<STRING><<EOF>>         { throw(&yylloc, "String missing terminating quote"); return BAD_T; }
+<STRING>\"              { BEGIN(INITIAL); yylval.s = yystrvalue; return STRING_T; }
 "#"                     { BEGIN(COMMENT); }
 <COMMENT>.              ;
 <COMMENT>\n             { BEGIN(INITIAL); yynextline(); }
@@ -115,18 +112,22 @@ static void yynextline() {
 <COMMENT2>.             ;
 <COMMENT2>\n            { yynextline(); }
 <COMMENT2>"*/"          { BEGIN(INITIAL); }
-<COMMENT2><<EOF>>       { throwtoken(newtoken(BAD_T, &yylloc), "Multiline-comment missing comment terminator"); }
-.                       { throwtoken(newtoken(BAD_T, &yylloc), "We shouldn't get here"); }
+<COMMENT2><<EOF>>       { throw(&yylloc, "Multiline-comment missing comment terminator"); }
+.                       { throw(&yylloc, "We shouldn't get here"); }
 
 %%
 
 NODE* parse(const char* code) {
-    yycode = calloc(1, 80);
+    /* Initialize globals */
     yypos = 0;
     yylineno = 1;
     yycolumn = 1;
-//    yydebug = 1;
+    yyast = NULL;
+    yystrvalue = NULL;
+    yycodeptr = calloc(1, sizeof(char*));
+    *yycodeptr = calloc(1, YYCODE_INITSIZE);
 
+    /* Parse from string */
     if(code) {
         YY_BUFFER_STATE bp = yy_scan_string(code);
 
@@ -135,6 +136,7 @@ NODE* parse(const char* code) {
         yy_flush_buffer(bp);
         yy_delete_buffer(bp);
     }
+    /* Parse from stdin */
     else {
         yyin = stdin;
 
@@ -142,6 +144,8 @@ NODE* parse(const char* code) {
             yyparse();
         } while(!feof(yyin));
     }
+
+    /* do not free yycodeptr, used by yyast */
 
     return yyast;
 }

@@ -1,6 +1,9 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+#include "parse.h"
 #include "util.h"
 
 
@@ -75,6 +78,32 @@ char* astrcat(char* dest, const char* src) {
 }
 
 
+/**
+* Like asprintf, but append to dest and return new memory.
+*/
+char* casprintf(char* dest, const char* format, ...) {
+    size_t dlen = strlen(dest);
+    size_t slen = 0;
+    va_list ap;
+    char* src;
+
+    /* source */
+    va_start(ap, format);
+    vasprintf(&src, format, ap);
+    va_end(ap);
+
+    /* append */
+    slen = strlen(src);
+    dest = realloc(dest, dlen+slen+1);
+    snprintf(dest+dlen, slen+1, "%s", src);
+
+    /* free */
+    free(src);
+
+    return dest;
+}
+
+
 char* astrencode(const char* src) {
     char* dest = calloc(1, strlen(src) + 3);
     const char* cp = src;
@@ -104,10 +133,19 @@ char* astrencode(const char* src) {
         cp++;
     }
 
-printf("src=%s\n", src);
-printf("dest=%s\n", dest);
     /* Closing quote */
     dest = astrcat(dest, "\"");
 
     return dest;
+}
+
+
+char* textat(YYLTYPE* loc) {
+    size_t length = loc->last_pos - loc->first_pos + 1;
+    char* code = *loc->codeptr;
+    char* buf = malloc(length);;
+
+    snprintf(buf, length, "%s", code + loc->first_pos);
+
+    return buf;
 }

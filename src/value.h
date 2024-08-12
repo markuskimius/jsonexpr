@@ -22,8 +22,8 @@ typedef struct NODE NODE;
 typedef enum {
     NULL_V      = '0',
     BOOL_V      = 'B',
-    INT64_V     = 'I',
-    DOUBLE_V    = 'D',
+    INT_V       = 'I',
+    FLOAT_V     = 'D',
     STRING_V    = 'S',
     ARRAY_V     = 'A',
     OBJECT_V    = 'O',
@@ -41,14 +41,14 @@ typedef struct VALUE {
     value_t type;
     size_t count;
     union {
-        int64_t i64;
-        double f64;
-        char* str;
-        VEC* vec;
-        MAP* map;
-        FUNC* bfn;
-        UFUNC* ufn;
-        NODE* node;
+        int64_t i;
+        double f;
+        char* s;
+        VEC* v;
+        MAP* m;
+        FUNC* b;
+        UFUNC* u;
+        NODE* n;
     } value;
     char* astrdecoded;
     char* astrencoded;
@@ -63,7 +63,7 @@ VALUE* nullvalue();
 VALUE* boolvalue(int64_t i64);
 VALUE* intvalue(int64_t i64);
 VALUE* dblvalue(double f64);
-VALUE* strvalue(const char* str);
+VALUE* strvalue(char* str);
 VALUE* arrvalue(VEC* vec);
 VALUE* objvalue(MAP* map);
 VALUE* bfnvalue(FUNC* func);

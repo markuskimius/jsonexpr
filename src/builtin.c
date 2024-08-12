@@ -77,7 +77,7 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
 
         snprintf(name, sizeof(name), "FUNCTION#%zd()", ++nufunc);
 
-        return ufnvalue(newufunc(args->item[1]->value.node, name, sig, table));
+        return ufnvalue(newufunc(args->item[1]->value.n, name, sig, table));
     }
 
     return NULL;
@@ -107,8 +107,8 @@ static VALUE* LEN(VEC* args, SYM_TABLE* table) {
 
     switch(value->type) {
         case STRING_V   : result = intvalue(strlen(strdecoded(value))); break;
-        case ARRAY_V    : result = intvalue(value->value.vec->length); break;
-        case OBJECT_V   : result = intvalue(value->value.map->length); break;
+        case ARRAY_V    : result = intvalue(value->value.v->length); break;
+        case OBJECT_V   : result = intvalue(value->value.m->length); break;
         default         : raise("Type has no length: '%c' (%d)", value->type, value->type); break;
     }
 
@@ -120,16 +120,16 @@ static VALUE* IF(VEC* args, SYM_TABLE* table) {
     VALUE* result = NULL;
 
     for(size_t i=0; i<(args->length & ~1UL); i+=2) {
-        VALUE* cond = eval(args->item[i]->value.node, table);
+        VALUE* cond = eval(args->item[i]->value.n, table);
 
         if(istrue(cond)) {
-            result = eval(args->item[i+1]->value.node, table);
+            result = eval(args->item[i+1]->value.n, table);
             break;
         }
     }
 
     if(!result && (args->length % 2)) {
-        result = eval(args->item[args->length-1]->value.node, table);
+        result = eval(args->item[args->length-1]->value.n, table);
     }
 
     return result ? result : nullvalue();

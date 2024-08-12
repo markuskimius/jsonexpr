@@ -46,7 +46,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
     for(size_t i=0; i<nodes->length; i++) {
         VALUE* value = nodes->item[i];
-        NODE* node = value->value.node;
+        NODE* node = value->value.n;
 
         /* value must be a node */
         assert(value->type == NODE_V);
@@ -57,7 +57,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
             isok = 0;
         }
         /* evaluate */
-        else if(strchr("BIDSAOF?", *cp)) {
+        else if(strchr("BIDSAOFf?", *cp)) {
             VALUE* v = eval(node, table);
 
             if(*cp != '?' && tolower(v->type) != tolower(*cp)) {
