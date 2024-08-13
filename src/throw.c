@@ -52,9 +52,6 @@ void throw(YYLTYPE* loc, const char* format, ...) {
     vasprintf(&buf, format, ap);
     va_end(ap);
 
-printf("%s\n", *loc->codeptr);
-printf("%lu %lu\n", loc->first_pos, loc->last_pos);
-
     fprintf(stderr, "%s: %s at line %zu, col %zu\n", text, buf, loc->first_line, loc->first_column);
     free(text);
     free(buf);

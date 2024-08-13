@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,10 +12,19 @@
 
 
 /* ***************************************************************************
+* CONSTANTS
+*/
+
+#define NAMEMAX 16
+
+
+/* ***************************************************************************
 * GLOBALS
 */
 
 VALUE* null = NULL;
+
+static char VALUENAME[128][NAMEMAX];
 
 
 /* ***************************************************************************
@@ -229,6 +239,32 @@ char* strencoded(VALUE* value) {
     }
 
     return "null";
+}
+
+
+const char* valuetype(VALUE* value) {
+    int type = value->type;
+    char* name = NULL;
+
+    switch(type) {
+        case NULL_V      : snprintf(VALUENAME[NULL_V],     NAMEMAX, "NULL");      name = VALUENAME[NULL_V];     break;
+        case BOOL_V      : snprintf(VALUENAME[BOOL_V],     NAMEMAX, "BOOL");      name = VALUENAME[BOOL_V];     break;
+        case INT_V       : snprintf(VALUENAME[INT_V],      NAMEMAX, "INT");       name = VALUENAME[INT_V];      break;
+        case FLOAT_V     : snprintf(VALUENAME[FLOAT_V],    NAMEMAX, "FLOAT");     name = VALUENAME[FLOAT_V];    break;
+        case STRING_V    : snprintf(VALUENAME[STRING_V],   NAMEMAX, "STRING");    name = VALUENAME[STRING_V];   break;
+        case ARRAY_V     : snprintf(VALUENAME[ARRAY_V],    NAMEMAX, "ARRAY");     name = VALUENAME[ARRAY_V];    break;
+        case OBJECT_V    : snprintf(VALUENAME[OBJECT_V],   NAMEMAX, "OBJECT");    name = VALUENAME[OBJECT_V];   break;
+        case BUILTIN_V   : snprintf(VALUENAME[BUILTIN_V],  NAMEMAX, "FUNCTION");  name = VALUENAME[BUILTIN_V];  break;
+        case USERFUNC_V  : snprintf(VALUENAME[USERFUNC_V], NAMEMAX, "UFUNCTION"); name = VALUENAME[USERFUNC_V]; break;
+        case NODE_V      : snprintf(VALUENAME[NODE_V],     NAMEMAX, "NODE");      name = VALUENAME[NODE_V];     break;
+        default:
+            if(isprint(type)) snprintf(VALUENAME[0], NAMEMAX, "'%c' (%d)", type, type);
+            else snprintf(VALUENAME[0], NAMEMAX, "? (%d)", type);
+
+            name = VALUENAME[0];
+    }
+
+    return name;
 }
 
 

@@ -50,7 +50,7 @@ static MAP* newpair(NODE* node, SYM_TABLE* table, MAP* list) {
         }
 
         default:
-            throw(&node->loc, "Pair expected, got '%c' (%d)", node->type, node->type);
+            throw(&node->loc, "Pair expected, got %s", nodetype(node));
             break;
     }
 
@@ -69,7 +69,7 @@ static MAP* newpairlist(NODE* node, SYM_TABLE* table, MAP* list) {
                 break;
 
             default:
-                throw(&node->loc, "Pairlist expected, got '%c' (%d)", node->type, node->type);
+                throw(&node->loc, "Pairlist expected, got %c", nodetype(node));
                 break;
         }
     }
@@ -100,9 +100,9 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
                 value = getmap(left->value.m, right->value.s);
                 if(!value) throw(&node->loc, "Invalid key, %s", strencoded(right));
             }
-            else if(left->type == ARRAY_V ) throw(&node->loc, "Integer expected, got '%c' (%d)", right->type, right->type);
-            else if(left->type == OBJECT_V) throw(&node->loc, "String expected, got '%c' (%d)", right->type, right->type);
-            else                            throw(&node->loc, "Array or object expected, got '%c' (%d)", left->type, left->type);
+            else if(left->type == ARRAY_V ) throw(&node->loc, "Integer expected, got %s", valuetype(right));
+            else if(left->type == OBJECT_V) throw(&node->loc, "String expected, got %s", valuetype(right));
+            else                            throw(&node->loc, "Array or object expected, got %s", valuetype(left));
 
             freevalue(right);
             break;
@@ -113,14 +113,14 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             NODE* right = node->right;
 
             if     (left->type == OBJECT_V && right->type == IDENT_N) value = getmap(left->value.m, right->value.s);
-            else if(left->type == OBJECT_V                          ) throw(&node->loc, "Identifier expected, got '%c' (%d)", right->type, right->type);
-            else                                                      throw(&node->loc, "Object expected, got '%c' (%d)", left->type, left->type);
+            else if(left->type == OBJECT_V                          ) throw(&node->loc, "Identifier expected, got %s", nodetype(right));
+            else                                                      throw(&node->loc, "Object expected, got %s", valuetype(left));
 
             break;
         }
 
         default:
-            throw(&node->loc, "Invalid node type: '%c' (%d)", node->type, node->type);
+            throw(&node->loc, "Invalid node type: %s", nodetype(node));
             break;
     }
 
@@ -150,8 +150,8 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
                     throw(&node->loc, "%s", error_text);
                 }
             }
-            else if(left->type != ARRAY_V) throw(&node->loc, "Array expected, got '%c' (%d)", left->type, left->type);
-            else                           throw(&node->loc, "Integer expected, got '%c' (%d)", right->type, right->type);
+            else if(left->type != ARRAY_V) throw(&node->loc, "Array expected, got %s", valuetype(left));
+            else                           throw(&node->loc, "Integer expected, got %s", valuetype(right));
 
             freevalue(right);
             break;
@@ -163,14 +163,14 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
 
             if     (!left                                           ) throw(&node->left->loc, "No such item");
             else if(left->type == OBJECT_V && right->type == IDENT_N) setmap(left->value.m, right->value.s, value);
-            else if(left->type != OBJECT_V                          ) throw(&node->loc, "Object expected, got '%c' (%d)", left->type, left->type);
-            else                                                      throw(&node->loc, "Identifier expected, got '%c' (%d)", right->type, right->type);
+            else if(left->type != OBJECT_V                          ) throw(&node->loc, "Object expected, got %s", valuetype(left));
+            else                                                      throw(&node->loc, "Identifier expected, got %s", nodetype(right));
 
             break;
         }
 
         default:
-            throw(&node->loc, "Invalid node type: '%c' (%d)", node->type, node->type);
+            throw(&node->loc, "Invalid node type: %s", nodetype(node));
             break;
     }
 
@@ -264,7 +264,7 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case UPLUS_N    : result = op_uplus(eval(node->left, table)); break;
             case UMINUS_N   : result = op_uminus(eval(node->left, table)); break;
             case ';'        : freevalue(eval(node->left, table)); result = eval(node->right, table); break;
-            default         : throw(&node->loc, "Invalid node type: '%c' (%d)", node->type, node->type); break;
+            default         : throw(&node->loc, "Invalid node type: %s", nodetype(node)); break;
         }
     }
 
