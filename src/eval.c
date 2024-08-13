@@ -90,7 +90,7 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             VALUE* left = gettable2(table, node->left);
             VALUE* right = eval(node->right, table);
 
-            if(left->type == ARRAY_V  && right->type == INT_V ) {
+            if(left->type == ARRAY_V && right->type == INT_V) {
                 value = getvec(left->value.v, right->value.i);
                 if(!value) {
                     throw(&node->loc, "Invalid index, max %ld, got %ld", left->value.v->length-1, right->value.i);
@@ -100,9 +100,9 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
                 value = getmap(left->value.m, right->value.s);
                 if(!value) throw(&node->loc, "Invalid key, %s", strencoded(right));
             }
-            else if(left->type == ARRAY_V ) throw(&node->loc, "Integer expected, got %s", valuetype(right));
-            else if(left->type == OBJECT_V) throw(&node->loc, "String expected, got %s", valuetype(right));
-            else                            throw(&node->loc, "Array or object expected, got %s", valuetype(left));
+            else if(left->type == ARRAY_V ) throw(&node->loc, "Array index must be INTEGER but got %s", valuetype(right));
+            else if(left->type == OBJECT_V) throw(&node->loc, "Object key must be STRING but got %s", valuetype(right));
+            else                            throw(&node->loc, "Array or Object expected before '[' but got %s", valuetype(left));
 
             freevalue(right);
             break;
@@ -113,8 +113,8 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             NODE* right = node->right;
 
             if     (left->type == OBJECT_V && right->type == IDENT_N) value = getmap(left->value.m, right->value.s);
-            else if(left->type == OBJECT_V                          ) throw(&node->loc, "Identifier expected, got %s", nodetype(right));
-            else                                                      throw(&node->loc, "Object expected, got %s", valuetype(left));
+            else if(left->type == OBJECT_V                          ) throw(&node->loc, "Identifier expected after '.' but got %s", nodetype(right));
+            else                                                      throw(&node->loc, "Object expected before '.' but got %s", valuetype(left));
 
             break;
         }
@@ -150,8 +150,12 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
                     throw(&node->loc, "%s", error_text);
                 }
             }
-            else if(left->type != ARRAY_V) throw(&node->loc, "Array expected, got %s", valuetype(left));
-            else                           throw(&node->loc, "Integer expected, got %s", valuetype(right));
+            else if(left->type == OBJECT_V && right->type == STRING_V) {
+                setmap(left->value.m, right->value.s, value);
+            }
+            else if(left->type == ARRAY_V ) throw(&node->loc, "Array index must be INTEGER but got %s", valuetype(right));
+            else if(left->type == OBJECT_V) throw(&node->loc, "Object key must be STRING but got %s", valuetype(right));
+            else                            throw(&node->loc, "Array or Object expected before '[' but got %s", valuetype(left));
 
             freevalue(right);
             break;
