@@ -1,0 +1,9 @@
+myvalue = IF(2*3<0, 5, 3);
+SQRT(4) * myvalue;
+PRINT(myvalue);
+
+FOR(i = 0, i < 5, i++,
+    PRINT("Hello " + i)
+);
+
+"Done!"

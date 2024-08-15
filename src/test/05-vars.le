@@ -1,0 +1,11 @@
+mylist = [
+    1,
+    {
+        two   : 2,
+        three : 3,
+    },
+    3,
+];
+myvar = 7 / mylist[1].three;
+mylist[1].two = 7 / 2;
+PRINT(mylist)
