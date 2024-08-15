@@ -6,7 +6,6 @@
 #include "node.h"
 #include "oper.h"
 #include "throw.h"
-#include "ufunc.h"
 #include "value.h"
 #include "vector.h"
 #include "symtable.h"
@@ -206,11 +205,7 @@ static VALUE* call(SYM_TABLE* table, NODE* node) {
 
     /* Call the function */
     if(func) {
-        switch(func->type) {
-            case BUILTIN_V  : value = funcexec(func->value.b, nodes, table); break;
-            case USERFUNC_V : value = ufuncexec(func->value.u, nodes, table); break;
-            default         : throw(&node->left->loc, "Not a function"); break;
-        }
+        value = funcexec(func->value.fn, nodes, table);
     }
     else {
         throw(&node->left->loc, "Not a function");
@@ -254,6 +249,21 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case CALL_N     : result = call(table, node); break;
             case SYMBOL_N   : result = dupvalue(gettable2(table, node->left)); break;
             case '='        : result = dupvalue(settable2(table, node->left, eval(node->right, table))); break;
+
+/* FIXME
+- Need to remove smart pointer.
+- Fix prefix/postfix increment/decrement operators
+*/
+/*
+            case PREINC_N   : result = settable3(table, node->left, op_plus, intvalue(1)); break;
+            case PREDEC_N   : result = settable3(table, node->left, op_plus, intvalue(-1)); break;
+            case POSTINC_N  : result = settable3(table, node->left, op_plus, intvalue(1)); break;
+            case POSTDEC_N  : result = settable3(table, node->left, op_plus, intvalue(-1)); break;
+
+            case POSTINC_N  : result = op_post(dupvalue(gettable2(table, node->left)), intvalue(1)); break;
+            case POSTDEC_N  : result = op_post(dupvalue(gettable2(table, node->left)), intvalue(-1)); break;
+*/
+
             case '*'        : result = op_times(eval(node->left, table), eval(node->right, table)); break;
             case '/'        : result = op_divby(eval(node->left, table), eval(node->right, table)); break;
             case '%'        : result = op_mod(eval(node->left, table), eval(node->right, table)); break;

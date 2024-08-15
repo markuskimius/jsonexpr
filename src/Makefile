@@ -29,15 +29,15 @@ clean:
 ##############################################################################
 # MAIN
 
-jsonexpr.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o ufunc.o util.o value.o vector.o parse.tab.o lex.yy.o
+jsonexpr.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
-jsonexpr: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o ufunc.o util.o value.o vector.o parse.tab.o lex.yy.o
+jsonexpr: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-builtin.o: builtin.c builtin.h eval.h func.h map.h node.h ufunc.h value.h vector.h
+builtin.o: builtin.c builtin.h eval.h func.h map.h node.h value.h vector.h
 
-eval.o: eval.c eval.h func.h map.h node.h oper.h throw.h ufunc.h value.h vector.h symtable.h
+eval.o: eval.c eval.h func.h map.h node.h oper.h throw.h value.h vector.h symtable.h
 
 func.o: func.c eval.h func.h node.h value.h vector.h symtable.h
 
@@ -53,11 +53,9 @@ throw.o: throw.c node.h throw.h
 
 symtable.o: symtable.c map.h builtin.h symtable.h value.h
 
-ufunc.o: ufunc.c eval.h func.h node.h util.h ufunc.h value.h vector.h symtable.h
-
 util.o: util.c util.h
 
-value.o: value.c func.h map.h util.h ufunc.h value.h vector.h
+value.o: value.c func.h map.h util.h value.h vector.h
 
 vector.o: vector.c util.h value.h vector.h
 

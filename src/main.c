@@ -12,6 +12,9 @@
 #define R(...) #__VA_ARGS__
 
 int main() {
+    NODE* ast = parse(NULL);
+
+    /*
     NODE* ast = parse(R(
         memo = [ 0, 1 ];
         fib = FUNCTION("?",
@@ -29,6 +32,7 @@ int main() {
 
         fib(1000);
     ));
+    */
 
     /*
     if(1) {

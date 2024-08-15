@@ -7,7 +7,6 @@
 #include "map.h"
 #include "node.h"
 #include "throw.h"
-#include "ufunc.h"
 #include "value.h"
 #include "vector.h"
 
@@ -26,7 +25,7 @@ typedef struct USERFN {
 */
 
 static MAP* BUILTINS = NULL;
-static size_t nufunc = 0;
+static size_t ncustfunc = 0;
 
 
 /* ***************************************************************************
@@ -75,9 +74,9 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
     if(isok) {
         char name[64];
 
-        snprintf(name, sizeof(name), "FUNCTION#%zd()", ++nufunc);
+        snprintf(name, sizeof(name), "FUNCTION#%zd()", ++ncustfunc);
 
-        return ufnvalue(newufunc(args->item[1]->value.n, name, sig, table));
+        return funcvalue(newcustfunc(args->item[1]->value.n, name, sig, table));
     }
 
     return NULL;
@@ -144,10 +143,10 @@ MAP* builtin() {
     if(!BUILTINS) {
         BUILTINS = newmap();
 
-        setmap(BUILTINS, "FUNCTION", bfnvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
-        setmap(BUILTINS, "PRINT"   , bfnvalue(newfunc(PRINT   , "PRINT()"   , "*")));
-        setmap(BUILTINS, "LEN"     , bfnvalue(newfunc(LEN     , "LEN()"     , "?")));
-        setmap(BUILTINS, "IF"      , bfnvalue(newfunc(IF      , "IF()"      , ".**")));
+        setmap(BUILTINS, "FUNCTION", funcvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
+        setmap(BUILTINS, "PRINT"   , funcvalue(newfunc(PRINT   , "PRINT()"   , "*")));
+        setmap(BUILTINS, "LEN"     , funcvalue(newfunc(LEN     , "LEN()"     , "?")));
+        setmap(BUILTINS, "IF"      , funcvalue(newfunc(IF      , "IF()"      , ".**")));
     }
 
     return BUILTINS;

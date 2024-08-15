@@ -9,6 +9,7 @@
 */
 
 typedef struct VEC VEC;
+typedef struct NODE NODE;
 typedef struct VALUE VALUE;
 typedef struct SYM_TABLE SYM_TABLE;
 
@@ -17,21 +18,30 @@ typedef struct SYM_TABLE SYM_TABLE;
 * CONSTANTS
 */
 
-#ifndef MAXARGS
 #define MAXARGS ((size_t) -1)
-#endif
+
+typedef enum {
+    BINARY_FT,
+    CUSTOM_FT,
+} func_t;
 
 
 /* ***************************************************************************
 * TYPES
 */
 
-typedef VALUE* (*FUNC_HANDLER)(VEC* args, SYM_TABLE* table);
+typedef VALUE* (*BINARY_FN)(VEC* args, SYM_TABLE* table);
 
 typedef struct FUNC {
-    FUNC_HANDLER handler;
+    func_t type;
+    union {
+        BINARY_FN bin;
+        NODE* cust;
+    } handler;
+
     char* name;
     char* sig;
+    SYM_TABLE* ctx;
 } FUNC;
 
 
@@ -39,7 +49,8 @@ typedef struct FUNC {
 * PUBLIC FUNCTIONS
 */
 
-FUNC* newfunc(FUNC_HANDLER handler, const char* name, const char* spec);
+FUNC* newfunc(BINARY_FN handler, const char* name, const char* spec);
+FUNC* newcustfunc(NODE* handler, const char* name, const char* sig, SYM_TABLE* ctx);
 void freefunc(FUNC* func);
 char* astrfunc(FUNC* func);
 VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table);

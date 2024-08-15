@@ -16,10 +16,11 @@
 * PUBLIC FUNCTIONS
 */
 
-FUNC* newfunc(FUNC_HANDLER handler, const char* name, const char* sig) {
+FUNC* newfunc(BINARY_FN handler, const char* name, const char* sig) {
     FUNC* func = calloc(1, sizeof(FUNC));
 
-    func->handler = handler;
+    func->type = BINARY_FT;
+    func->handler.bin = handler;
     func->name = strdup(name);
     func->sig = strdup(sig);
 
@@ -27,9 +28,23 @@ FUNC* newfunc(FUNC_HANDLER handler, const char* name, const char* sig) {
 }
 
 
+FUNC* newcustfunc(NODE* handler, const char* name, const char* sig, SYM_TABLE* ctx) {
+    FUNC* func = calloc(1, sizeof(FUNC));
+
+    func->type = CUSTOM_FT;
+    func->handler.cust = handler;
+    func->name = strdup(name);
+    func->sig = strdup(sig);
+    func->ctx = duptable(ctx);
+
+    return func;
+}
+
+
 void freefunc(FUNC* func) {
-    free(func->name);
-    free(func->sig);
+    if(func->ctx) freetable(func->ctx);
+    if(func->name) free(func->name);
+    if(func->sig) free(func->sig);
     free(func);
 }
 
@@ -105,8 +120,27 @@ VALUE* funcexec(FUNC* func, VEC* nodes, SYM_TABLE* table) {
     VALUE* result = NULL;
 
     if(args) {
-        result = func->handler(args, table);
-        freevec(args);
+        switch(func->type) {
+            case BINARY_FT : {
+                result = func->handler.bin(args, table);
+                freevec(args);
+                break;
+            }
+
+            case CUSTOM_FT : {
+                SYM_TABLE* ctx = newtable(func->ctx);
+
+                settable(ctx, "ARG", arrvalue(args));
+                result = eval(func->handler.cust, ctx);
+
+                freetable(ctx);  /* also frees ARG */
+                break;
+            }
+
+            default: {
+                die("We shouldn't get here");
+            }
+        }
     }
 
     return result;

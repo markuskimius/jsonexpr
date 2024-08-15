@@ -1,5 +1,5 @@
-#ifndef EXCEPTION_H_
-#define EXCEPTION_H_
+#ifndef THROW_H_
+#define THROW_H_
 
 
 /* ***************************************************************************
@@ -14,7 +14,7 @@ typedef struct YYLTYPE YYLTYPE;
 * MACROS
 */
 
-#define die(format, args...) _die(__FILE__, __FUNCTION__, __LINE__, format, args)
+#define die(args...) _die(__FILE__, __FUNCTION__, __LINE__, args)
 
 
 /* ***************************************************************************
@@ -33,4 +33,4 @@ void raise(const char* format, ...);
 void throw(YYLTYPE* loc, const char* format, ...);
 
 
-#endif /* EXCEPTION_H_ */
+#endif /* THROW_H_ */

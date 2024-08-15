@@ -11,7 +11,6 @@
 typedef struct MAP MAP;
 typedef struct VEC VEC;
 typedef struct FUNC FUNC;
-typedef struct UFUNC UFUNC;
 typedef struct NODE NODE;
 
 
@@ -27,8 +26,7 @@ typedef enum {
     STRING_V    = 'S',
     ARRAY_V     = 'A',
     OBJECT_V    = 'O',
-    BUILTIN_V   = 'F',
-    USERFUNC_V  = 'f',
+    FUNCTION_V  = 'F',
     NODE_V      = 'N',
 } value_t;
 
@@ -46,8 +44,7 @@ typedef struct VALUE {
         char* s;
         VEC* v;
         MAP* m;
-        FUNC* b;
-        UFUNC* u;
+        FUNC* fn;
         NODE* n;
     } value;
     char* astrdecoded;
@@ -66,8 +63,7 @@ VALUE* dblvalue(double f64);
 VALUE* strvalue(char* str);
 VALUE* arrvalue(VEC* vec);
 VALUE* objvalue(MAP* map);
-VALUE* bfnvalue(FUNC* func);
-VALUE* ufnvalue(UFUNC* ufunc);
+VALUE* funcvalue(FUNC* func);
 VALUE* nodevalue(NODE* node);
 VALUE* dupvalue(VALUE* value);
 void freevalue(VALUE* value);
@@ -91,7 +87,6 @@ char* getstring(VALUE* value);
 VEC* getarray(VALUE* value);
 MAP* getobject(VALUE* value);
 FUNC* getbuiltin(VALUE* value);
-UFUNC* getuserfunc(VALUE* value);
 
 
 #endif /* VALUE_H_ */
