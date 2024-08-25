@@ -17,8 +17,9 @@ typedef struct VALUE VALUE;
 
 typedef struct VEC {
     VALUE** item;
-    size_t length;
     size_t capacity;
+    size_t length;
+    size_t count;
 } VEC;
 
 
@@ -27,6 +28,7 @@ typedef struct VEC {
 */
 
 VEC* newvec();
+VEC* dupvec(VEC* vec);
 void freevec(VEC* vec);
 char* astrvec(VEC* vec);
 void pushvec(VEC* vec, VALUE* item);

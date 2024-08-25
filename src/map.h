@@ -20,6 +20,7 @@ typedef struct MAP {
     struct MAP* prev;
     size_t nchildren;
     size_t length;
+    size_t count;
 } MAP;
 
 
@@ -28,6 +29,7 @@ typedef struct MAP {
 */
 
 MAP* newmap();
+MAP* dupmap(MAP* map);
 void freemap(MAP* map);
 char* astrmap(MAP* map);
 void setmap(MAP* map, const char* key, VALUE* value);

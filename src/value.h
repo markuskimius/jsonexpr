@@ -37,7 +37,7 @@ typedef enum {
 
 typedef struct VALUE {
     value_t type;
-    size_t count;
+
     union {
         int64_t i;
         double f;

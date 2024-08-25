@@ -36,16 +36,28 @@ FUNC* newcustfunc(NODE* handler, const char* name, const char* sig, SYM_TABLE* c
     func->name = strdup(name);
     func->sig = strdup(sig);
     func->ctx = duptable(ctx);
+    func->count = 1;
+
+    return func;
+}
+
+
+FUNC* dupfunc(FUNC* func) {
+    func->count++;
 
     return func;
 }
 
 
 void freefunc(FUNC* func) {
-    if(func->ctx) freetable(func->ctx);
-    if(func->name) free(func->name);
-    if(func->sig) free(func->sig);
-    free(func);
+    func->count--;
+
+    if(func->count == 0) {
+        if(func->ctx) freetable(func->ctx);
+        if(func->name) free(func->name);
+        if(func->sig) free(func->sig);
+        free(func);
+    }
 }
 
 

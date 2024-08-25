@@ -16,6 +16,7 @@ SYM_TABLE* newtable(SYM_TABLE* parent) {
 
     table->symbols = newmap();
     table->parent = parent;
+    table->count = 1;
 
     /* Add built-in symbols */
     if(!parent) {

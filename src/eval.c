@@ -204,7 +204,7 @@ static VALUE* call(SYM_TABLE* table, NODE* node) {
     if(node->right) getnodelist(nodes, node->right);
 
     /* Call the function */
-    if(func) {
+    if(func && func->type == FUNCTION_V) {
         value = funcexec(func->value.fn, nodes, table);
     }
     else {

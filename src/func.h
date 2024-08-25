@@ -42,6 +42,7 @@ typedef struct FUNC {
     char* name;
     char* sig;
     SYM_TABLE* ctx;
+    size_t count;
 } FUNC;
 
 
@@ -51,6 +52,7 @@ typedef struct FUNC {
 
 FUNC* newfunc(BINARY_FN handler, const char* name, const char* spec);
 FUNC* newcustfunc(NODE* handler, const char* name, const char* sig, SYM_TABLE* ctx);
+FUNC* dupfunc(FUNC* func);
 void freefunc(FUNC* func);
 char* astrfunc(FUNC* func);
 VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table);

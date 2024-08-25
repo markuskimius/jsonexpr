@@ -29,6 +29,7 @@ VEC* newvec() {
     VEC* vec = calloc(1, sizeof(VEC));
 
     vec->item = calloc(INITSIZE, sizeof(VALUE*));
+    vec->count = 1;
     vec->length = 0;
     vec->capacity = INITSIZE;
 
@@ -36,13 +37,24 @@ VEC* newvec() {
 }
 
 
-void freevec(VEC* vec) {
-    for(size_t i=0; i<vec->length; i++) {
-        freevalue(vec->item[i]);
-    }
+VEC* dupvec(VEC* vec) {
+    vec->count++;
 
-    if(vec->item) free(vec->item);
-    free(vec);
+    return vec;
+}
+
+
+void freevec(VEC* vec) {
+    vec->count--;
+
+    if(vec->count == 0) {
+        for(size_t i=0; i<vec->length; i++) {
+            freevalue(vec->item[i]);
+        }
+
+        if(vec->item) free(vec->item);
+        free(vec);
+    }
 }
 
 

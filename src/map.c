@@ -108,23 +108,36 @@ static MAP* _nextmap(const MAP* map, const char* lastkey, int i) {
 MAP* newmap() {
     MAP* map = calloc(1, sizeof(MAP));
 
+    map->count = 1;
+
+    return map;
+}
+
+
+MAP* dupmap(MAP* map) {
+    map->count++;
+
     return map;
 }
 
 
 void freemap(MAP* map) {
-    /* Free child nodes */
-    for(size_t i=0; i<NDEGREE; i++) {
-        MAP* n = map->next[i];
+    map->count--;
 
-        if(n) freemap(n);
+    if(map->count == 0) {
+        /* Free child nodes */
+        for(size_t i=0; i<NDEGREE; i++) {
+            MAP* n = map->next[i];
+
+            if(n) freemap(n);
+        }
+
+        /* Free this node */
+        if(map->key) free((void*) map->key);
+        if(map->value) freevalue(map->value);
+
+        free(map);
     }
-
-    /* Free this node */
-    if(map->key) free((void*) map->key);
-    if(map->value) freevalue(map->value);
-
-    free(map);
 }
 
 

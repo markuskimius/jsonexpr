@@ -35,7 +35,6 @@ VALUE* nullvalue() {
         null = calloc(1, sizeof(VALUE));
 
         null->type = NULL_V;
-        null->count = 1;
     }
 
     return null;
@@ -46,7 +45,6 @@ VALUE* boolvalue(int64_t i64) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = BOOL_V;
-    value->count = 1;
     value->value.i = i64 ? 1 : 0;
 
     return value;
@@ -57,7 +55,6 @@ VALUE* intvalue(int64_t i64) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = INT_V;
-    value->count = 1;
     value->value.i = i64;
 
     return value;
@@ -68,7 +65,6 @@ VALUE* dblvalue(double f64) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = FLOAT_V;
-    value->count = 1;
     value->value.f = f64;
 
     return value;
@@ -79,7 +75,6 @@ VALUE* strvalue(char* str) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = STRING_V;
-    value->count = 1;
     value->value.s = str;
 
     return value;
@@ -90,7 +85,6 @@ VALUE* arrvalue(VEC* vec) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = ARRAY_V;
-    value->count = 1;
     value->value.v = vec ? vec : newvec();
 
     return value;
@@ -101,7 +95,6 @@ VALUE* objvalue(MAP* map) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = OBJECT_V;
-    value->count = 1;
     value->value.m = map ? map : newmap();
 
     return value;
@@ -112,7 +105,6 @@ VALUE* funcvalue(FUNC* func) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = FUNCTION_V;
-    value->count = 1;
     value->value.fn = func;
 
     return value;
@@ -123,7 +115,6 @@ VALUE* nodevalue(NODE* node) {
     VALUE* value = calloc(1, sizeof(VALUE));
 
     value->type = NODE_V;
-    value->count = 1;
     value->value.n = node;
 
     return value;
@@ -131,31 +122,40 @@ VALUE* nodevalue(NODE* node) {
 
 
 VALUE* dupvalue(VALUE* value) {
-    value->count++;
+    switch(value->type) {
+        case NULL_V     : return nullvalue();
+        case BOOL_V     : return boolvalue(value->value.i);
+        case INT_V      : return intvalue(value->value.i);
+        case FLOAT_V    : return dblvalue(value->value.f);
+        case STRING_V   : return strvalue(strdup(value->value.s));
+        case ARRAY_V    : return arrvalue(dupvec(value->value.v));
+        case OBJECT_V   : return objvalue(dupmap(value->value.m));
+        case FUNCTION_V : return funcvalue(dupfunc(value->value.fn));
+        case NODE_V     : return nodevalue(value->value.n);
+        default         : die("Invalid value type '%c' (%d)\n", value->type, value->type); break;
+    }
 
     return value;
 }
 
 
 void freevalue(VALUE* value) {
-    if(value && --value->count == 0) {
-        switch(value->type) {
-            case NULL_V     : /* Do not free null */ return;
-            case BOOL_V     : break;
-            case INT_V      : break;
-            case FLOAT_V    : break;
-            case STRING_V   : free(value->value.s); break;
-            case ARRAY_V    : freevec(value->value.v); break;
-            case OBJECT_V   : freemap(value->value.m); break;
-            case FUNCTION_V : freefunc(value->value.fn); break;
-            case NODE_V     : break;
-            default         : die("Invalid value type '%c' (%d)\n", value->type, value->type); break;
-        }
-
-        if(value->astrdecoded) free(value->astrdecoded);
-        if(value->astrencoded) free(value->astrencoded);
-        free(value);
+    switch(value->type) {
+        case NULL_V     : /* Do not free null */ return;
+        case BOOL_V     : break;
+        case INT_V      : break;
+        case FLOAT_V    : break;
+        case STRING_V   : free(value->value.s); break;
+        case ARRAY_V    : freevec(value->value.v); break;
+        case OBJECT_V   : freemap(value->value.m); break;
+        case FUNCTION_V : freefunc(value->value.fn); break;
+        case NODE_V     : break;
+        default         : die("Invalid value type '%c' (%d)\n", value->type, value->type); break;
     }
+
+    if(value->astrdecoded) free(value->astrdecoded);
+    if(value->astrencoded) free(value->astrencoded);
+    free(value);
 }
 
 
