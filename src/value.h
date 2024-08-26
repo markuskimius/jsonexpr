@@ -66,6 +66,7 @@ VALUE* objvalue(MAP* map);
 VALUE* funcvalue(FUNC* func);
 VALUE* nodevalue(NODE* node);
 VALUE* dupvalue(VALUE* value);
+void swapvalue(VALUE* value1, VALUE* value2);
 void freevalue(VALUE* value);
 
 char* strdecoded(VALUE* value);

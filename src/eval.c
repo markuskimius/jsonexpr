@@ -181,6 +181,20 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
 }
 
 
+static VALUE* settable3(SYM_TABLE* table, NODE* node, VALUE* (*op)(VALUE*,VALUE*), VALUE* value, int ispostop) {
+    VALUE* prevalue = gettable2(table, node);
+    VALUE* left = dupvalue(prevalue);
+    VALUE* right = value;
+    VALUE* postvalue = op(left, right);
+    VALUE* result = ispostop ? dupvalue(prevalue) : dupvalue(postvalue);
+
+    swapvalue(prevalue, postvalue);
+    freevalue(postvalue);
+
+    return result;
+}
+
+
 static void getnodelist(VEC* list, NODE* node) {
     switch(node->type) {
         case ',':
@@ -250,19 +264,10 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case SYMBOL_N   : result = dupvalue(gettable2(table, node->left)); break;
             case '='        : result = dupvalue(settable2(table, node->left, eval(node->right, table))); break;
 
-/* FIXME
-- Need to remove smart pointer.
-- Fix prefix/postfix increment/decrement operators
-*/
-/*
-            case PREINC_N   : result = settable3(table, node->left, op_plus, intvalue(1)); break;
-            case PREDEC_N   : result = settable3(table, node->left, op_plus, intvalue(-1)); break;
-            case POSTINC_N  : result = settable3(table, node->left, op_plus, intvalue(1)); break;
-            case POSTDEC_N  : result = settable3(table, node->left, op_plus, intvalue(-1)); break;
-
-            case POSTINC_N  : result = op_post(dupvalue(gettable2(table, node->left)), intvalue(1)); break;
-            case POSTDEC_N  : result = op_post(dupvalue(gettable2(table, node->left)), intvalue(-1)); break;
-*/
+            case PREINC_N   : result = settable3(table, node->left, op_plus, intvalue(1), 0); break;
+            case PREDEC_N   : result = settable3(table, node->left, op_plus, intvalue(-1), 0); break;
+            case POSTINC_N  : result = settable3(table, node->left, op_plus, intvalue(1), 1); break;
+            case POSTDEC_N  : result = settable3(table, node->left, op_plus, intvalue(-1), 1); break;
 
             case '*'        : result = op_times(eval(node->left, table), eval(node->right, table)); break;
             case '/'        : result = op_divby(eval(node->left, table), eval(node->right, table)); break;

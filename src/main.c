@@ -12,9 +12,6 @@
 #define R(...) #__VA_ARGS__
 
 int main() {
-    NODE* ast = parse(NULL);
-
-    /*
     NODE* ast = parse(R(
         memo = [ 0, 1 ];
         fib = FUNCTION("?",
@@ -32,9 +29,17 @@ int main() {
 
         fib(1000);
     ));
+
+    /*
+    NODE* ast = parse(R(
+        a = 7;
+        ++a;
+    ));
     */
 
     /*
+    NODE* ast = parse(NULL);
+
     if(1) {
         char* tree = nodetree(ast);
         printf("%s\n", tree);

@@ -67,7 +67,7 @@ typedef struct YYLTYPE {
 %left     LT_T LE_T GT_T GE_T
 %left     '+' '-'
 %left     '*' '/' '%'
-%left     '{' '[' '(' '.'
+%left     '{' '[' '(' '.' INC_T DEC_T
 
 %union {
     struct NODE* node;
@@ -96,46 +96,50 @@ expr        : NULL_T                { $$ = newinode(NULL_N, 0, &@$);            
             | STRING_T              { $$ = newsnode(STRING_N, $1, &@$);                     }
             | expr ';'              { $$ = $1;                                              }
             | '(' expr ')'          { $$ = $2;                                              }
-            | '[' ']'               { $$ = newnode( ARRAY_N, NULL, NULL, &@$);              }
-            | '[' list ']'          { $$ = newnode( ARRAY_N,   $2, NULL, &@$);              }
-            | '{' '}'               { $$ = newnode(OBJECT_N, NULL, NULL, &@$);              }
-            | '{' members '}'       { $$ = newnode(OBJECT_N,   $2, NULL, &@$);              }
-            | symbol                { $$ = newnode(SYMBOL_N,   $1, NULL, &@$);              }
-            | symbol '(' ')'        { $$ = newnode(  CALL_N,   $1, NULL, &@$);              }
-            | symbol '(' list ')'   { $$ = newnode(  CALL_N,   $1,   $3, &@$);              }
-            | symbol '=' expr       { $$ = newnode(     '=',   $1,   $3, &@$);              }
-            | '+' expr              { $$ = newnode( UPLUS_N,   $2, NULL, &@$);              }
-            | '-' expr              { $$ = newnode(UMINUS_N,   $2, NULL, &@$);              }
-            | expr '+' expr         { $$ = newnode(     '+',   $1,   $3, &@$);              }
-            | expr '-' expr         { $$ = newnode(     '-',   $1,   $3, &@$);              }
-            | expr '*' expr         { $$ = newnode(     '*',   $1,   $3, &@$);              }
-            | expr '/' expr         { $$ = newnode(     '/',   $1,   $3, &@$);              }
-            | expr '%' expr         { $$ = newnode(     '%',   $1,   $3, &@$);              }
-            | expr EQ_T expr        { $$ = newnode(    EQ_N,   $1,   $3, &@$);              }
-            | expr NE_T expr        { $$ = newnode(    NE_N,   $1,   $3, &@$);              }
-            | expr LT_T expr        { $$ = newnode(    LT_N,   $1,   $3, &@$);              }
-            | expr LE_T expr        { $$ = newnode(    LE_N,   $1,   $3, &@$);              }
-            | expr GT_T expr        { $$ = newnode(    GT_N,   $1,   $3, &@$);              }
-            | expr GE_T expr        { $$ = newnode(    GE_N,   $1,   $3, &@$);              }
-            | expr ';' expr         { $$ = newnode(     ';',   $1,   $3, &@$);              }
+            | '[' ']'               { $$ = newnode(  ARRAY_N, NULL, NULL, &@$);             }
+            | '[' list ']'          { $$ = newnode(  ARRAY_N,   $2, NULL, &@$);             }
+            | '{' '}'               { $$ = newnode( OBJECT_N, NULL, NULL, &@$);             }
+            | '{' members '}'       { $$ = newnode( OBJECT_N,   $2, NULL, &@$);             }
+            | symbol                { $$ = newnode( SYMBOL_N,   $1, NULL, &@$);             }
+            | symbol '(' ')'        { $$ = newnode(   CALL_N,   $1, NULL, &@$);             }
+            | symbol '(' list ')'   { $$ = newnode(   CALL_N,   $1,   $3, &@$);             }
+            | symbol '=' expr       { $$ = newnode(      '=',   $1,   $3, &@$);             }
+            | symbol INC_T          { $$ = newnode(POSTINC_N,   $1, NULL, &@$);             }
+            | symbol DEC_T          { $$ = newnode(POSTDEC_N,   $1, NULL, &@$);             }
+            | INC_T symbol          { $$ = newnode( PREINC_N,   $2, NULL, &@$);             }
+            | DEC_T symbol          { $$ = newnode( PREDEC_N,   $2, NULL, &@$);             }
+            | '+' expr              { $$ = newnode(  UPLUS_N,   $2, NULL, &@$);             }
+            | '-' expr              { $$ = newnode( UMINUS_N,   $2, NULL, &@$);             }
+            | expr '+' expr         { $$ = newnode(      '+',   $1,   $3, &@$);             }
+            | expr '-' expr         { $$ = newnode(      '-',   $1,   $3, &@$);             }
+            | expr '*' expr         { $$ = newnode(      '*',   $1,   $3, &@$);             }
+            | expr '/' expr         { $$ = newnode(      '/',   $1,   $3, &@$);             }
+            | expr '%' expr         { $$ = newnode(      '%',   $1,   $3, &@$);             }
+            | expr EQ_T expr        { $$ = newnode(     EQ_N,   $1,   $3, &@$);             }
+            | expr NE_T expr        { $$ = newnode(     NE_N,   $1,   $3, &@$);             }
+            | expr LT_T expr        { $$ = newnode(     LT_N,   $1,   $3, &@$);             }
+            | expr LE_T expr        { $$ = newnode(     LE_N,   $1,   $3, &@$);             }
+            | expr GT_T expr        { $$ = newnode(     GT_N,   $1,   $3, &@$);             }
+            | expr GE_T expr        { $$ = newnode(     GE_N,   $1,   $3, &@$);             }
+            | expr ';' expr         { $$ = newnode(      ';',   $1,   $3, &@$);             }
             ;
 
-list        : expr                  { $$ = newnode(     ',',   $1, NULL, &@$);              }
-            | expr ','              { $$ = newnode(     ',',   $1, NULL, &@$);              }
-            | expr ',' list         { $$ = newnode(     ',',   $1,   $3, &@$);              }
+list        : expr                  { $$ = newnode(      ',',   $1, NULL, &@$);             }
+            | expr ','              { $$ = newnode(      ',',   $1, NULL, &@$);             }
+            | expr ',' list         { $$ = newnode(      ',',   $1,   $3, &@$);             }
             ;
 
-pair        : expr ':' expr         { $$ = newnode(     ':',   $1,   $3, &@$);              }
+pair        : expr ':' expr         { $$ = newnode(      ':',   $1,   $3, &@$);             }
             ;
 
-members     : pair                  { $$ = newnode(     ',',   $1, NULL, &@$);              }
-            | pair ','              { $$ = newnode(     ',',   $1, NULL, &@$);              }
-            | pair ',' members      { $$ = newnode(     ',',   $1,   $3, &@$);              }
+members     : pair                  { $$ = newnode(      ',',   $1, NULL, &@$);             }
+            | pair ','              { $$ = newnode(      ',',   $1, NULL, &@$);             }
+            | pair ',' members      { $$ = newnode(      ',',   $1,   $3, &@$);             }
             ;
 
-symbol      : IDENT_T               { $$ = newsnode( IDENT_N, $1, &@$);                     }
-            | symbol '[' expr ']'   { $$ = newnode(     '[',   $1,   $3, &@$);              }
-            | symbol '.' symbol     { $$ = newnode(     '.',   $1,   $3, &@$);              }
+symbol      : IDENT_T               { $$ = newsnode(  IDENT_N, $1, &@$);                    }
+            | symbol '[' expr ']'   { $$ = newnode(      '[',   $1,   $3, &@$);             }
+            | symbol '.' symbol     { $$ = newnode(      '.',   $1,   $3, &@$);             }
             ;
 
 %%

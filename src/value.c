@@ -139,6 +139,15 @@ VALUE* dupvalue(VALUE* value) {
 }
 
 
+void swapvalue(VALUE* value1, VALUE* value2) {
+    VALUE* tmp = malloc(sizeof(VALUE));
+
+    memcpy(tmp, value1, sizeof(VALUE));
+    memcpy(value1, value2, sizeof(VALUE));
+    memcpy(value2, tmp, sizeof(VALUE));
+}
+
+
 void freevalue(VALUE* value) {
     switch(value->type) {
         case NULL_V     : /* Do not free null */ return;

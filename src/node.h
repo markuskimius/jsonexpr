@@ -36,6 +36,10 @@ enum {
     LE_N,
     GT_N,
     GE_N,
+    PREINC_N,
+    POSTINC_N,
+    PREDEC_N,
+    POSTDEC_N,
     MAX_N
 };
 
