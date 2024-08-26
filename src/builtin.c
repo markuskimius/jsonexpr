@@ -115,6 +115,17 @@ static VALUE* LEN(VEC* args, SYM_TABLE* table) {
 }
 
 
+static VALUE* FOR(VEC* args, SYM_TABLE* table) {
+    VALUE* result = nullvalue();
+
+    for(eval(args->item[0]->value.n, table); istrue(eval(args->item[1]->value.n, table)); eval(args->item[2]->value.n, table)) {
+        result = eval(args->item[3]->value.n, table);
+    }
+
+    return result;
+}
+
+
 static VALUE* IF(VEC* args, SYM_TABLE* table) {
     VALUE* result = NULL;
 
@@ -146,6 +157,7 @@ MAP* builtin() {
         setmap(BUILTINS, "FUNCTION", funcvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
         setmap(BUILTINS, "PRINT"   , funcvalue(newfunc(PRINT   , "PRINT()"   , "*")));
         setmap(BUILTINS, "LEN"     , funcvalue(newfunc(LEN     , "LEN()"     , "?")));
+        setmap(BUILTINS, "FOR"     , funcvalue(newfunc(FOR     , "FOR()"     , "?...")));
         setmap(BUILTINS, "IF"      , funcvalue(newfunc(IF      , "IF()"      , ".**")));
     }
 
