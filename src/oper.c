@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,41 +69,15 @@ VALUE* op_plus(VALUE* lvalue, VALUE* rvalue) {
     else if(lvalue->type == INT_V    && rvalue->type == FLOAT_V ) result = dblvalue(lvalue->value.i + rvalue->value.f);
     else if(lvalue->type == FLOAT_V  && rvalue->type == INT_V   ) result = dblvalue(lvalue->value.f + rvalue->value.i);
     else if(lvalue->type == FLOAT_V  && rvalue->type == FLOAT_V ) result = dblvalue(lvalue->value.f + rvalue->value.f);
-    else if(lvalue->type == STRING_V && rvalue->type == STRING_V) {
-        lvalue->value.s = astrcat(lvalue->value.s, rvalue->value.s);
-        result = lvalue;
-    }
-    else if(lvalue->type == STRING_V && rvalue->type == INT_V ) {
-        size_t len = strlen(lvalue->value.s) + IBUFSIZE;
+    else if(lvalue->type == STRING_V || rvalue->type == STRING_V) {
+        char* buf;
 
-        lvalue->value.s = realloc(lvalue->value.s, len);
-        snprintf(lvalue->value.s, len, "%s%ld", lvalue->value.s, rvalue->value.i);
-        result = lvalue;
-    }
-    else if(lvalue->type == STRING_V && rvalue->type == FLOAT_V) {
-        size_t len = strlen(lvalue->value.s) + DBUFSIZE;
-
-        lvalue->value.s = realloc(lvalue->value.s, len);
-        snprintf(lvalue->value.s, len, "%s%lf", lvalue->value.s, rvalue->value.f);
-        result = lvalue;
-    }
-    else if(lvalue->type == INT_V && rvalue->type == STRING_V) {
-        size_t len = strlen(rvalue->value.s) + IBUFSIZE;
-
-        rvalue->value.s = realloc(rvalue->value.s, len);
-        snprintf(rvalue->value.s, len, "%s%ld", rvalue->value.s, lvalue->value.i);
-        result = rvalue;
-    }
-    else if(lvalue->type == FLOAT_V && rvalue->type == STRING_V) {
-        size_t len = strlen(rvalue->value.s) + DBUFSIZE;
-
-        rvalue->value.s = realloc(rvalue->value.s, len);
-        snprintf(rvalue->value.s, len, "%s%lf", rvalue->value.s, lvalue->value.f);
-        result = rvalue;
+        asprintf(&buf, "%s%s", strdecoded(lvalue), strdecoded(rvalue));
+        result = strvalue(buf);
     }
 
-    if(result != lvalue) freevalue(lvalue);
-    if(result != rvalue) freevalue(rvalue);
+    freevalue(lvalue);
+    freevalue(rvalue);
 
     return result;
 }

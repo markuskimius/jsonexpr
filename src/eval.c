@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "eval.h"
 #include "func.h"
 #include "map.h"
@@ -257,7 +258,7 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case BOOL_N     : result = boolvalue(node->value.i); break;
             case INT_N      : result = intvalue(node->value.i); break;
             case FLOAT_N    : result = dblvalue(node->value.f); break;
-            case STRING_N   : result = strvalue(node->value.s); break;
+            case STRING_N   : result = strvalue(strdup(node->value.s)); break;
             case ARRAY_N    : result = arrvalue(newlist(node->left, table, NULL)); break;
             case OBJECT_N   : result = objvalue(newpairlist(node->left, table, NULL)); break;
             case CALL_N     : result = call(table, node); break;
