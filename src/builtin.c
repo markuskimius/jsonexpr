@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -100,6 +101,20 @@ static VALUE* PRINT(VEC* args, SYM_TABLE* table) {
 }
 
 
+static VALUE* SQRT(VEC* args, SYM_TABLE* table) {
+    VALUE* result = nullvalue();
+    VALUE* value = args->item[0];
+
+    switch(value->type) {
+        case INT_V      : result = dblvalue(sqrt(value->value.i)); break;
+        case FLOAT_V    : result = dblvalue(sqrt(value->value.f)); break;
+        default         : raise("Invalid argument to SQRT(): '%c' (%d)", value->type, value->type); break;
+    }
+
+    return result;
+}
+
+
 static VALUE* LEN(VEC* args, SYM_TABLE* table) {
     VALUE* result = NULL;
     VALUE* value = args->item[0];
@@ -156,6 +171,7 @@ MAP* builtin() {
 
         setmap(BUILTINS, "FUNCTION", funcvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
         setmap(BUILTINS, "PRINT"   , funcvalue(newfunc(PRINT   , "PRINT()"   , "*")));
+        setmap(BUILTINS, "SQRT"    , funcvalue(newfunc(SQRT    , "SQRT()"    , "?")));
         setmap(BUILTINS, "LEN"     , funcvalue(newfunc(LEN     , "LEN()"     , "?")));
         setmap(BUILTINS, "FOR"     , funcvalue(newfunc(FOR     , "FOR()"     , "?...")));
         setmap(BUILTINS, "IF"      , funcvalue(newfunc(IF      , "IF()"      , ".**")));

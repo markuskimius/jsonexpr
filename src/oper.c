@@ -186,8 +186,8 @@ VALUE* op_uminus(VALUE* value) {
 
 VALUE* op_pow(VALUE* lvalue, VALUE* rvalue) {
     VALUE* result = nullvalue();
-    double a = 0;
-    double b = 0;
+    double a = 0.0;
+    double b = 0.0;
     int isok = 1;
 
     switch(lvalue->type) {
