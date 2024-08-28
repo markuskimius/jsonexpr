@@ -1,8 +1,10 @@
 #define _GNU_SOURCE
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "map.h"
+#include "eval.h"
 #include "node.h"
 #include "oper.h"
 #include "util.h"
@@ -175,6 +177,45 @@ VALUE* op_uminus(VALUE* value) {
 
     if      (value->type == INT_V)  result = intvalue(-value->value.i);
     else if (value->type == FLOAT_V) result = dblvalue(-value->value.f);
+
+    freevalue(value);
+
+    return result;
+}
+
+
+VALUE* op_pow(VALUE* lvalue, VALUE* rvalue) {
+    VALUE* result = nullvalue();
+    double a = 0;
+    double b = 0;
+    int isok = 1;
+
+    switch(lvalue->type) {
+        case INT_V  : a = lvalue->value.i; break;
+        case FLOAT_V: a = lvalue->value.f; break;
+        default     : isok = 0;
+    }
+
+    switch(rvalue->type) {
+        case INT_V  : b = rvalue->value.i; break;
+        case FLOAT_V: b = rvalue->value.f; break;
+        default     : isok = 0;
+    }
+
+    if(isok) result = dblvalue(pow(a, b));
+    freevalue(lvalue);
+    freevalue(rvalue);
+
+    return result;
+}
+
+
+VALUE* op_cond(NODE* test, NODE* iftrue, NODE* iffalse, SYM_TABLE* table) {
+    VALUE* value = eval(test, table);
+    VALUE* result = NULL;
+
+    if(istrue(value)) result = eval(iftrue, table);
+    else result = eval(iffalse, table);
 
     freevalue(value);
 

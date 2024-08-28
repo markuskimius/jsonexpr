@@ -47,12 +47,13 @@ static char* NODENAMEH[] = {
 * PUBLIC FUNCTIONS
 */
 
-NODE* newnode(int type, NODE* left, NODE* right, YYLTYPE* loc) {
+NODE* newnode(int type, NODE* left, NODE* right, NODE* righter, YYLTYPE* loc) {
     NODE* node = calloc(1, sizeof(NODE));
 
     node->type = type;
     node->left = left;
     node->right = right;
+    node->righter = righter;
     node->loc = *loc;
 
     return node;

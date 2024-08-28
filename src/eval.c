@@ -283,6 +283,8 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case GE_N       : result = op_ge(eval(node->left, table), eval(node->right, table)); break;
             case UPLUS_N    : result = op_uplus(eval(node->left, table)); break;
             case UMINUS_N   : result = op_uminus(eval(node->left, table)); break;
+            case POW_N      : result = op_pow(eval(node->left, table), eval(node->right, table)); break;
+            case '?'        : result = op_cond(node->left, node->right, node->righter, table); break;
             case ';'        : freevalue(eval(node->left, table)); result = eval(node->right, table); break;
             default         : throw(&node->loc, "Invalid node type: %s", nodetype(node)); break;
         }

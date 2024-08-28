@@ -30,7 +30,6 @@ int main() {
 
         fib(1000);
     ));
-    */
 
     NODE* ast = parse(R(
         FOR(i = 0, i < 5, i++,
@@ -38,16 +37,15 @@ int main() {
         );
     ));
 
-    /*
     NODE* ast = parse(R(
         a = 7;
         ++a;
     ));
     */
 
-    /*
     NODE* ast = parse(NULL);
 
+    /*
     if(1) {
         char* tree = nodetree(ast);
         printf("%s\n", tree);

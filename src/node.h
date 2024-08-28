@@ -30,6 +30,7 @@ enum {
     IDENT_N,
     UPLUS_N,
     UMINUS_N,
+    POW_N,
     EQ_N,
     NE_N,
     LT_N,
@@ -52,6 +53,7 @@ typedef struct NODE {
     int type;
     struct NODE* left;
     struct NODE* right;
+    struct NODE* righter;
 
     union {
         int64_t i;
@@ -66,7 +68,7 @@ typedef struct NODE {
 * PUBLIC FUNCTIONS
 */
 
-NODE* newnode(int type, NODE* left, NODE* right, YYLTYPE* loc);
+NODE* newnode(int type, NODE* left, NODE* right, NODE* righter, YYLTYPE* loc);
 NODE* newinode(int type, int64_t i, YYLTYPE* loc);
 NODE* newfnode(int type, double f, YYLTYPE* loc);
 NODE* newsnode(int type, char* s, YYLTYPE* loc);

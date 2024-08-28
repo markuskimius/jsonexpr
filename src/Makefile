@@ -8,6 +8,8 @@ ifeq ($(findstring wasm,$(TARGET)),wasm)
 	LDFLAGS:=-L$(PREFIX)/lib --export=newtable --export=freetable --export=parse --export=eval --export=strdecoded \
 		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=gettable
 	LDLIBS:=-lc-wasm
+else
+	LDLIBS:=-lm
 endif
 
 
@@ -47,7 +49,7 @@ map.o: map.c map.h util.h value.h vector.h
 
 node.o: node.c node.h
 
-oper.o: oper.c map.h node.h oper.h util.h parse.h value.h vector.h
+oper.o: oper.c map.h eval.h node.h oper.h util.h parse.h value.h vector.h
 
 throw.o: throw.c node.h throw.h
 

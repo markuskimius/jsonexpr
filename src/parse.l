@@ -80,6 +80,8 @@ static void yynextline() {
 "%"                     { return yytext[0]; }
 "+"                     { return yytext[0]; }
 "-"                     { return yytext[0]; }
+"?"                     { return yytext[0]; }
+"**"                    { return POW_T; }
 "++"                    { return INC_T; }
 "--"                    { return DEC_T; }
 "=="                    { return EQ_T; }

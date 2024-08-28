@@ -29,6 +29,8 @@ VALUE* op_gt(VALUE* lvalue, VALUE* rvalue);
 VALUE* op_ge(VALUE* lvalue, VALUE* rvalue);
 VALUE* op_uplus(VALUE* value);
 VALUE* op_uminus(VALUE* value);
+VALUE* op_pow(VALUE* lvalue, VALUE* rvalue);
+VALUE* op_cond(NODE* test, NODE* iftrue, NODE* iffalse, SYM_TABLE* table);
 
 
 #endif /* OPS_H_ */
