@@ -61,17 +61,21 @@ typedef struct YYLTYPE {
 %start    start
 %left     ';'
 %left     ','
+%right    '='
 %left     ':' '?'
 %left     OR_T
 %left     AND_T
-%right    '='
+%left     '|'
+%left     '^'
+%left     '&'
 %left     EQ_T NE_T
 %left     LT_T LE_T GT_T GE_T
+%left     SHL_T ASR_T SHR_T
 %left     '+' '-'
 %left     '*' '/' '%'
-%left     POW_T
-%left     INC_T DEC_T '!'
-%left     '{' '[' '(' '.'
+%right    POW_T
+%right    INC_T DEC_T UNI_P '!' '~'
+%left     PRE_P '(' '[' '.' '{'
 
 %union {
     struct NODE* node;
@@ -110,16 +114,20 @@ expr        : NULL_T                    { $$ = newinode(NULL_N, 0, &@$);        
             | symbol '=' expr           { $$ = newnode(      '=',   $1,   $3, NULL, &@$);   }
             | symbol INC_T              { $$ = newnode(POSTINC_N,   $1, NULL, NULL, &@$);   }
             | symbol DEC_T              { $$ = newnode(POSTDEC_N,   $1, NULL, NULL, &@$);   }
-            | INC_T symbol              { $$ = newnode( PREINC_N,   $2, NULL, NULL, &@$);   }
-            | DEC_T symbol              { $$ = newnode( PREDEC_N,   $2, NULL, NULL, &@$);   }
-            | '+' expr                  { $$ = newnode(  UPLUS_N,   $2, NULL, NULL, &@$);   }
-            | '-' expr                  { $$ = newnode( UMINUS_N,   $2, NULL, NULL, &@$);   }
+            | INC_T symbol %prec PRE_P  { $$ = newnode( PREINC_N,   $2, NULL, NULL, &@$);   }
+            | DEC_T symbol %prec PRE_P  { $$ = newnode( PREDEC_N,   $2, NULL, NULL, &@$);   }
+            | '+' expr %prec UNI_P      { $$ = newnode(  UPLUS_N,   $2, NULL, NULL, &@$);   }
+            | '-' expr %prec UNI_P      { $$ = newnode( UMINUS_N,   $2, NULL, NULL, &@$);   }
             | '!' expr                  { $$ = newnode(      '!',   $2, NULL, NULL, &@$);   }
+            | '~' expr                  { $$ = newnode(      '~',   $2, NULL, NULL, &@$);   }
             | expr '+' expr             { $$ = newnode(      '+',   $1,   $3, NULL, &@$);   }
             | expr '-' expr             { $$ = newnode(      '-',   $1,   $3, NULL, &@$);   }
             | expr '*' expr             { $$ = newnode(      '*',   $1,   $3, NULL, &@$);   }
             | expr '/' expr             { $$ = newnode(      '/',   $1,   $3, NULL, &@$);   }
             | expr '%' expr             { $$ = newnode(      '%',   $1,   $3, NULL, &@$);   }
+            | expr '|' expr             { $$ = newnode(      '|',   $1,   $3, NULL, &@$);   }
+            | expr '&' expr             { $$ = newnode(      '&',   $1,   $3, NULL, &@$);   }
+            | expr '^' expr             { $$ = newnode(      '^',   $1,   $3, NULL, &@$);   }
             | expr EQ_T expr            { $$ = newnode(     EQ_N,   $1,   $3, NULL, &@$);   }
             | expr NE_T expr            { $$ = newnode(     NE_N,   $1,   $3, NULL, &@$);   }
             | expr LT_T expr            { $$ = newnode(     LT_N,   $1,   $3, NULL, &@$);   }
@@ -129,6 +137,9 @@ expr        : NULL_T                    { $$ = newinode(NULL_N, 0, &@$);        
             | expr OR_T expr            { $$ = newnode(     OR_N,   $1,   $3, NULL, &@$);   }
             | expr AND_T expr           { $$ = newnode(    AND_N,   $1,   $3, NULL, &@$);   }
             | expr POW_T expr           { $$ = newnode(    POW_N,   $1,   $3, NULL, &@$);   }
+            | expr SHL_T expr           { $$ = newnode(    SHL_N,   $1,   $3, NULL, &@$);   }
+            | expr ASR_T expr           { $$ = newnode(    ASR_N,   $1,   $3, NULL, &@$);   }
+            | expr SHR_T expr           { $$ = newnode(    SHR_N,   $1,   $3, NULL, &@$);   }
             | expr '?' expr ':' expr    { $$ = newnode(      '?',   $1,   $3,   $5, &@$);   }
             | expr ';' expr             { $$ = newnode(      ';',   $1,   $3, NULL, &@$);   }
             ;

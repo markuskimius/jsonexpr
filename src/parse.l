@@ -82,6 +82,10 @@ static void yynextline() {
 "-"                     { return yytext[0]; }
 "?"                     { return yytext[0]; }
 "!"                     { return yytext[0]; }
+"~"                     { return yytext[0]; }
+"|"                     { return yytext[0]; }
+"&"                     { return yytext[0]; }
+"^"                     { return yytext[0]; }
 "**"                    { return POW_T; }
 "++"                    { return INC_T; }
 "--"                    { return DEC_T; }
@@ -93,6 +97,9 @@ static void yynextline() {
 ">"                     { return GT_T; }
 "||"                    { return OR_T;  }
 "&&"                    { return AND_T; }
+"<<"                    { return SHL_T; }
+">>"                    { return ASR_T; }
+">>>"                   { return SHR_T; }
 ["]                     { BEGIN(STRING); yystrvalue = calloc(1, YYSTR_INITSIZE); }
 <STRING>[^"\\\n]+       { yystrvalue = astrcat(yystrvalue, yytext); }
 <STRING>\n              { yystrvalue = astrcat(yystrvalue, yytext); yynextline(); }

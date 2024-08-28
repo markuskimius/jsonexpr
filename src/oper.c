@@ -100,6 +100,165 @@ VALUE* op_minus(VALUE* lvalue, VALUE* rvalue) {
 }
 
 
+VALUE* op_bor(VALUE* lvalue, VALUE* rvalue) {
+    VALUE* result = nullvalue();
+
+    if(lvalue->type == INT_V && rvalue->type == INT_V) {
+        int64_t a = lvalue->value.i;
+        int64_t b = rvalue->value.i;
+
+        result = intvalue(a | b);
+    }
+
+    freevalue(lvalue);
+    freevalue(rvalue);
+
+    return result;
+}
+
+
+VALUE* op_band(VALUE* lvalue, VALUE* rvalue) {
+    VALUE* result = nullvalue();
+
+    if(lvalue->type == INT_V && rvalue->type == INT_V) {
+        int64_t a = lvalue->value.i;
+        int64_t b = rvalue->value.i;
+
+        result = intvalue(a & b);
+    }
+
+    freevalue(lvalue);
+    freevalue(rvalue);
+
+    return result;
+}
+
+
+VALUE* op_bxor(VALUE* lvalue, VALUE* rvalue) {
+    VALUE* result = nullvalue();
+
+    if(lvalue->type == INT_V && rvalue->type == INT_V) {
+        int64_t a = lvalue->value.i;
+        int64_t b = rvalue->value.i;
+
+        result = intvalue(a ^ b);
+    }
+
+    freevalue(lvalue);
+    freevalue(rvalue);
+
+    return result;
+}
+
+
+VALUE* op_shl(VALUE* lvalue, VALUE* rvalue) {
+    VALUE* result = nullvalue();
+
+    if(lvalue->type == INT_V && rvalue->type == INT_V) {
+        uint64_t a = lvalue->value.i;
+        int64_t b = rvalue->value.i;
+
+        if     (b <  0) return op_asr(lvalue, rvalue);
+        else if(b == 0) result = intvalue(a);
+        else            result = intvalue(a << b);
+    }
+
+    freevalue(lvalue);
+    freevalue(rvalue);
+
+    return result;
+}
+
+
+VALUE* op_asr(VALUE* lvalue, VALUE* rvalue) {
+    VALUE* result = nullvalue();
+
+    if(lvalue->type == INT_V && rvalue->type == INT_V) {
+        int64_t value = lvalue->value.i;
+        int64_t shiftby = rvalue->value.i;
+
+        if(shiftby < 0) {
+            freevalue(rvalue);
+            rvalue = intvalue(-shiftby);
+
+            return op_shl(lvalue, rvalue);
+        }
+        else if(shiftby < 64 && value < 0) {
+            value = ~value;
+            value >>= shiftby;
+            value = ~value;
+        }
+        else if(shiftby < 64) {
+            value >>= shiftby;
+        }
+        else {
+            value = 0;
+        }
+
+        result = intvalue(value);
+    }
+
+    freevalue(lvalue);
+    freevalue(rvalue);
+
+    return result;
+}
+
+
+VALUE* op_shr(VALUE* lvalue, VALUE* rvalue) {
+    VALUE* result = nullvalue();
+
+    if(lvalue->type == INT_V && rvalue->type == INT_V) {
+        uint64_t value = lvalue->value.i;
+        int64_t shiftby = rvalue->value.i;
+
+        if(shiftby < 0) {
+            freevalue(rvalue);
+            rvalue = intvalue(-shiftby);
+
+            return op_shl(lvalue, rvalue);
+        }
+        else if(shiftby < 64) {
+            value >>= shiftby;
+        }
+        else {
+            value = 0;
+        }
+
+        result = intvalue(value);
+    }
+
+    freevalue(lvalue);
+    freevalue(rvalue);
+
+    return result;
+}
+
+
+VALUE* op_bnot(VALUE* value) {
+    VALUE* result = nullvalue();
+
+    if(value->type == INT_V) {
+        int64_t a = value->value.i;
+
+        result = intvalue(~a);
+    }
+
+    freevalue(value);
+
+    return result;
+}
+
+
+VALUE* op_lnot(VALUE* value) {
+    VALUE* result = istrue(value) ? boolvalue(0) : boolvalue(1);
+
+    freevalue(value);
+
+    return result;
+}
+
+
 VALUE* op_eq(VALUE* lvalue, VALUE* rvalue) {
     int cmp = cmpvalue(lvalue, rvalue);
 
@@ -157,15 +316,6 @@ VALUE* op_ge(VALUE* lvalue, VALUE* rvalue) {
     freevalue(rvalue);
 
     return boolvalue(cmp >= 0);
-}
-
-
-VALUE* op_lnot(VALUE* value) {
-    VALUE* result = istrue(value) ? boolvalue(0) : boolvalue(1);
-
-    freevalue(value);
-
-    return result;
 }
 
 
