@@ -43,6 +43,7 @@ int main() {
     ));
     */
 
+    /*
     NODE* ast = parse(R(
         students = [
             {
@@ -69,8 +70,9 @@ int main() {
 
         "Done!"
     ));
+    */
 
-    // NODE* ast = parse(NULL);
+    NODE* ast = parse(NULL);
 
     /*
     if(1) {
