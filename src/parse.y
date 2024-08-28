@@ -62,13 +62,16 @@ typedef struct YYLTYPE {
 %left     ';'
 %left     ','
 %left     ':' '?'
+%left     OR_T
+%left     AND_T
 %right    '='
 %left     EQ_T NE_T
 %left     LT_T LE_T GT_T GE_T
 %left     '+' '-'
 %left     '*' '/' '%'
 %left     POW_T
-%left     '{' '[' '(' '.' INC_T DEC_T
+%left     INC_T DEC_T '!'
+%left     '{' '[' '(' '.'
 
 %union {
     struct NODE* node;
@@ -111,6 +114,7 @@ expr        : NULL_T                    { $$ = newinode(NULL_N, 0, &@$);        
             | DEC_T symbol              { $$ = newnode( PREDEC_N,   $2, NULL, NULL, &@$);   }
             | '+' expr                  { $$ = newnode(  UPLUS_N,   $2, NULL, NULL, &@$);   }
             | '-' expr                  { $$ = newnode( UMINUS_N,   $2, NULL, NULL, &@$);   }
+            | '!' expr                  { $$ = newnode(      '!',   $2, NULL, NULL, &@$);   }
             | expr '+' expr             { $$ = newnode(      '+',   $1,   $3, NULL, &@$);   }
             | expr '-' expr             { $$ = newnode(      '-',   $1,   $3, NULL, &@$);   }
             | expr '*' expr             { $$ = newnode(      '*',   $1,   $3, NULL, &@$);   }
@@ -122,6 +126,8 @@ expr        : NULL_T                    { $$ = newinode(NULL_N, 0, &@$);        
             | expr LE_T expr            { $$ = newnode(     LE_N,   $1,   $3, NULL, &@$);   }
             | expr GT_T expr            { $$ = newnode(     GT_N,   $1,   $3, NULL, &@$);   }
             | expr GE_T expr            { $$ = newnode(     GE_N,   $1,   $3, NULL, &@$);   }
+            | expr OR_T expr            { $$ = newnode(     OR_N,   $1,   $3, NULL, &@$);   }
+            | expr AND_T expr           { $$ = newnode(    AND_N,   $1,   $3, NULL, &@$);   }
             | expr POW_T expr           { $$ = newnode(    POW_N,   $1,   $3, NULL, &@$);   }
             | expr '?' expr ':' expr    { $$ = newnode(      '?',   $1,   $3,   $5, &@$);   }
             | expr ';' expr             { $$ = newnode(      ';',   $1,   $3, NULL, &@$);   }

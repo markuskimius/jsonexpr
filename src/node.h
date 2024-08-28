@@ -37,6 +37,8 @@ enum {
     LE_N,
     GT_N,
     GE_N,
+    OR_N,
+    AND_N,
     PREINC_N,
     POSTINC_N,
     PREDEC_N,

@@ -285,6 +285,9 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case LE_N       : result = op_le(eval(node->left, table), eval(node->right, table)); break;
             case GT_N       : result = op_gt(eval(node->left, table), eval(node->right, table)); break;
             case GE_N       : result = op_ge(eval(node->left, table), eval(node->right, table)); break;
+            case '!'        : result = op_lnot(eval(node->left, table)); break;
+            case OR_N       : result = op_lor(node->left, node->right, table); break;
+            case AND_N      : result = op_land(node->left, node->right, table); break;
             case UPLUS_N    : result = op_uplus(eval(node->left, table)); break;
             case UMINUS_N   : result = op_uminus(eval(node->left, table)); break;
             case POW_N      : result = op_pow(eval(node->left, table), eval(node->right, table)); break;

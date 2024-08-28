@@ -160,6 +160,15 @@ VALUE* op_ge(VALUE* lvalue, VALUE* rvalue) {
 }
 
 
+VALUE* op_lnot(VALUE* value) {
+    VALUE* result = istrue(value) ? boolvalue(0) : boolvalue(1);
+
+    freevalue(value);
+
+    return result;
+}
+
+
 VALUE* op_uplus(VALUE* value) {
     VALUE* result = nullvalue();
 
@@ -205,6 +214,30 @@ VALUE* op_pow(VALUE* lvalue, VALUE* rvalue) {
     if(isok) result = dblvalue(pow(a, b));
     freevalue(lvalue);
     freevalue(rvalue);
+
+    return result;
+}
+
+
+VALUE* op_lor(NODE* left, NODE* right, SYM_TABLE* table) {
+    VALUE* result = eval(left, table);
+
+    if(!istrue(result)) {
+        freevalue(result);
+        result = eval(right, table);
+    }
+
+    return result;
+}
+
+
+VALUE* op_land(NODE* left, NODE* right, SYM_TABLE* table) {
+    VALUE* result = eval(left, table);
+
+    if(istrue(result)) {
+        freevalue(result);
+        result = eval(right, table);
+    }
 
     return result;
 }
