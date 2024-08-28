@@ -18,6 +18,11 @@ SYM_TABLE* newtable(SYM_TABLE* parent) {
     table->parent = parent;
     table->count = 1;
 
+    /* Add UPSCOPE */
+    if(parent) {
+        setmap(table->symbols, "UPSCOPE", objvalue(dupmap(parent->symbols)));
+    }
+
     /* Add built-in symbols */
     if(!parent) {
         MAP* bi = builtin();

@@ -125,7 +125,7 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
     }
 
     if(!value) {
-        throw(&node->loc, "Invalid symbol");
+        throw(&node->loc, "Undefined symbol");
     }
 
     return value;
