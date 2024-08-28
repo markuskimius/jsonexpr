@@ -100,6 +100,17 @@ static void yynextline() {
 "<<"                    { return SHL_T; }
 ">>"                    { return ASR_T; }
 ">>>"                   { return SHR_T; }
+"+="                    { return PLEQ_T; }
+"-="                    { return MIEQ_T; }
+"*="                    { return TIEQ_T; }
+"/="                    { return DIEQ_T; }
+"%="                    { return MOEQ_T; }
+"<<="                   { return SHLEQ_T; }
+">>="                   { return ASREQ_T; }
+">>>="                  { return SHREQ_T; }
+"&="                    { return ANDEQ_T; }
+"^="                    { return XOREQ_T; }
+"|="                    { return OREQ_T; }
 ["]                     { BEGIN(STRING); yystrvalue = calloc(1, YYSTR_INITSIZE); }
 <STRING>[^"\\\n]+       { yystrvalue = astrcat(yystrvalue, yytext); }
 <STRING>\n              { yystrvalue = astrcat(yystrvalue, yytext); yynextline(); }

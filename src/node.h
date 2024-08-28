@@ -46,6 +46,17 @@ enum {
     POSTINC_N,
     PREDEC_N,
     POSTDEC_N,
+    PLEQ_N,
+    MIEQ_N,
+    TIEQ_N,
+    DIEQ_N,
+    MOEQ_N,
+    SHLEQ_N,
+    ASREQ_N,
+    SHREQ_N,
+    ANDEQ_N,
+    XOREQ_N,
+    OREQ_N,
     MAX_N
 };
 

@@ -269,10 +269,22 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case SYMBOL_N   : result = dupvalue(gettable2(table, node->left)); break;
             case '='        : result = dupvalue(settable2(table, node->left, eval(node->right, table))); break;
 
-            case PREINC_N   : result = settable3(table, node->left, op_plus, intvalue(1), 0); break;
-            case PREDEC_N   : result = settable3(table, node->left, op_plus, intvalue(-1), 0); break;
-            case POSTINC_N  : result = settable3(table, node->left, op_plus, intvalue(1), 1); break;
-            case POSTDEC_N  : result = settable3(table, node->left, op_plus, intvalue(-1), 1); break;
+            case PREINC_N   : result = settable3(table, node->left,  op_plus,  intvalue(1), 0); break;
+            case PREDEC_N   : result = settable3(table, node->left, op_minus, intvalue(-1), 0); break;
+            case POSTINC_N  : result = settable3(table, node->left,  op_plus,  intvalue(1), 1); break;
+            case POSTDEC_N  : result = settable3(table, node->left, op_minus, intvalue(-1), 1); break;
+
+            case PLEQ_N     : result = settable3(table, node->left,  op_plus, eval(node->right, table), 0); break;
+            case MIEQ_N     : result = settable3(table, node->left, op_minus, eval(node->right, table), 0); break;
+            case TIEQ_N     : result = settable3(table, node->left, op_times, eval(node->right, table), 0); break;
+            case DIEQ_N     : result = settable3(table, node->left, op_divby, eval(node->right, table), 0); break;
+            case MOEQ_N     : result = settable3(table, node->left,   op_mod, eval(node->right, table), 0); break;
+            case SHLEQ_N    : result = settable3(table, node->left,   op_shl, eval(node->right, table), 0); break;
+            case ASREQ_N    : result = settable3(table, node->left,   op_asr, eval(node->right, table), 0); break;
+            case SHREQ_N    : result = settable3(table, node->left,   op_shr, eval(node->right, table), 0); break;
+            case ANDEQ_N    : result = settable3(table, node->left,  op_band, eval(node->right, table), 0); break;
+            case XOREQ_N    : result = settable3(table, node->left,  op_bxor, eval(node->right, table), 0); break;
+            case OREQ_N     : result = settable3(table, node->left,   op_bor, eval(node->right, table), 0); break;
 
             case '*'        : result = op_times(eval(node->left, table), eval(node->right, table)); break;
             case '/'        : result = op_divby(eval(node->left, table), eval(node->right, table)); break;
@@ -298,6 +310,7 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case ASR_N      : result = op_asr(eval(node->left, table), eval(node->right, table)); break;
             case SHR_N      : result = op_shr(eval(node->left, table), eval(node->right, table)); break;
             case POW_N      : result = op_pow(eval(node->left, table), eval(node->right, table)); break;
+
             case '?'        : result = op_cond(node->left, node->right, node->righter, table); break;
             case ';'        : freevalue(eval(node->left, table)); result = eval(node->right, table); break;
             default         : throw(&node->loc, "Invalid node type: %s", nodetype(node)); break;
