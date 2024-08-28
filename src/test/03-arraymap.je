@@ -1,15 +1,15 @@
 students = [
     {
-        first : "John",
-        last  : "Doe",
+        "first" : "John",
+        "last"  : "Doe",
     },
     {
-        first : "Jane",
-        last  : "Roe",
+        "first" : "Jane",
+        "last"  : "Roe",
     },
     {
-        first : "Jeff",
-        last  : "Zoe",
+        "first" : "Jeff",
+        "last"  : "Zoe",
     },
 ];
 

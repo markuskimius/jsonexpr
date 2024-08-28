@@ -1,26 +1,26 @@
-main = FUNCTION("",
-    memo = [ 0, 1 ];
+students = [
+    {
+        "first" : "John",
+        "last"  : "Doe",
+    },
+    {
+        "first" : "Jane",
+        "last"  : "Roe",
+    },
+    {
+        "first" : "Jeff",
+        "last"  : "Zoe",
+    },
+];
 
-    fib = FUNCTION("?",
-        x = ARG[0];
+PRINT("I have " + LEN(students) + " students:");
 
-        IF(x >= LEN(memo),
-            x1 = fib(x-1);
-            x2 = fib(x-2);
+# Test indexing
+PRINT(students[0].first + " " + students[0].last);
 
-            UPSCOPE.memo[x] = x1 + x2;
-        );
-
-        memo[x];
-    );
-
-    PRINT(fib(20));
+# Test the loop
+FOR(i = 1, i < LEN(students), i++,
+    PRINT(students[i].first, students[i].last)
 );
 
-main();
-
-main = FUNCTION("",
-    PRINT("Hello")
-);
-
-main();
+"Done!"

@@ -132,10 +132,20 @@ static VALUE* LEN(VEC* args, SYM_TABLE* table) {
 
 static VALUE* FOR(VEC* args, SYM_TABLE* table) {
     VALUE* result = nullvalue();
+    VALUE* last = eval(args->item[0]->value.n, table);
 
-    for(eval(args->item[0]->value.n, table); istrue(eval(args->item[1]->value.n, table)); eval(args->item[2]->value.n, table)) {
+    while(1) {
+        freevalue(last);
+        last = eval(args->item[1]->value.n, table);
+
+        if(!istrue(last)) break;
         result = eval(args->item[3]->value.n, table);
+
+        freevalue(last);
+        last = eval(args->item[2]->value.n, table);
     }
+
+    freevalue(last);
 
     return result;
 }
@@ -173,7 +183,7 @@ MAP* builtin() {
         setmap(BUILTINS, "PRINT"   , funcvalue(newfunc(PRINT   , "PRINT()"   , "*")));
         setmap(BUILTINS, "SQRT"    , funcvalue(newfunc(SQRT    , "SQRT()"    , "?")));
         setmap(BUILTINS, "LEN"     , funcvalue(newfunc(LEN     , "LEN()"     , "?")));
-        setmap(BUILTINS, "FOR"     , funcvalue(newfunc(FOR     , "FOR()"     , "?...")));
+        setmap(BUILTINS, "FOR"     , funcvalue(newfunc(FOR     , "FOR()"     , "....")));
         setmap(BUILTINS, "IF"      , funcvalue(newfunc(IF      , "IF()"      , ".**")));
     }
 

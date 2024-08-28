@@ -43,7 +43,34 @@ int main() {
     ));
     */
 
-    NODE* ast = parse(NULL);
+    NODE* ast = parse(R(
+        students = [
+            {
+                "first" : "John",
+                "last"  : "Doe",
+            },
+            {
+                "first" : "Jane",
+                "last"  : "Roe",
+            },
+            {
+                "first" : "Jeff",
+                "last"  : "Zoe",
+            },
+        ];
+
+        PRINT("I have " + LEN(students) + " students:");
+
+        PRINT(students[0].first + " " + students[0].last);
+
+        FOR(i = 1, i < LEN(students), i++,
+            PRINT(students[i].first, students[i].last)
+        );
+
+        "Done!"
+    ));
+
+    // NODE* ast = parse(NULL);
 
     /*
     if(1) {

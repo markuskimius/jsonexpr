@@ -42,7 +42,11 @@ static MAP* newpair(NODE* node, SYM_TABLE* table, MAP* list) {
             NODE* left = node->left;
             VALUE* right = eval(node->right, table);
 
-            setmap(list, left->value.s, right);
+            if(left->type == STRING_N) setmap(list, left->value.s, right);
+            else {
+                freevalue(right);
+                throw(&left->loc, "String expected, got %s", nodetype(left));
+            }
 
             /* Do not free left (it's in the parse tree) */
             /* Do not free right (it's in the list) */
