@@ -57,6 +57,7 @@ enum {
     ANDEQ_N,
     XOREQ_N,
     OREQ_N,
+    POWEQ_N,
     MAX_N
 };
 

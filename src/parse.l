@@ -111,6 +111,7 @@ static void yynextline() {
 "&="                    { return ANDEQ_T; }
 "^="                    { return XOREQ_T; }
 "|="                    { return OREQ_T; }
+"**="                   { return POWEQ_T; }
 ["]                     { BEGIN(STRING); yystrvalue = calloc(1, YYSTR_INITSIZE); }
 <STRING>[^"\\\n]+       { yystrvalue = astrcat(yystrvalue, yytext); }
 <STRING>\n              { yystrvalue = astrcat(yystrvalue, yytext); yynextline(); }

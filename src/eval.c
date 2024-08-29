@@ -285,6 +285,7 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case ANDEQ_N    : result = settable3(table, node->left,  op_band, eval(node->right, table), 0); break;
             case XOREQ_N    : result = settable3(table, node->left,  op_bxor, eval(node->right, table), 0); break;
             case OREQ_N     : result = settable3(table, node->left,   op_bor, eval(node->right, table), 0); break;
+            case POWEQ_N    : result = settable3(table, node->left,   op_pow, eval(node->right, table), 0); break;
 
             case '*'        : result = op_times(eval(node->left, table), eval(node->right, table)); break;
             case '/'        : result = op_divby(eval(node->left, table), eval(node->right, table)); break;

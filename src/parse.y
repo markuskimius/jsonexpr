@@ -61,7 +61,7 @@ typedef struct YYLTYPE {
 %start    start
 %left     ';'
 %left     ','
-%right    '=' PLEQ_T MIEQ_T TIEQ_T DIEQ_T MOEQ_T SHLEQ_T ASREQ_T SHREQ_T ANDEQ_T XOREQ_T OREQ_T
+%right    '=' PLEQ_T MIEQ_T TIEQ_T DIEQ_T MOEQ_T SHLEQ_T ASREQ_T SHREQ_T ANDEQ_T XOREQ_T OREQ_T POWEQ_T
 %left     ':' '?'
 %left     OR_T
 %left     AND_T
@@ -151,6 +151,7 @@ expr        : NULL_T                    { $$ = newinode(NULL_N, 0, &@$);        
             | symbol ANDEQ_T expr       { $$ = newnode(  ANDEQ_N,   $1,   $3, NULL, &@$);   }
             | symbol XOREQ_T expr       { $$ = newnode(  XOREQ_N,   $1,   $3, NULL, &@$);   }
             | symbol OREQ_T expr        { $$ = newnode(   OREQ_N,   $1,   $3, NULL, &@$);   }
+            | symbol POWEQ_T expr       { $$ = newnode(  POWEQ_N,   $1,   $3, NULL, &@$);   }
             | expr '?' expr ':' expr    { $$ = newnode(      '?',   $1,   $3,   $5, &@$);   }
             | expr ';' expr             { $$ = newnode(      ';',   $1,   $3, NULL, &@$);   }
             ;
