@@ -133,7 +133,7 @@ def doMyThing():
     def _exit(status:"i32") -> None:
         sys.exit(status)
 
-    with open("jsonexpr.wasm", mode="rb") as fd:
+    with open("jx.wasm", mode="rb") as fd:
         wasm = fd.read()
         module = Module(store, wasm)
         instance = Instance(module, {

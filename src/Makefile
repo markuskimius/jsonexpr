@@ -19,22 +19,22 @@ endif
 .PHONY: all c wasm clean
 
 c:
-	make TARGET:=c jsonexpr
+	make TARGET:=c jx
 
 wasm:
-	make TARGET=wasm jsonexpr.wasm
+	make TARGET=wasm jx.wasm
 
 clean:
-	$(RM) jsonexpr.wasm jsonexpr *.o *.output *.tab.c *.tab.h *.yy.c
+	$(RM) jx.wasm jx *.o *.output *.tab.c *.tab.h *.yy.c
 
 
 ##############################################################################
 # MAIN
 
-jsonexpr.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
+jx.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
-jsonexpr: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
+jx: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 builtin.o: builtin.c builtin.h eval.h func.h map.h node.h value.h vector.h
