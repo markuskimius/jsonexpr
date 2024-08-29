@@ -49,7 +49,7 @@ char* utf8str(uint32_t c) {
 char* astri64(uint64_t src) {
     char* dest = calloc(1, IBUFSIZE);
 
-    snprintf(dest, IBUFSIZE, "%lu", src);
+    snprintf(dest, IBUFSIZE, "%llu", (unsigned long long) src);
 
     return dest;
 }
