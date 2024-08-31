@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "eval.h"
 #include "node.h"
 #include "map.h"
@@ -9,70 +10,73 @@
 #include "value.h"
 #include "vector.h"
 
-#define R(...) #__VA_ARGS__
 
-int main() {
-    /*
-    NODE* ast = parse(R(
-        memo = [ 0, 1 ];
-        fib = FUNCTION("?",
-            x = ARG[0];
+/* ***************************************************************************
+* CONSTANTS
+*/
 
-            IF(x >= LEN(memo),
-                x1 = fib(x-1);
-                x2 = fib(x-2);
+#define PAGESIZE 4096
 
-                memo[x] = x1 + x2;
-            );
 
-            memo[x];
-        );
+/* ***************************************************************************
+* FORWARD DECLARATION
+*/
 
-        fib(1000);
-    ));
+/* declaring a function that does not exist in wasm as weak import allows wasm to compile */
+__attribute__((weak, import_module("env"), import_name("open"))) extern int open(const char *pathname, int flags);
+__attribute__((weak, import_module("env"), import_name("close"))) extern int close(int fd);
 
-    NODE* ast = parse(R(
-        FOR(i = 0, i < 5, i++,
-            PRINT("Hello " + i)
-        );
-    ));
+int doMyFdThing(int fd);
+int doMyCodeThing(const char* code);
 
-    NODE* ast = parse(R(
-        a = 7;
-        ++a;
-    ));
-    */
 
-    /*
-    NODE* ast = parse(R(
-        students = [
-            {
-                "first" : "John",
-                "last"  : "Doe",
-            },
-            {
-                "first" : "Jane",
-                "last"  : "Roe",
-            },
-            {
-                "first" : "Jeff",
-                "last"  : "Zoe",
-            },
-        ];
+/* ***************************************************************************
+* PROGRAM BEGINS HERE
+*/
 
-        PRINT("I have " + LEN(students) + " students:");
+int main(int argc, const char* argv[]) {
+    int last = 0;
 
-        PRINT(students[0].first + " " + students[0].last);
+    if(argc <= 1) last = doMyFdThing(0);
 
-        FOR(i = 1, i < LEN(students), i++,
-            PRINT(students[i].first, students[i].last)
-        );
+    for(int i=1; i<argc; i++) {
+        int fd = open(argv[i], 0);
 
-        "Done!"
-    ));
-    */
+        if(fd < 0) {
+            perror(argv[i]);
+            continue;
+        }
 
-    NODE* ast = parse(NULL);
+        last = doMyFdThing(fd);
+        close(fd);
+    }
+
+    return last;
+}
+
+
+int doMyFdThing(int fd) {
+    char* code = calloc(1, PAGESIZE);
+    size_t offset = 0;
+    int result = 0;
+
+    while(1) {
+        ssize_t size = read(fd, code+offset, PAGESIZE);
+        if(size <= 0) break;
+
+        offset += size;
+        code = realloc(code, offset + PAGESIZE);
+    }
+
+    result = doMyCodeThing(code);
+    free(code);
+
+    return result;
+}
+
+
+int doMyCodeThing(const char* code) {
+    NODE* ast = parse(code);
 
     /*
     if(1) {
