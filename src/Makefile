@@ -9,6 +9,7 @@ ifeq ($(findstring wasm,$(TARGET)),wasm)
 		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=gettable
 	LDLIBS:=-lc-wasm
 else
+	CPPFLAGS:=-Wno-unknown-attributes $(CPPFLAGS)
 	LDLIBS:=-lm
 endif
 
@@ -19,22 +20,22 @@ endif
 .PHONY: all c wasm clean
 
 c:
-	make TARGET:=c jx
+	make TARGET:=c je
 
 wasm:
-	make TARGET=wasm jx.wasm
+	make TARGET=wasm je.wasm
 
 clean:
-	$(RM) jx.wasm jx *.o *.output *.tab.c *.tab.h *.yy.c
+	$(RM) je.wasm je *.o *.output *.tab.c *.tab.h *.yy.c
 
 
 ##############################################################################
 # MAIN
 
-jx.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
+je.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
-jx: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
+je: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 builtin.o: builtin.c builtin.h eval.h func.h map.h node.h value.h vector.h
