@@ -7,7 +7,7 @@
 #include "func.h"
 #include "map.h"
 #include "node.h"
-#include "throw.h"
+#include "error.h"
 #include "value.h"
 #include "vector.h"
 
@@ -45,21 +45,21 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
         for(size_t i=0; i<strlen(sig); i++) {
             /* Validate signature */
             if(!strchr("BIDSAOF?.*", sig[i])) {
-                raise("Invalid function argument signature: %c", sig[i]);
+                throwLater("Invalid function argument signature: %c", sig[i]);
                 isok = 0;
                 break;
             }
 
             /* Signature can only end with a star */
             if(nstars && sig[i] != '*') {
-                raise("'*' must terminate function argument signature");
+                throwLater("'*' must terminate function argument signature");
                 isok = 0;
                 break;
             }
 
             /* Maximum # of stars is 2 */
             if(sig[i] == '*' && nstars == 2) {
-                raise("Too many '*', maximum is 2");
+                throwLater("Too many '*', maximum is 2");
                 isok = 0;
                 break;
             }
@@ -68,7 +68,7 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
         }
     }
     else {
-        raise("Invalid argument type, expected string but got %c", spec->type);
+        throwLater("Invalid argument type, expected string but got %c", spec->type);
         isok = 0;
     }
 
@@ -108,7 +108,7 @@ static VALUE* SQRT(VEC* args, SYM_TABLE* table) {
     switch(value->type) {
         case INT_V      : result = dblvalue(sqrt(value->value.i)); break;
         case FLOAT_V    : result = dblvalue(sqrt(value->value.f)); break;
-        default         : raise("Invalid argument to SQRT(): '%c' (%d)", value->type, value->type); break;
+        default         : throwLater("Invalid argument to SQRT(): '%c' (%d)", value->type, value->type); break;
     }
 
     return result;
@@ -123,7 +123,7 @@ static VALUE* LEN(VEC* args, SYM_TABLE* table) {
         case STRING_V   : result = intvalue(strlen(strdecoded(value))); break;
         case ARRAY_V    : result = intvalue(value->value.v->length); break;
         case OBJECT_V   : result = intvalue(value->value.m->length); break;
-        default         : raise("Type has no length: '%c' (%d)", value->type, value->type); break;
+        default         : throwLater("Type has no length: '%c' (%d)", value->type, value->type); break;
     }
 
     return result;

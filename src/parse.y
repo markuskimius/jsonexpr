@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include "node.h"
 #include "parse.h"
-#include "throw.h"
+#include "error.h"
 #include "value.h"
 
 extern int yylex();
 
 void yyerror(const char* s) {
-    throw(&yylloc, s);
+    ParseError(&yylloc, s);
 }
 %}
 

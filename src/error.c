@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include "node.h"
-#include "throw.h"
+#include "error.h"
 #include "util.h"
 
 
@@ -11,7 +11,7 @@
 * GLOBALS
 */
 
-char* error_text = NULL;
+char* throwText = NULL;
 
 
 /* ***************************************************************************
@@ -21,29 +21,18 @@ char* error_text = NULL;
 void _die(const char* file, const char* func, size_t line, const char* format, ...) {
     va_list ap;
 
-    if(error_text) free(error_text);
+    if(throwText) free(throwText);
 
     va_start(ap, format);
-    vasprintf(&error_text, format, ap);
+    vasprintf(&throwText, format, ap);
     va_end(ap);
 
-    fprintf(stderr, "%s.%zu in %s(): %s\n", file, line, func, error_text);
+    fprintf(stderr, "%s line %zu in %s(): %s\n", file, line, func, throwText);
     exit(1);
 }
 
 
-void raise(const char* format, ...) {
-    va_list ap;
-
-    if(error_text) free(error_text);
-
-    va_start(ap, format);
-    vasprintf(&error_text, format, ap);
-    va_end(ap);
-}
-
-
-void throw(YYLTYPE* loc, const char* format, ...) {
+void throw(const char* type, YYLTYPE* loc, const char* format, ...) {
     va_list ap;
     char* text = textat(loc);
     char* buf;
@@ -52,8 +41,19 @@ void throw(YYLTYPE* loc, const char* format, ...) {
     vasprintf(&buf, format, ap);
     va_end(ap);
 
-    fprintf(stderr, "%s: %s at line %zu, col %zu\n", text, buf, loc->first_line, loc->first_column);
+    fprintf(stderr, "%s at line %zu col %zu near `%s`: %s\n", type, loc->first_line, loc->first_column, text, buf);
     free(text);
     free(buf);
     exit(1);
+}
+
+
+void throwLater(const char* format, ...) {
+    va_list ap;
+
+    if(throwText) free(throwText);
+
+    va_start(ap, format);
+    vasprintf(&throwText, format, ap);
+    va_end(ap);
 }

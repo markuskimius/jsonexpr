@@ -5,7 +5,7 @@
 #include "func.h"
 #include "map.h"
 #include "util.h"
-#include "throw.h"
+#include "error.h"
 #include "value.h"
 #include "vector.h"
 

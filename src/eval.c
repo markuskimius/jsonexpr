@@ -6,7 +6,7 @@
 #include "map.h"
 #include "node.h"
 #include "oper.h"
-#include "throw.h"
+#include "error.h"
 #include "value.h"
 #include "vector.h"
 #include "symtable.h"
@@ -45,7 +45,7 @@ static MAP* newpair(NODE* node, SYM_TABLE* table, MAP* list) {
             if(left->type == STRING_N) setmap(list, left->value.s, right);
             else {
                 freevalue(right);
-                throw(&left->loc, "String expected, got %s", nodetype(left));
+                RuntimeError(&left->loc, "STRING expected, got %s", nodetype(left));
             }
 
             /* Do not free left (it's in the parse tree) */
@@ -54,7 +54,7 @@ static MAP* newpair(NODE* node, SYM_TABLE* table, MAP* list) {
         }
 
         default:
-            throw(&node->loc, "Pair expected, got %s", nodetype(node));
+            RuntimeError(&node->loc, "PAIR expected, got %s", nodetype(node));
             break;
     }
 
@@ -73,7 +73,7 @@ static MAP* newpairlist(NODE* node, SYM_TABLE* table, MAP* list) {
                 break;
 
             default:
-                throw(&node->loc, "Pairlist expected, got %c", nodetype(node));
+                RuntimeError(&node->loc, "PAIRLIST expected, got %c", nodetype(node));
                 break;
         }
     }
@@ -97,16 +97,16 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             if(left->type == ARRAY_V && right->type == INT_V) {
                 value = getvec(left->value.v, right->value.i);
                 if(!value) {
-                    throw(&node->loc, "Invalid index, max %ld, got %ld", left->value.v->length-1, right->value.i);
+                    RuntimeError(&node->loc, "Invalid index, max %ld, got %ld", left->value.v->length-1, right->value.i);
                 }
             }
             else if(left->type == OBJECT_V && right->type == STRING_V) {
                 value = getmap(left->value.m, right->value.s);
-                if(!value) throw(&node->loc, "Invalid key, %s", strencoded(right));
+                if(!value) RuntimeError(&node->loc, "Invalid key, %s", strencoded(right));
             }
-            else if(left->type == ARRAY_V ) throw(&node->loc, "Array index must be INTEGER but got %s", valuetype(right));
-            else if(left->type == OBJECT_V) throw(&node->loc, "Object key must be STRING but got %s", valuetype(right));
-            else                            throw(&node->loc, "Array or Object expected before '[' but got %s", valuetype(left));
+            else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valuetype(right));
+            else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valuetype(right));
+            else                            RuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", valuetype(left));
 
             freevalue(right);
             break;
@@ -117,19 +117,19 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
             NODE* right = node->right;
 
             if     (left->type == OBJECT_V && right->type == IDENT_N) value = getmap(left->value.m, right->value.s);
-            else if(left->type == OBJECT_V                          ) throw(&node->loc, "Identifier expected after '.' but got %s", nodetype(right));
-            else                                                      throw(&node->loc, "Object expected before '.' but got %s", valuetype(left));
+            else if(left->type == OBJECT_V                          ) RuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", nodetype(right));
+            else                                                      RuntimeError(&node->loc, "OBJECT expected before '.' but got %s", valuetype(left));
 
             break;
         }
 
         default:
-            throw(&node->loc, "Invalid node type: %s", nodetype(node));
+            ParseError(&node->loc, "Invalid node type: %s", nodetype(node));
             break;
     }
 
     if(!value) {
-        throw(&node->loc, "Undefined symbol");
+        RuntimeError(&node->loc, "Undefined symbol");
     }
 
     return value;
@@ -147,19 +147,19 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
             VALUE* right = eval(node->right, table);
 
             if(!left) {
-                throw(&node->left->loc, "No such element");
+                RuntimeError(&node->left->loc, "No such element");
             }
             else if(left->type == ARRAY_V && right->type == INT_V) {
                 if(!setvec(left->value.v, right->value.i, value)) {
-                    throw(&node->loc, "%s", error_text);
+                    RuntimeError(&node->loc, "%s", throwText);
                 }
             }
             else if(left->type == OBJECT_V && right->type == STRING_V) {
                 setmap(left->value.m, right->value.s, value);
             }
-            else if(left->type == ARRAY_V ) throw(&node->loc, "Array index must be INTEGER but got %s", valuetype(right));
-            else if(left->type == OBJECT_V) throw(&node->loc, "Object key must be STRING but got %s", valuetype(right));
-            else                            throw(&node->loc, "Array or Object expected before '[' but got %s", valuetype(left));
+            else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valuetype(right));
+            else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valuetype(right));
+            else                            RuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", valuetype(left));
 
             freevalue(right);
             break;
@@ -169,16 +169,16 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
             VALUE* left = gettable2(table, node->left);
             NODE* right = node->right;
 
-            if     (!left                                           ) throw(&node->left->loc, "No such item");
+            if     (!left                                           ) RuntimeError(&node->left->loc, "No such item");
             else if(left->type == OBJECT_V && right->type == IDENT_N) setmap(left->value.m, right->value.s, value);
-            else if(left->type != OBJECT_V                          ) throw(&node->loc, "Object expected, got %s", valuetype(left));
-            else                                                      throw(&node->loc, "Identifier expected, got %s", nodetype(right));
+            else if(left->type != OBJECT_V                          ) RuntimeError(&node->loc, "OBJECT expected, got %s", valuetype(left));
+            else                                                      RuntimeError(&node->loc, "IDENTIFIER expected, got %s", nodetype(right));
 
             break;
         }
 
         default:
-            throw(&node->loc, "Invalid node type: %s", nodetype(node));
+            ParseError(&node->loc, "Invalid node type: %s", nodetype(node));
             break;
     }
 
@@ -227,7 +227,7 @@ static VALUE* call(SYM_TABLE* table, NODE* node) {
         value = funcexec(func->value.fn, nodes, table);
     }
     else {
-        throw(&node->left->loc, "Not a function");
+        RuntimeError(&node->left->loc, "Not a function");
     }
 
     /* Free arguments */
@@ -235,7 +235,7 @@ static VALUE* call(SYM_TABLE* table, NODE* node) {
 
     /* Error handling */
     if(value == NULL) {
-        throw(&node->left->loc, "%s", error_text);
+        RuntimeError(&node->left->loc, "%s", throwText);
     }
 
     return value;
@@ -314,7 +314,7 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
 
             case '?'        : result = op_cond(node->left, node->right, node->righter, table); break;
             case ';'        : freevalue(eval(node->left, table)); result = eval(node->right, table); break;
-            default         : throw(&node->loc, "Invalid node type: %s", nodetype(node)); break;
+            default         : LogicError(&node->loc, "Invalid node type: %s", nodetype(node)); break;
         }
     }
 

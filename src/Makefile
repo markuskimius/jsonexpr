@@ -32,15 +32,15 @@ clean:
 ##############################################################################
 # MAIN
 
-je.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
+je.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o error.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
-je: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o throw.o util.o value.o vector.o parse.tab.o lex.yy.o
+je: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o error.o util.o value.o vector.o parse.tab.o lex.yy.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 builtin.o: builtin.c builtin.h eval.h func.h map.h node.h value.h vector.h
 
-eval.o: eval.c eval.h func.h map.h node.h oper.h throw.h value.h vector.h symtable.h
+eval.o: eval.c eval.h func.h map.h node.h oper.h error.h value.h vector.h symtable.h
 
 func.o: func.c eval.h func.h node.h value.h vector.h symtable.h
 
@@ -52,7 +52,7 @@ node.o: node.c node.h
 
 oper.o: oper.c map.h eval.h node.h oper.h util.h parse.h value.h vector.h
 
-throw.o: throw.c node.h throw.h
+error.o: error.c node.h error.h
 
 symtable.o: symtable.c map.h builtin.h symtable.h value.h
 
@@ -62,9 +62,9 @@ value.o: value.c func.h map.h util.h value.h vector.h
 
 vector.o: vector.c util.h value.h vector.h
 
-parse.tab.o: parse.tab.c parse.tab.h node.h parse.h throw.h
+parse.tab.o: parse.tab.c parse.tab.h node.h parse.h error.h
 
-lex.yy.o: lex.yy.c node.h parse.h throw.h util.h
+lex.yy.o: lex.yy.c node.h parse.h error.h util.h
 
 parse.tab.c parse.tab.h: parse.y
 	bison -t -v -d $<

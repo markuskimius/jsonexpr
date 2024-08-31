@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "util.h"
-#include "throw.h"
+#include "error.h"
 #include "value.h"
 #include "vector.h"
 
@@ -102,7 +102,7 @@ int setvec(VEC* vec, size_t index, VALUE* item) {
         vec->item[index] = item;
     }
     else {
-        raise("Insert to invalid index %zd (max %zd)", index, vec->length);
+        throwLater("Insert to invalid index %zd (max %zd)", index, vec->length);
         isok = 0;
     }
 

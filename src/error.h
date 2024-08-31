@@ -15,13 +15,16 @@ typedef struct YYLTYPE YYLTYPE;
 */
 
 #define die(args...) _die(__FILE__, __FUNCTION__, __LINE__, args)
+#define LogicError(args...) throw("LogicError", args)
+#define ParseError(args...) throw("ParseError", args)
+#define RuntimeError(args...) throw("RuntimeError", args)
 
 
 /* ***************************************************************************
 * GLOBALS
 */
 
-extern char* error_text;
+extern char* throwText;
 
 
 /* ***************************************************************************
@@ -29,8 +32,8 @@ extern char* error_text;
 */
 
 void _die(const char* file, const char* func, size_t line, const char* format, ...);
-void raise(const char* format, ...);
-void throw(YYLTYPE* loc, const char* format, ...);
+void throw(const char* type, YYLTYPE* loc, const char* format, ...);
+void throwLater(const char* format, ...);
 
 
 #endif /* THROW_H_ */

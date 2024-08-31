@@ -6,7 +6,7 @@
 #include "eval.h"
 #include "func.h"
 #include "node.h"
-#include "throw.h"
+#include "error.h"
 #include "value.h"
 #include "vector.h"
 #include "symtable.h"
@@ -80,7 +80,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
         /* check too many arguments */
         if(*cp == '\0') {
-            raise("Too many arguments, expected %ld, got %zu", (cp-sig), nodes->length);
+            throwLater("Too many arguments, expected %ld, got %zu", (cp-sig), nodes->length);
             isok = 0;
         }
         /* evaluate */
@@ -88,7 +88,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
             VALUE* v = eval(node, table);
 
             if(*cp != '?' && tolower(v->type) != tolower(*cp)) {
-                raise("Invalid argument type, expected %c, got %c", *cp, v->type);
+                throwLater("Invalid argument type, expected %c, got %c", *cp, v->type);
                 isok = 0;
             }
 
@@ -114,7 +114,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 
     /* check too few arguments */
     if(isok && !strchr("*", *cp)) {
-        raise("Too few arguments, expected > %ld, got %zu", (cp-sig), nodes->length);
+        throwLater("Too few arguments, expected > %ld, got %zu", (cp-sig), nodes->length);
         isok = 0;
     }
 

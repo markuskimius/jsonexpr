@@ -18,7 +18,7 @@ EXP     ([eE][-+]?[0-9]+)
 
 %{
 #include "parse.h"
-#include "throw.h"
+#include "error.h"
 #include "util.h"
 
 #define YYCODE_INITSIZE 80
@@ -128,8 +128,8 @@ static void yynextline() {
 <STRING>\\r             { yystrvalue = astrcat(yystrvalue, "\r"); }
 <STRING>\\t             { yystrvalue = astrcat(yystrvalue, "\t"); }
 <STRING>\\\n            { yynextline(); }
-<STRING>\\              { throw(&yylloc, "String with a bad backslash sequence"); return BAD_T; }
-<STRING><<EOF>>         { throw(&yylloc, "String with a missing terminating quote"); return BAD_T; }
+<STRING>\\              { ParseError(&yylloc, "String with a bad backslash sequence"); return BAD_T; }
+<STRING><<EOF>>         { ParseError(&yylloc, "String with a missing terminating quote"); return BAD_T; }
 <STRING>\"              { BEGIN(INITIAL); yylval.s = yystrvalue; return STRING_T; }
 "#"                     { BEGIN(COMMENT); }
 <COMMENT>.              ;
@@ -138,8 +138,8 @@ static void yynextline() {
 <COMMENT2>.             ;
 <COMMENT2>\n            { yynextline(); }
 <COMMENT2>"*/"          { BEGIN(INITIAL); }
-<COMMENT2><<EOF>>       { throw(&yylloc, "Multiline-comment with a missing comment terminator"); }
-.                       { throw(&yylloc, "We shouldn't get here"); }
+<COMMENT2><<EOF>>       { ParseError(&yylloc, "Multiline-comment with a missing comment terminator"); }
+.                       { LogicError(&yylloc, "We shouldn't get here"); }
 
 %%
 
