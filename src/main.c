@@ -77,20 +77,18 @@ int doMyFdThing(int fd) {
 
 int doMyCodeThing(const char* code) {
     NODE* ast = parse(code);
+    VALUE* result = eval(ast, NULL);
 
     /*
-    if(1) {
-        char* tree = nodetree(ast);
-        printf("%s\n", tree);
-        free(tree);
-    }
+    char* tree = nodetree(ast);
+    printf("%s\n", tree);
+    free(tree);
     */
 
-    if(1) {
-        VALUE* result = eval(ast, NULL);
-        printf("%s\n", strencoded(result));
-        freevalue(result);
-    }
+    printf("%s\n", strencoded(result));
+
+    freevalue(result);
+    freenode(ast);
 
     return 0;
 }

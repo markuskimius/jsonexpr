@@ -115,6 +115,24 @@ NODE* newsnode(int type, char* s, YYLTYPE* loc) {
 }
 
 
+void freenode(NODE* node) {
+    if(node->left) freenode(node->left);
+    if(node->right) freenode(node->right);
+    if(node->righter) freenode(node->righter);
+
+    if(node->type == IDENT_N || node->type == STRING_N) {
+        free(node->value.s);
+    }
+
+    node->left = NULL;
+    node->right = NULL;
+    node->righter = NULL;
+    node->value.s = NULL;
+
+    free(node);
+}
+
+
 char* nodetree(NODE* node) {
     char* left = NULL;
     char* right = NULL;
