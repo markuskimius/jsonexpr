@@ -246,7 +246,7 @@ def doMyThing():
             ''')
             ast = instance.exports.parse(code)
             result = instance.exports.eval(ast, 0)
-            svalue = instance.exports.strdecoded(result);
+            svalue = instance.exports.valuestr(result);
 
             print(wasm.strat(svalue))
 

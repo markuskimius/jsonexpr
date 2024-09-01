@@ -5,8 +5,8 @@ ifeq ($(findstring wasm,$(TARGET)),wasm)
 	LD:=wasm-ld
 	PREFIX:=/opt/wasm
 	CPPFLAGS:=-I$(PREFIX)/include --target=wasm32 -nostdlib $(CPPFLAGS)
-	LDFLAGS:=-L$(PREFIX)/lib --export=newtable --export=freetable --export=parse --export=eval --export=strdecoded \
-		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=gettable
+	LDFLAGS:=-L$(PREFIX)/lib --export=newtable --export=freetable --export=parse --export=eval --export=valuestr \
+		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=tableget
 	LDLIBS:=-lc-wasm
 else
 	CPPFLAGS:=-Wno-unknown-attributes $(CPPFLAGS)
