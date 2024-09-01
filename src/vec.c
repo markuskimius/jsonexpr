@@ -53,6 +53,10 @@ void freevec(VEC* vec) {
         }
 
         if(vec->item) free(vec->item);
+        vec->item = NULL;
+        vec->capacity = 0;
+        vec->length = 0;
+        vec->count = 0;
         free(vec);
     }
 }

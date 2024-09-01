@@ -128,13 +128,22 @@ void freemap(MAP* map) {
         for(size_t i=0; i<NDEGREE; i++) {
             MAP* n = map->next[i];
 
-            if(n) freemap(n);
+            if(n) {
+                freemap(n);
+                map->next[i] = NULL;
+            }
         }
 
         /* Free this node */
         if(map->key) free((void*) map->key);
         if(map->value) freeval(map->value);
 
+        map->key = NULL;
+        map->value = NULL;
+        map->prev = NULL;
+        map->nchildren = 0;
+        map->length = 0;
+        map->count = 0;
         free(map);
     }
 }
