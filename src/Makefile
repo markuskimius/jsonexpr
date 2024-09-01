@@ -5,7 +5,7 @@ ifeq ($(findstring wasm,$(TARGET)),wasm)
 	LD:=wasm-ld
 	PREFIX:=/opt/wasm
 	CPPFLAGS:=-I$(PREFIX)/include --target=wasm32 -nostdlib $(CPPFLAGS)
-	LDFLAGS:=-L$(PREFIX)/lib --export=newtable --export=freetable --export=parse --export=eval --export=valuestr \
+	LDFLAGS:=-L$(PREFIX)/lib --export=newtable --export=freetable --export=parse --export=eval --export=valstr \
 		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=tableget
 	LDLIBS:=-lc-wasm
 else
@@ -32,39 +32,39 @@ clean:
 ##############################################################################
 # MAIN
 
-je.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtbl.o error.o util.o value.o vec.o parse.tab.o lex.yy.o
+je.wasm: builtin.o error.o eval.o func.o main.o map.o node.o oper.o symtbl.o util.o val.o vec.o parse.tab.o lex.yy.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
-je: builtin.o eval.o func.o main.o map.o node.o oper.o symtbl.o error.o util.o value.o vec.o parse.tab.o lex.yy.o
+je: builtin.o error.o eval.o func.o main.o map.o node.o oper.o symtbl.o util.o val.o vec.o parse.tab.o lex.yy.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-builtin.o: builtin.c builtin.h eval.h func.h map.h node.h value.h vec.h
+builtin.o: builtin.c builtin.h error.h eval.h func.h map.h val.h vec.h
 
-eval.o: eval.c eval.h func.h map.h node.h oper.h error.h value.h vec.h symtbl.h
+error.o: error.c error.h node.h util.h
 
-func.o: func.c eval.h func.h node.h value.h vec.h symtbl.h
+eval.o: eval.c error.h eval.h func.h map.h node.h oper.h symtbl.h val.h vec.h
 
-main.o: main.c eval.h map.h util.h parse.h value.h vec.h
+func.o: func.c error.h eval.h func.h symtbl.h val.h vec.h
 
-map.o: map.c map.h util.h value.h vec.h
+main.o: main.c eval.h node.h parse.h val.h
 
-node.o: node.c node.h
+map.o: map.c map.h util.h val.h
 
-oper.o: oper.c map.h eval.h node.h oper.h util.h parse.h value.h vec.h
+node.o: node.c node.h util.h
 
-error.o: error.c node.h error.h
+oper.o: oper.c eval.h oper.h val.h
 
-symtbl.o: symtbl.c map.h builtin.h symtbl.h value.h
+symtbl.o: symtbl.c builtin.h map.h symtbl.h val.h
 
-util.o: util.c util.h
+util.o: util.c parse.h util.h
 
-value.o: value.c func.h map.h util.h value.h vec.h
+val.o: val.c error.h func.h map.h util.h val.h vec.h
 
-vec.o: vec.c util.h value.h vec.h
+vec.o: vec.c error.h util.h val.h vec.h
 
-parse.tab.o: parse.tab.c parse.tab.h node.h parse.h error.h
+parse.tab.o: parse.tab.c parse.tab.h node.h parse.h error.h val.h
 
-lex.yy.o: lex.yy.c node.h parse.h error.h util.h
+lex.yy.o: lex.yy.c parse.h error.h util.h
 
 parse.tab.c parse.tab.h: parse.y
 	bison -t -v -d $<

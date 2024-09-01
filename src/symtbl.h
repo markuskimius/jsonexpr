@@ -7,7 +7,7 @@
 */
 
 typedef struct MAP MAP;
-typedef struct VALUE VALUE;
+typedef struct VAL VAL;
 
 
 /* ***************************************************************************
@@ -29,9 +29,9 @@ SYMTBL* newtable(SYMTBL* parent);
 SYMTBL* duptable(SYMTBL* table);
 void freetable(SYMTBL* table);
 
-void tableset(SYMTBL* table, const char* name, VALUE* value);
+void tableset(SYMTBL* table, const char* name, VAL* value);
 void tableunset(SYMTBL* table, const char* name);
-VALUE* tableget(SYMTBL* table, const char* name);
+VAL* tableget(SYMTBL* table, const char* name);
 
 
 #endif /* SYMTBL_H_ */

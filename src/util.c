@@ -1,8 +1,8 @@
 #define _GNU_SOURCE
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include "parse.h"
 #include "util.h"
 

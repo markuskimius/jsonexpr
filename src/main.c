@@ -4,11 +4,8 @@
 #include <unistd.h>
 #include "eval.h"
 #include "node.h"
-#include "map.h"
-#include "util.h"
 #include "parse.h"
-#include "value.h"
-#include "vec.h"
+#include "val.h"
 
 
 /* ***************************************************************************
@@ -77,7 +74,7 @@ int doMyFdThing(int fd) {
 
 int doMyCodeThing(const char* code) {
     NODE* ast = parse(code);
-    VALUE* result = eval(ast, NULL);
+    VAL* result = eval(ast, NULL);
 
     /*
     char* tree = nodetree(ast);
@@ -85,9 +82,9 @@ int doMyCodeThing(const char* code) {
     free(tree);
     */
 
-    printf("%s\n", valueqstr(result));
+    printf("%s\n", valqstr(result));
 
-    freevalue(result);
+    freeval(result);
     freenode(ast);
 
     return 0;

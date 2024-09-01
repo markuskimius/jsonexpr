@@ -3,12 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "builtin.h"
+#include "error.h"
 #include "eval.h"
 #include "func.h"
 #include "map.h"
-#include "node.h"
-#include "error.h"
-#include "value.h"
+#include "val.h"
 #include "vec.h"
 
 
@@ -33,9 +32,9 @@ static size_t ncustfunc = 0;
 * PRIVATE FUNCTIONS
 */
 
-static VALUE* FUNCTION(VEC* args, SYMTBL* table) {
-    VALUE* spec = args->item[0];
-    char* sig = valuestr(spec);
+static VAL* FUNCTION(VEC* args, SYMTBL* table) {
+    VAL* spec = args->item[0];
+    char* sig = valstr(spec);
     int isok = 1;
 
     if(spec->type == STRING_V) {
@@ -77,22 +76,22 @@ static VALUE* FUNCTION(VEC* args, SYMTBL* table) {
 
         snprintf(name, sizeof(name), "FUNCTION#%zd()", ++ncustfunc);
 
-        return funcvalue(newcustfunc(args->item[1]->value.n, name, sig, table));
+        return funcval(newcustfunc(args->item[1]->value.n, name, sig, table));
     }
 
     return NULL;
 }
 
 
-static VALUE* PRINT(VEC* args, SYMTBL* table) {
-    VALUE* last = nullvalue();
+static VAL* PRINT(VEC* args, SYMTBL* table) {
+    VAL* last = nullval();
 
     for(size_t i=0; i<args->length; i++) {
-        if(last) freevalue(last);
-        last = dupvalue(args->item[i]);
+        if(last) freeval(last);
+        last = dupval(args->item[i]);
 
         if(i > 0) printf(" ");
-        printf("%s", valuestr(last));
+        printf("%s", valstr(last));
     }
 
     printf("\n");
@@ -101,63 +100,63 @@ static VALUE* PRINT(VEC* args, SYMTBL* table) {
 }
 
 
-static VALUE* SQRT(VEC* args, SYMTBL* table) {
-    VALUE* result = nullvalue();
-    VALUE* value = args->item[0];
+static VAL* SQRT(VEC* args, SYMTBL* table) {
+    VAL* result = nullval();
+    VAL* val = args->item[0];
 
-    switch(value->type) {
-        case INT_V      : result = dblvalue(sqrt(value->value.i)); break;
-        case FLOAT_V    : result = dblvalue(sqrt(value->value.f)); break;
-        default         : throwLater("Invalid argument to SQRT(): '%c' (%d)", value->type, value->type); break;
+    switch(val->type) {
+        case INT_V      : result = dblval(sqrt(val->value.i)); break;
+        case FLOAT_V    : result = dblval(sqrt(val->value.f)); break;
+        default         : throwLater("Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
     }
 
     return result;
 }
 
 
-static VALUE* LEN(VEC* args, SYMTBL* table) {
-    VALUE* result = NULL;
-    VALUE* value = args->item[0];
+static VAL* LEN(VEC* args, SYMTBL* table) {
+    VAL* result = NULL;
+    VAL* val = args->item[0];
 
-    switch(value->type) {
-        case STRING_V   : result = intvalue(strlen(valuestr(value))); break;
-        case ARRAY_V    : result = intvalue(value->value.v->length); break;
-        case OBJECT_V   : result = intvalue(value->value.m->length); break;
-        default         : throwLater("Type has no length: '%c' (%d)", value->type, value->type); break;
+    switch(val->type) {
+        case STRING_V   : result = intval(strlen(valstr(val))); break;
+        case ARRAY_V    : result = intval(val->value.v->length); break;
+        case OBJECT_V   : result = intval(val->value.m->length); break;
+        default         : throwLater("Type has no length: '%c' (%d)", val->type, val->type); break;
     }
 
     return result;
 }
 
 
-static VALUE* FOR(VEC* args, SYMTBL* table) {
-    VALUE* result = nullvalue();
-    VALUE* last = eval(args->item[0]->value.n, table);
+static VAL* FOR(VEC* args, SYMTBL* table) {
+    VAL* result = nullval();
+    VAL* last = eval(args->item[0]->value.n, table);
 
     while(1) {
-        freevalue(last);
+        freeval(last);
         last = eval(args->item[1]->value.n, table);
 
-        if(!valuetrue(last)) break;
+        if(!valtrue(last)) break;
         result = eval(args->item[3]->value.n, table);
 
-        freevalue(last);
+        freeval(last);
         last = eval(args->item[2]->value.n, table);
     }
 
-    freevalue(last);
+    freeval(last);
 
     return result;
 }
 
 
-static VALUE* IF(VEC* args, SYMTBL* table) {
-    VALUE* result = NULL;
+static VAL* IF(VEC* args, SYMTBL* table) {
+    VAL* result = NULL;
 
     for(size_t i=0; i<(args->length & ~1UL); i+=2) {
-        VALUE* cond = eval(args->item[i]->value.n, table);
+        VAL* cond = eval(args->item[i]->value.n, table);
 
-        if(valuetrue(cond)) {
+        if(valtrue(cond)) {
             result = eval(args->item[i+1]->value.n, table);
             break;
         }
@@ -167,7 +166,7 @@ static VALUE* IF(VEC* args, SYMTBL* table) {
         result = eval(args->item[args->length-1]->value.n, table);
     }
 
-    return result ? result : nullvalue();
+    return result ? result : nullval();
 }
 
 
@@ -179,12 +178,12 @@ MAP* builtin() {
     if(!BUILTINS) {
         BUILTINS = newmap();
 
-        mapset(BUILTINS, "FUNCTION", funcvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
-        mapset(BUILTINS, "PRINT"   , funcvalue(newfunc(PRINT   , "PRINT()"   , "*")));
-        mapset(BUILTINS, "SQRT"    , funcvalue(newfunc(SQRT    , "SQRT()"    , "?")));
-        mapset(BUILTINS, "LEN"     , funcvalue(newfunc(LEN     , "LEN()"     , "?")));
-        mapset(BUILTINS, "FOR"     , funcvalue(newfunc(FOR     , "FOR()"     , "....")));
-        mapset(BUILTINS, "IF"      , funcvalue(newfunc(IF      , "IF()"      , ".**")));
+        mapset(BUILTINS, "FUNCTION", funcval(newfunc(FUNCTION, "FUNCTION()", "S.")));
+        mapset(BUILTINS, "PRINT"   , funcval(newfunc(PRINT   , "PRINT()"   , "*")));
+        mapset(BUILTINS, "SQRT"    , funcval(newfunc(SQRT    , "SQRT()"    , "?")));
+        mapset(BUILTINS, "LEN"     , funcval(newfunc(LEN     , "LEN()"     , "?")));
+        mapset(BUILTINS, "FOR"     , funcval(newfunc(FOR     , "FOR()"     , "....")));
+        mapset(BUILTINS, "IF"      , funcval(newfunc(IF      , "IF()"      , ".**")));
     }
 
     return BUILTINS;

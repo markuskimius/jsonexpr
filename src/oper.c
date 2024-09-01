@@ -3,14 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "map.h"
 #include "eval.h"
-#include "node.h"
 #include "oper.h"
-#include "util.h"
-#include "parse.h"
-#include "value.h"
-#include "vec.h"
+#include "val.h"
 
 #define IBUFSIZE 32
 #define DBUFSIZE 320
@@ -20,360 +15,360 @@
 * PUBLIC FUNCTIONS
 */
 
-VALUE* op_times(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_times(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if     (lvalue->type == INT_V   && rvalue->type == INT_V )  result = intvalue(lvalue->value.i * rvalue->value.i);
-    else if(lvalue->type == INT_V   && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.i * rvalue->value.f);
-    else if(lvalue->type == FLOAT_V && rvalue->type == INT_V )  result = dblvalue(lvalue->value.f * rvalue->value.i);
-    else if(lvalue->type == FLOAT_V && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.f * rvalue->value.f);
+    if     (lval->type == INT_V   && rval->type == INT_V )  result = intval(lval->value.i * rval->value.i);
+    else if(lval->type == INT_V   && rval->type == FLOAT_V) result = dblval(lval->value.i * rval->value.f);
+    else if(lval->type == FLOAT_V && rval->type == INT_V )  result = dblval(lval->value.f * rval->value.i);
+    else if(lval->type == FLOAT_V && rval->type == FLOAT_V) result = dblval(lval->value.f * rval->value.f);
 
-    freevalue(lvalue);
-    freevalue(rvalue);
-
-    return result;
-}
-
-
-VALUE* op_divby(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
-
-    if     (lvalue->type == INT_V   && rvalue->type == INT_V  && rvalue->value.i != 0) result = intvalue(lvalue->value.i / rvalue->value.i);
-    else if(lvalue->type == INT_V   && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.i / rvalue->value.f);
-    else if(lvalue->type == FLOAT_V && rvalue->type == INT_V  ) result = dblvalue(lvalue->value.f / rvalue->value.i);
-    else if(lvalue->type == FLOAT_V && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.f / rvalue->value.f);
-
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_mod(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_divby(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if(lvalue->type == INT_V && rvalue->type == INT_V && rvalue->value.i != 0) {
-        result = intvalue(lvalue->value.i % rvalue->value.i);
+    if     (lval->type == INT_V   && rval->type == INT_V  && rval->value.i != 0) result = intval(lval->value.i / rval->value.i);
+    else if(lval->type == INT_V   && rval->type == FLOAT_V) result = dblval(lval->value.i / rval->value.f);
+    else if(lval->type == FLOAT_V && rval->type == INT_V  ) result = dblval(lval->value.f / rval->value.i);
+    else if(lval->type == FLOAT_V && rval->type == FLOAT_V) result = dblval(lval->value.f / rval->value.f);
+
+    freeval(lval);
+    freeval(rval);
+
+    return result;
+}
+
+
+VAL* op_mod(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
+
+    if(lval->type == INT_V && rval->type == INT_V && rval->value.i != 0) {
+        result = intval(lval->value.i % rval->value.i);
     }
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_plus(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_plus(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if     (lvalue->type == INT_V    && rvalue->type == INT_V   ) result = intvalue(lvalue->value.i + rvalue->value.i);
-    else if(lvalue->type == INT_V    && rvalue->type == FLOAT_V ) result = dblvalue(lvalue->value.i + rvalue->value.f);
-    else if(lvalue->type == FLOAT_V  && rvalue->type == INT_V   ) result = dblvalue(lvalue->value.f + rvalue->value.i);
-    else if(lvalue->type == FLOAT_V  && rvalue->type == FLOAT_V ) result = dblvalue(lvalue->value.f + rvalue->value.f);
-    else if(lvalue->type == STRING_V || rvalue->type == STRING_V) {
+    if     (lval->type == INT_V    && rval->type == INT_V   ) result = intval(lval->value.i + rval->value.i);
+    else if(lval->type == INT_V    && rval->type == FLOAT_V ) result = dblval(lval->value.i + rval->value.f);
+    else if(lval->type == FLOAT_V  && rval->type == INT_V   ) result = dblval(lval->value.f + rval->value.i);
+    else if(lval->type == FLOAT_V  && rval->type == FLOAT_V ) result = dblval(lval->value.f + rval->value.f);
+    else if(lval->type == STRING_V || rval->type == STRING_V) {
         char* buf;
 
-        asprintf(&buf, "%s%s", valuestr(lvalue), valuestr(rvalue));
-        result = strvalue(buf);
+        asprintf(&buf, "%s%s", valstr(lval), valstr(rval));
+        result = strval(buf);
     }
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_minus(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_minus(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if     (lvalue->type == INT_V   && rvalue->type == INT_V )  result = intvalue(lvalue->value.i - rvalue->value.i);
-    else if(lvalue->type == INT_V   && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.i - rvalue->value.f);
-    else if(lvalue->type == FLOAT_V && rvalue->type == INT_V )  result = dblvalue(lvalue->value.f - rvalue->value.i);
-    else if(lvalue->type == FLOAT_V && rvalue->type == FLOAT_V) result = dblvalue(lvalue->value.f - rvalue->value.f);
+    if     (lval->type == INT_V   && rval->type == INT_V )  result = intval(lval->value.i - rval->value.i);
+    else if(lval->type == INT_V   && rval->type == FLOAT_V) result = dblval(lval->value.i - rval->value.f);
+    else if(lval->type == FLOAT_V && rval->type == INT_V )  result = dblval(lval->value.f - rval->value.i);
+    else if(lval->type == FLOAT_V && rval->type == FLOAT_V) result = dblval(lval->value.f - rval->value.f);
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_bor(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_bor(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if(lvalue->type == INT_V && rvalue->type == INT_V) {
-        int64_t a = lvalue->value.i;
-        int64_t b = rvalue->value.i;
+    if(lval->type == INT_V && rval->type == INT_V) {
+        int64_t a = lval->value.i;
+        int64_t b = rval->value.i;
 
-        result = intvalue(a | b);
+        result = intval(a | b);
     }
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_band(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_band(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if(lvalue->type == INT_V && rvalue->type == INT_V) {
-        int64_t a = lvalue->value.i;
-        int64_t b = rvalue->value.i;
+    if(lval->type == INT_V && rval->type == INT_V) {
+        int64_t a = lval->value.i;
+        int64_t b = rval->value.i;
 
-        result = intvalue(a & b);
+        result = intval(a & b);
     }
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_bxor(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_bxor(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if(lvalue->type == INT_V && rvalue->type == INT_V) {
-        int64_t a = lvalue->value.i;
-        int64_t b = rvalue->value.i;
+    if(lval->type == INT_V && rval->type == INT_V) {
+        int64_t a = lval->value.i;
+        int64_t b = rval->value.i;
 
-        result = intvalue(a ^ b);
+        result = intval(a ^ b);
     }
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_shl(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_shl(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if(lvalue->type == INT_V && rvalue->type == INT_V) {
-        uint64_t a = lvalue->value.i;
-        int64_t b = rvalue->value.i;
+    if(lval->type == INT_V && rval->type == INT_V) {
+        uint64_t a = lval->value.i;
+        int64_t b = rval->value.i;
 
-        if     (b <  0) return op_asr(lvalue, rvalue);
-        else if(b == 0) result = intvalue(a);
-        else            result = intvalue(a << b);
+        if     (b <  0) return op_asr(lval, rval);
+        else if(b == 0) result = intval(a);
+        else            result = intval(a << b);
     }
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_asr(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_asr(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if(lvalue->type == INT_V && rvalue->type == INT_V) {
-        int64_t value = lvalue->value.i;
-        int64_t shiftby = rvalue->value.i;
+    if(lval->type == INT_V && rval->type == INT_V) {
+        int64_t val = lval->value.i;
+        int64_t shiftby = rval->value.i;
 
         if(shiftby < 0) {
-            freevalue(rvalue);
-            rvalue = intvalue(-shiftby);
+            freeval(rval);
+            rval = intval(-shiftby);
 
-            return op_shl(lvalue, rvalue);
+            return op_shl(lval, rval);
         }
-        else if(shiftby < 64 && value < 0) {
-            value = ~value;
-            value >>= shiftby;
-            value = ~value;
+        else if(shiftby < 64 && val < 0) {
+            val = ~val;
+            val >>= shiftby;
+            val = ~val;
         }
         else if(shiftby < 64) {
-            value >>= shiftby;
+            val >>= shiftby;
         }
         else {
-            value = 0;
+            val = 0;
         }
 
-        result = intvalue(value);
+        result = intval(val);
     }
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_shr(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_shr(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
 
-    if(lvalue->type == INT_V && rvalue->type == INT_V) {
-        uint64_t value = lvalue->value.i;
-        int64_t shiftby = rvalue->value.i;
+    if(lval->type == INT_V && rval->type == INT_V) {
+        uint64_t val = lval->value.i;
+        int64_t shiftby = rval->value.i;
 
         if(shiftby < 0) {
-            freevalue(rvalue);
-            rvalue = intvalue(-shiftby);
+            freeval(rval);
+            rval = intval(-shiftby);
 
-            return op_shl(lvalue, rvalue);
+            return op_shl(lval, rval);
         }
         else if(shiftby < 64) {
-            value >>= shiftby;
+            val >>= shiftby;
         }
         else {
-            value = 0;
+            val = 0;
         }
 
-        result = intvalue(value);
+        result = intval(val);
     }
 
-    freevalue(lvalue);
-    freevalue(rvalue);
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_bnot(VALUE* value) {
-    VALUE* result = nullvalue();
+VAL* op_bnot(VAL* val) {
+    VAL* result = nullval();
 
-    if(value->type == INT_V) {
-        int64_t a = value->value.i;
+    if(val->type == INT_V) {
+        int64_t a = val->value.i;
 
-        result = intvalue(~a);
+        result = intval(~a);
     }
 
-    freevalue(value);
+    freeval(val);
 
     return result;
 }
 
 
-VALUE* op_lnot(VALUE* value) {
-    VALUE* result = valuetrue(value) ? boolvalue(0) : boolvalue(1);
+VAL* op_lnot(VAL* val) {
+    VAL* result = valtrue(val) ? boolval(0) : boolval(1);
 
-    freevalue(value);
-
-    return result;
-}
-
-
-VALUE* op_eq(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = valuecmp(lvalue, rvalue);
-
-    freevalue(lvalue);
-    freevalue(rvalue);
-
-    return boolvalue(cmp == 0);
-}
-
-
-VALUE* op_ne(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = valuecmp(lvalue, rvalue);
-
-    freevalue(lvalue);
-    freevalue(rvalue);
-
-    return boolvalue(cmp != 0);
-}
-
-
-VALUE* op_lt(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = valuecmp(lvalue, rvalue);
-
-    freevalue(lvalue);
-    freevalue(rvalue);
-
-    return boolvalue(cmp < 0);
-}
-
-
-VALUE* op_le(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = valuecmp(lvalue, rvalue);
-
-    freevalue(lvalue);
-    freevalue(rvalue);
-
-    return boolvalue(cmp <= 0);
-}
-
-
-VALUE* op_gt(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = valuecmp(lvalue, rvalue);
-
-    freevalue(lvalue);
-    freevalue(rvalue);
-
-    return boolvalue(cmp > 0);
-}
-
-
-VALUE* op_ge(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = valuecmp(lvalue, rvalue);
-
-    freevalue(lvalue);
-    freevalue(rvalue);
-
-    return boolvalue(cmp >= 0);
-}
-
-
-VALUE* op_uplus(VALUE* value) {
-    VALUE* result = nullvalue();
-
-    if      (value->type == INT_V)  result = intvalue(value->value.i);
-    else if (value->type == FLOAT_V) result = dblvalue(value->value.f);
-
-    freevalue(value);
+    freeval(val);
 
     return result;
 }
 
 
-VALUE* op_uminus(VALUE* value) {
-    VALUE* result = nullvalue();
+VAL* op_eq(VAL* lval, VAL* rval) {
+    int cmp = valcmp(lval, rval);
 
-    if      (value->type == INT_V)  result = intvalue(-value->value.i);
-    else if (value->type == FLOAT_V) result = dblvalue(-value->value.f);
+    freeval(lval);
+    freeval(rval);
 
-    freevalue(value);
+    return boolval(cmp == 0);
+}
+
+
+VAL* op_ne(VAL* lval, VAL* rval) {
+    int cmp = valcmp(lval, rval);
+
+    freeval(lval);
+    freeval(rval);
+
+    return boolval(cmp != 0);
+}
+
+
+VAL* op_lt(VAL* lval, VAL* rval) {
+    int cmp = valcmp(lval, rval);
+
+    freeval(lval);
+    freeval(rval);
+
+    return boolval(cmp < 0);
+}
+
+
+VAL* op_le(VAL* lval, VAL* rval) {
+    int cmp = valcmp(lval, rval);
+
+    freeval(lval);
+    freeval(rval);
+
+    return boolval(cmp <= 0);
+}
+
+
+VAL* op_gt(VAL* lval, VAL* rval) {
+    int cmp = valcmp(lval, rval);
+
+    freeval(lval);
+    freeval(rval);
+
+    return boolval(cmp > 0);
+}
+
+
+VAL* op_ge(VAL* lval, VAL* rval) {
+    int cmp = valcmp(lval, rval);
+
+    freeval(lval);
+    freeval(rval);
+
+    return boolval(cmp >= 0);
+}
+
+
+VAL* op_uplus(VAL* val) {
+    VAL* result = nullval();
+
+    if      (val->type == INT_V)  result = intval(val->value.i);
+    else if (val->type == FLOAT_V) result = dblval(val->value.f);
+
+    freeval(val);
 
     return result;
 }
 
 
-VALUE* op_pow(VALUE* lvalue, VALUE* rvalue) {
-    VALUE* result = nullvalue();
+VAL* op_uminus(VAL* val) {
+    VAL* result = nullval();
+
+    if      (val->type == INT_V)  result = intval(-val->value.i);
+    else if (val->type == FLOAT_V) result = dblval(-val->value.f);
+
+    freeval(val);
+
+    return result;
+}
+
+
+VAL* op_pow(VAL* lval, VAL* rval) {
+    VAL* result = nullval();
     double a = 0.0;
     double b = 0.0;
     int isok = 1;
 
-    switch(lvalue->type) {
-        case INT_V  : a = lvalue->value.i; break;
-        case FLOAT_V: a = lvalue->value.f; break;
+    switch(lval->type) {
+        case INT_V  : a = lval->value.i; break;
+        case FLOAT_V: a = lval->value.f; break;
         default     : isok = 0;
     }
 
-    switch(rvalue->type) {
-        case INT_V  : b = rvalue->value.i; break;
-        case FLOAT_V: b = rvalue->value.f; break;
+    switch(rval->type) {
+        case INT_V  : b = rval->value.i; break;
+        case FLOAT_V: b = rval->value.f; break;
         default     : isok = 0;
     }
 
-    if(isok) result = dblvalue(pow(a, b));
-    freevalue(lvalue);
-    freevalue(rvalue);
+    if(isok) result = dblval(pow(a, b));
+    freeval(lval);
+    freeval(rval);
 
     return result;
 }
 
 
-VALUE* op_lor(NODE* left, NODE* right, SYMTBL* table) {
-    VALUE* result = eval(left, table);
+VAL* op_lor(NODE* left, NODE* right, SYMTBL* table) {
+    VAL* result = eval(left, table);
 
-    if(!valuetrue(result)) {
-        freevalue(result);
+    if(!valtrue(result)) {
+        freeval(result);
         result = eval(right, table);
     }
 
@@ -381,11 +376,11 @@ VALUE* op_lor(NODE* left, NODE* right, SYMTBL* table) {
 }
 
 
-VALUE* op_land(NODE* left, NODE* right, SYMTBL* table) {
-    VALUE* result = eval(left, table);
+VAL* op_land(NODE* left, NODE* right, SYMTBL* table) {
+    VAL* result = eval(left, table);
 
-    if(valuetrue(result)) {
-        freevalue(result);
+    if(valtrue(result)) {
+        freeval(result);
         result = eval(right, table);
     }
 
@@ -393,14 +388,14 @@ VALUE* op_land(NODE* left, NODE* right, SYMTBL* table) {
 }
 
 
-VALUE* op_cond(NODE* test, NODE* iftrue, NODE* iffalse, SYMTBL* table) {
-    VALUE* value = eval(test, table);
-    VALUE* result = NULL;
+VAL* op_cond(NODE* test, NODE* iftrue, NODE* iffalse, SYMTBL* table) {
+    VAL* val = eval(test, table);
+    VAL* result = NULL;
 
-    if(valuetrue(value)) result = eval(iftrue, table);
+    if(valtrue(val)) result = eval(iftrue, table);
     else result = eval(iffalse, table);
 
-    freevalue(value);
+    freeval(val);
 
     return result;
 }

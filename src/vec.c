@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "util.h"
 #include "error.h"
-#include "value.h"
+#include "util.h"
+#include "val.h"
 #include "vec.h"
 
 
@@ -28,7 +28,7 @@
 VEC* newvec() {
     VEC* vec = calloc(1, sizeof(VEC));
 
-    vec->item = calloc(INITSIZE, sizeof(VALUE*));
+    vec->item = calloc(INITSIZE, sizeof(VAL*));
     vec->count = 1;
     vec->length = 0;
     vec->capacity = INITSIZE;
@@ -49,7 +49,7 @@ void freevec(VEC* vec) {
 
     if(vec->count == 0) {
         for(size_t i=0; i<vec->length; i++) {
-            freevalue(vec->item[i]);
+            freeval(vec->item[i]);
         }
 
         if(vec->item) free(vec->item);
@@ -58,14 +58,14 @@ void freevec(VEC* vec) {
 }
 
 
-int vecset(VEC* vec, size_t index, VALUE* item) {
+int vecset(VEC* vec, size_t index, VAL* item) {
     int isok = 1;
 
     if(index == vec->length) {
         vecpush(vec, item);
     }
     else if(index < vec->length) {
-        freevalue(vec->item[index]);
+        freeval(vec->item[index]);
         vec->item[index] = item;
     }
     else {
@@ -79,16 +79,16 @@ int vecset(VEC* vec, size_t index, VALUE* item) {
 
 void vecpop(VEC* vec) {
     if(vec->length) {
-        freevalue(vec->item[vec->length-1]);
+        freeval(vec->item[vec->length-1]);
         vec->length--;
     }
 }
 
 
-void vecpush(VEC* vec, VALUE* item) {
+void vecpush(VEC* vec, VAL* item) {
     /* Allocate more memory if needed */
     if(vec->length >= vec->capacity) {
-        vec->item = realloc(vec->item, vec->capacity*2 * sizeof(VALUE*));
+        vec->item = realloc(vec->item, vec->capacity*2 * sizeof(VAL*));
         vec->capacity *= 2;
     }
 
@@ -98,8 +98,8 @@ void vecpush(VEC* vec, VALUE* item) {
 }
 
 
-VALUE* vecget(VEC* vec, size_t index) {
-    VALUE* item = NULL;
+VAL* vecget(VEC* vec, size_t index) {
+    VAL* item = NULL;
 
     if(index < vec->length) {
         item = vec->item[index];
@@ -109,8 +109,8 @@ VALUE* vecget(VEC* vec, size_t index) {
 }
 
 
-VALUE* vecback(VEC* vec) {
-    VALUE* item = NULL;
+VAL* vecback(VEC* vec) {
+    VAL* item = NULL;
 
     if(vec->length) item = vec->item[vec->length-1];
 
@@ -123,7 +123,7 @@ int veccmp(VEC* vec1, VEC* vec2) {
     int cmp = 0;
 
     for(size_t i=0; i<len; i++) {
-        if     (i<vec1->length && i<vec2->length) cmp = valuecmp(vec1->item[i], vec2->item[i]);
+        if     (i<vec1->length && i<vec2->length) cmp = valcmp(vec1->item[i], vec2->item[i]);
         else if(i<vec1->length)                   cmp = 1;
         else                                      cmp = -1;
 
@@ -144,7 +144,7 @@ char* vecastr(VEC* vec) {
     for(size_t i=0; i<vec->length; i++) {
         if(i > 0) str = astrcat(str, ",");
         str = astrcat(str, " ");
-        str = astrcat(str, valueqstr(vec->item[i]));
+        str = astrcat(str, valqstr(vec->item[i]));
     }
 
     /* Closing bracket */
@@ -161,13 +161,13 @@ char* vecastr(VEC* vec) {
 void _testvec() {
     VEC* vec = newvec();
 
-    vecpush(vec, strvalue("Hello, world!"));
-    vecpush(vec, strvalue("Bye, world!"));
+    vecpush(vec, strval("Hello, world!"));
+    vecpush(vec, strval("Bye, world!"));
 
     for(int i=0; i<vec->length; i++) {
-        VALUE* value = vec->item[i];
+        VAL* val = vec->item[i];
 
-        printf("%s\n", value->value.s);
+        printf("%s\n", val->value.s);
     }
 
     freevec(vec);

@@ -8,7 +8,7 @@
 * FORWARD DECLARATIONS
 */
 
-typedef struct VALUE VALUE;
+typedef struct VAL VAL;
 
 
 /* ***************************************************************************
@@ -16,7 +16,7 @@ typedef struct VALUE VALUE;
 */
 
 typedef struct VEC {
-    VALUE** item;
+    VAL** item;
     size_t capacity;
     size_t length;
     size_t count;
@@ -31,11 +31,11 @@ VEC* newvec();
 VEC* dupvec(VEC* vec);
 void freevec(VEC* vec);
 
-int vecset(VEC* vec, size_t index, VALUE* item);
+int vecset(VEC* vec, size_t index, VAL* item);
 void vecpop(VEC* vec);
-void vecpush(VEC* vec, VALUE* item);
-VALUE* vecget(VEC* vec, size_t index);
-VALUE* vecback(VEC* vec);
+void vecpush(VEC* vec, VAL* item);
+VAL* vecget(VEC* vec, size_t index);
+VAL* vecback(VEC* vec);
 
 int veccmp(VEC* vec1, VEC* vec2);
 char* vecastr(VEC* vec);

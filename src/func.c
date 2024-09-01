@@ -1,15 +1,14 @@
+#include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <ctype.h>
+#include "error.h"
 #include "eval.h"
 #include "func.h"
-#include "node.h"
-#include "error.h"
-#include "value.h"
-#include "vec.h"
 #include "symtbl.h"
+#include "val.h"
+#include "vec.h"
 
 
 /* ***************************************************************************
@@ -67,11 +66,11 @@ VEC* funcargs(const char* sig, VEC* nodes, SYMTBL* table) {
     int isok = 1;
 
     for(size_t i=0; i<nodes->length; i++) {
-        VALUE* value = nodes->item[i];
-        NODE* node = value->value.n;
+        VAL* val = nodes->item[i];
+        NODE* node = val->value.n;
 
-        /* value must be a node */
-        assert(value->type == NODE_V);
+        /* val must be a node */
+        assert(val->type == NODE_V);
 
         /* check too many arguments */
         if(*cp == '\0') {
@@ -80,7 +79,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYMTBL* table) {
         }
         /* evaluate */
         else if(strchr("BIDSAOFf?", *cp)) {
-            VALUE* v = eval(node, table);
+            VAL* v = eval(node, table);
 
             if(*cp != '?' && tolower(v->type) != tolower(*cp)) {
                 throwLater("Invalid argument type, expected %c, got %c", *cp, v->type);
@@ -93,12 +92,12 @@ VEC* funcargs(const char* sig, VEC* nodes, SYMTBL* table) {
         /* no evaluate */
         else if(*cp == '.') {
             /* No validation */
-            vecpush(args, dupvalue(value));
+            vecpush(args, dupval(val));
             cp++;
         }
         /* many arguments */
         else if(*cp == '*') {
-            if(*(cp+1) == '*') vecpush(args, dupvalue(nodes->item[i]));
+            if(*(cp+1) == '*') vecpush(args, dupval(nodes->item[i]));
             else vecpush(args, eval(node, table));
 
             /* do not advance cp */
@@ -122,9 +121,9 @@ VEC* funcargs(const char* sig, VEC* nodes, SYMTBL* table) {
 }
 
 
-VALUE* funcexec(FUNC* func, VEC* nodes, SYMTBL* table) {
+VAL* funcexec(FUNC* func, VEC* nodes, SYMTBL* table) {
     VEC* args = funcargs(func->sig, nodes, table);
-    VALUE* result = NULL;
+    VAL* result = NULL;
 
     if(args) {
         switch(func->type) {
@@ -137,7 +136,7 @@ VALUE* funcexec(FUNC* func, VEC* nodes, SYMTBL* table) {
             case CUSTOM_FT : {
                 SYMTBL* ctx = newtable(func->ctx);
 
-                tableset(ctx, "ARG", arrvalue(args));
+                tableset(ctx, "ARG", arrval(args));
                 result = eval(func->handler.cust, ctx);
 
                 freetable(ctx);  /* also frees ARG */

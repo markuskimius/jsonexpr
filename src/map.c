@@ -3,8 +3,7 @@
 #include <string.h>
 #include "map.h"
 #include "util.h"
-#include "value.h"
-#include "vec.h"
+#include "val.h"
 
 
 /* ***************************************************************************
@@ -18,17 +17,17 @@
 * PRIVATE FUNCTIONS
 */
 
-static int _mapset(MAP* map, const char* key0, const char* keyi, VALUE* value) {
+static int _mapset(MAP* map, const char* key0, const char* keyi, VAL* val) {
     int ni = *(const unsigned char*)keyi;
     MAP* nn = map->next[ni];
     int incr = 1;
 
-    /* Terminal node -> assign the value to this node */
+    /* Terminal node -> assign the val to this node */
     if(ni == 0) {
         if(!map->key) map->key = strdup(key0);
-        if(map->value) freevalue(map->value);
+        if(map->value) freeval(map->value);
         if(!map->value) incr++;
-        map->value = value;
+        map->value = val;
 
         return incr;
     }
@@ -41,7 +40,7 @@ static int _mapset(MAP* map, const char* key0, const char* keyi, VALUE* value) {
     }
 
     /* Traverse to next node */
-    return _mapset(nn, key0, keyi+1, value);
+    return _mapset(nn, key0, keyi+1, val);
 }
 
 static int _mapunset(MAP* map, const char* key) {
@@ -49,10 +48,10 @@ static int _mapunset(MAP* map, const char* key) {
     MAP* nn = map->next[ni];
     int freed = 0;
 
-    /* Terminal node -> remove the value at this node */
+    /* Terminal node -> remove the val at this node */
     if(ni == 0) {
         if(map->key) free(map->key);
-        if(map->value) freevalue(map->value);
+        if(map->value) freeval(map->value);
 
         map->key = NULL;
         map->value = NULL;
@@ -134,15 +133,15 @@ void freemap(MAP* map) {
 
         /* Free this node */
         if(map->key) free((void*) map->key);
-        if(map->value) freevalue(map->value);
+        if(map->value) freeval(map->value);
 
         free(map);
     }
 }
 
 
-void mapset(MAP* map, const char* key, VALUE* value) {
-    map->length += _mapset(map, key, key, value);
+void mapset(MAP* map, const char* key, VAL* val) {
+    map->length += _mapset(map, key, key, val);
 }
 
 
@@ -153,11 +152,11 @@ void mapunset(MAP* map, const char* key) {
 }
 
 
-VALUE* mapget(MAP* map, const char* key) {
+VAL* mapget(MAP* map, const char* key) {
     int ni = (unsigned)*key;
     MAP* nn = map->next[ni];
 
-    if(ni == 0) return map->value;          /* Terminal node -> return the value at this node */
+    if(ni == 0) return map->value;          /* Terminal node -> return the val at this node */
     else if(nn) return mapget(nn, key+1);   /* Traverse to next node */
     else        return NULL;                /* Not found */
 }
@@ -172,7 +171,7 @@ int mapcmp(MAP* map1, MAP* map2) {
 
         if(map1 && map2) {
             cmp = strcmp(map1->key, map2->key);
-            if(cmp == 0) cmp = valuecmp(map1->value, map2->value);
+            if(cmp == 0) cmp = valcmp(map1->value, map2->value);
         }
         else if(map1) cmp = 1;
         else if(map2) cmp = -1;
@@ -201,7 +200,7 @@ char* mapastr(MAP* map) {
     /* Elements */
     while((map = mapnext(map))) {
         char* kstr = astrencode(map->key);
-        char* vstr = valueqstr(map->value);
+        char* vstr = valqstr(map->value);
 
         if(i++ > 0) str = astrcat(str, ",");
         str = astrcat(str, " ");
@@ -225,7 +224,7 @@ char* mapastr(MAP* map) {
 
 void _printmap(const MAP* map, char c, int depth) {
     for(int i=0; i<depth; i++) printf("  ");
-    printf("[%c] => addr=%p, prev=%p, key=%s, value=%s\n", c, map, map->prev, map->key, valuestr(map->value));
+    printf("[%c] => addr=%p, prev=%p, key=%s, val=%s\n", c, map, map->prev, map->key, valstr(map->value));
 
     for(int i=0; i<NDEGREE; i++) {
         const MAP* next = map->next[i];
@@ -240,13 +239,13 @@ void _testmap() {
     MAP* mapi = map;
 
     /* Set test */
-    mapset(map, "Hello", strvalue("world!"));
-    mapset(map, "Bye", strvalue("cruel world!"));
+    mapset(map, "Hello", strval("world!"));
+    mapset(map, "Bye", strval("cruel world!"));
 
     /* Get test */
-    printf("Bye, %s\n", valueqstr(mapget(map, "Bye")));
-    printf("Hello, %s\n", valueqstr(mapget(map, "Hello")));
-    printf("Nosuchkey: %s\n", valueqstr(mapget(map, "Nosuchkey")));
+    printf("Bye, %s\n", valqstr(mapget(map, "Bye")));
+    printf("Hello, %s\n", valqstr(mapget(map, "Hello")));
+    printf("Nosuchkey: %s\n", valqstr(mapget(map, "Nosuchkey")));
     printf("\n");
 
     /* Print the map */
@@ -254,7 +253,7 @@ void _testmap() {
 
     /* Iterator test */
     while((mapi = mapnext(mapi))) {
-        printf("%s, %s\n", mapi->key, valueqstr(mapi->value));
+        printf("%s, %s\n", mapi->key, valqstr(mapi->value));
     }
     printf("\n");
 

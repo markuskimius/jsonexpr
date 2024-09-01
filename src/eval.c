@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "error.h"
 #include "eval.h"
 #include "func.h"
 #include "map.h"
 #include "node.h"
 #include "oper.h"
-#include "error.h"
-#include "value.h"
-#include "vec.h"
 #include "symtbl.h"
+#include "val.h"
+#include "vec.h"
 
 
 /* ***************************************************************************
@@ -40,11 +40,11 @@ static MAP* newpair(NODE* node, SYMTBL* table, MAP* list) {
     switch(node->type) {
         case ':': {
             NODE* left = node->left;
-            VALUE* right = eval(node->right, table);
+            VAL* right = eval(node->right, table);
 
             if(left->type == STRING_N) mapset(list, left->value.s, right);
             else {
-                freevalue(right);
+                freeval(right);
                 RuntimeError(&left->loc, "STRING expected, got %s", nodetype(left));
             }
 
@@ -82,43 +82,43 @@ static MAP* newpairlist(NODE* node, SYMTBL* table, MAP* list) {
 }
 
 
-static VALUE* tableget2(SYMTBL* table, NODE* node) {
-    VALUE* value = nullvalue();
+static VAL* tableget2(SYMTBL* table, NODE* node) {
+    VAL* val = nullval();
 
     switch(node->type) {
         case IDENT_N:
-            value = tableget(table, node->value.s);
+            val = tableget(table, node->value.s);
             break;
 
         case '[': {
-            VALUE* left = tableget2(table, node->left);
-            VALUE* right = eval(node->right, table);
+            VAL* left = tableget2(table, node->left);
+            VAL* right = eval(node->right, table);
 
             if(left->type == ARRAY_V && right->type == INT_V) {
-                value = vecget(left->value.v, right->value.i);
-                if(!value) {
+                val = vecget(left->value.v, right->value.i);
+                if(!val) {
                     RuntimeError(&node->loc, "Invalid index, max %ld, got %ld", left->value.v->length-1, right->value.i);
                 }
             }
             else if(left->type == OBJECT_V && right->type == STRING_V) {
-                value = mapget(left->value.m, right->value.s);
-                if(!value) RuntimeError(&node->loc, "Invalid key, %s", valueqstr(right));
+                val = mapget(left->value.m, right->value.s);
+                if(!val) RuntimeError(&node->loc, "Invalid key, %s", valqstr(right));
             }
-            else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valuetype(right));
-            else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valuetype(right));
-            else                            RuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", valuetype(left));
+            else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valtype(right));
+            else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valtype(right));
+            else                            RuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", valtype(left));
 
-            freevalue(right);
+            freeval(right);
             break;
         }
 
         case '.': {
-            VALUE* left = tableget2(table, node->left);
+            VAL* left = tableget2(table, node->left);
             NODE* right = node->right;
 
-            if     (left->type == OBJECT_V && right->type == IDENT_N) value = mapget(left->value.m, right->value.s);
+            if     (left->type == OBJECT_V && right->type == IDENT_N) val = mapget(left->value.m, right->value.s);
             else if(left->type == OBJECT_V                          ) RuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", nodetype(right));
-            else                                                      RuntimeError(&node->loc, "OBJECT expected before '.' but got %s", valuetype(left));
+            else                                                      RuntimeError(&node->loc, "OBJECT expected before '.' but got %s", valtype(left));
 
             break;
         }
@@ -128,50 +128,50 @@ static VALUE* tableget2(SYMTBL* table, NODE* node) {
             break;
     }
 
-    if(!value) {
+    if(!val) {
         RuntimeError(&node->loc, "Undefined symbol");
     }
 
-    return value;
+    return val;
 }
 
 
-static VALUE* tableset2(SYMTBL* table, NODE* node, VALUE* value) {
+static VAL* tableset2(SYMTBL* table, NODE* node, VAL* val) {
     switch(node->type) {
         case IDENT_N:
-            tableset(table, node->value.s, value);
+            tableset(table, node->value.s, val);
             break;
 
         case '[': {
-            VALUE* left = tableget2(table, node->left);
-            VALUE* right = eval(node->right, table);
+            VAL* left = tableget2(table, node->left);
+            VAL* right = eval(node->right, table);
 
             if(!left) {
                 RuntimeError(&node->left->loc, "No such element");
             }
             else if(left->type == ARRAY_V && right->type == INT_V) {
-                if(!vecset(left->value.v, right->value.i, value)) {
+                if(!vecset(left->value.v, right->value.i, val)) {
                     RuntimeError(&node->loc, "%s", throwText);
                 }
             }
             else if(left->type == OBJECT_V && right->type == STRING_V) {
-                mapset(left->value.m, right->value.s, value);
+                mapset(left->value.m, right->value.s, val);
             }
-            else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valuetype(right));
-            else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valuetype(right));
-            else                            RuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", valuetype(left));
+            else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valtype(right));
+            else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valtype(right));
+            else                            RuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", valtype(left));
 
-            freevalue(right);
+            freeval(right);
             break;
         }
 
         case '.': {
-            VALUE* left = tableget2(table, node->left);
+            VAL* left = tableget2(table, node->left);
             NODE* right = node->right;
 
             if     (!left                                           ) RuntimeError(&node->left->loc, "No such item");
-            else if(left->type == OBJECT_V && right->type == IDENT_N) mapset(left->value.m, right->value.s, value);
-            else if(left->type != OBJECT_V                          ) RuntimeError(&node->loc, "OBJECT expected, got %s", valuetype(left));
+            else if(left->type == OBJECT_V && right->type == IDENT_N) mapset(left->value.m, right->value.s, val);
+            else if(left->type != OBJECT_V                          ) RuntimeError(&node->loc, "OBJECT expected, got %s", valtype(left));
             else                                                      RuntimeError(&node->loc, "IDENTIFIER expected, got %s", nodetype(right));
 
             break;
@@ -182,19 +182,19 @@ static VALUE* tableset2(SYMTBL* table, NODE* node, VALUE* value) {
             break;
     }
 
-    return value;
+    return val;
 }
 
 
-static VALUE* tableset3(SYMTBL* table, NODE* node, VALUE* (*op)(VALUE*,VALUE*), VALUE* value, int ispostop) {
-    VALUE* prevalue = tableget2(table, node);
-    VALUE* left = dupvalue(prevalue);
-    VALUE* right = value;
-    VALUE* postvalue = op(left, right);
-    VALUE* result = ispostop ? dupvalue(prevalue) : dupvalue(postvalue);
+static VAL* tableset3(SYMTBL* table, NODE* node, VAL* (*op)(VAL*,VAL*), VAL* val, int ispostop) {
+    VAL* preval = tableget2(table, node);
+    VAL* left = dupval(preval);
+    VAL* right = val;
+    VAL* postval = op(left, right);
+    VAL* result = ispostop ? dupval(preval) : dupval(postval);
 
-    swapvalue(prevalue, postvalue);
-    freevalue(postvalue);
+    swapval(preval, postval);
+    freeval(postval);
 
     return result;
 }
@@ -208,15 +208,15 @@ static void getnodelist(VEC* list, NODE* node) {
             break;
 
         default:
-            vecpush(list, nodevalue(node));
+            vecpush(list, nodeval(node));
             break;
     }
 }
 
 
-static VALUE* call(SYMTBL* table, NODE* node) {
-    VALUE* func = tableget2(table, node->left);
-    VALUE* value = nullvalue();
+static VAL* call(SYMTBL* table, NODE* node) {
+    VAL* func = tableget2(table, node->left);
+    VAL* val = nullval();
     VEC* nodes = newvec();
 
     /* Get arguments */
@@ -224,7 +224,7 @@ static VALUE* call(SYMTBL* table, NODE* node) {
 
     /* Call the function */
     if(func && func->type == FUNCTION_V) {
-        value = funcexec(func->value.fn, nodes, table);
+        val = funcexec(func->value.fn, nodes, table);
     }
     else {
         RuntimeError(&node->left->loc, "Not a function");
@@ -234,11 +234,11 @@ static VALUE* call(SYMTBL* table, NODE* node) {
     freevec(nodes);
 
     /* Error handling */
-    if(value == NULL) {
+    if(val == NULL) {
         RuntimeError(&node->left->loc, "%s", throwText);
     }
 
-    return value;
+    return val;
 }
 
 
@@ -246,8 +246,8 @@ static VALUE* call(SYMTBL* table, NODE* node) {
 * PUBLIC FUNCTIONS
 */
 
-VALUE* eval(NODE* node, SYMTBL* table) {
-    VALUE* result = NULL;
+VAL* eval(NODE* node, SYMTBL* table) {
+    VAL* result = NULL;
     int mytable = 0;
 
     /* Create a symbol table if none provided */
@@ -258,21 +258,21 @@ VALUE* eval(NODE* node, SYMTBL* table) {
 
     if(node) {
         switch(node->type) {
-            case NULL_N     : result = nullvalue(); break;
-            case BOOL_N     : result = boolvalue(node->value.i); break;
-            case INT_N      : result = intvalue(node->value.i); break;
-            case FLOAT_N    : result = dblvalue(node->value.f); break;
-            case STRING_N   : result = strvalue(strdup(node->value.s)); break;
-            case ARRAY_N    : result = arrvalue(newlist(node->left, table, NULL)); break;
-            case OBJECT_N   : result = objvalue(newpairlist(node->left, table, NULL)); break;
+            case NULL_N     : result = nullval(); break;
+            case BOOL_N     : result = boolval(node->value.i); break;
+            case INT_N      : result = intval(node->value.i); break;
+            case FLOAT_N    : result = dblval(node->value.f); break;
+            case STRING_N   : result = strval(strdup(node->value.s)); break;
+            case ARRAY_N    : result = arrval(newlist(node->left, table, NULL)); break;
+            case OBJECT_N   : result = objval(newpairlist(node->left, table, NULL)); break;
             case CALL_N     : result = call(table, node); break;
-            case SYMBOL_N   : result = dupvalue(tableget2(table, node->left)); break;
-            case '='        : result = dupvalue(tableset2(table, node->left, eval(node->right, table))); break;
+            case SYMBOL_N   : result = dupval(tableget2(table, node->left)); break;
+            case '='        : result = dupval(tableset2(table, node->left, eval(node->right, table))); break;
 
-            case PREINC_N   : result = tableset3(table, node->left,  op_plus,  intvalue(1), 0); break;
-            case PREDEC_N   : result = tableset3(table, node->left, op_minus, intvalue(-1), 0); break;
-            case POSTINC_N  : result = tableset3(table, node->left,  op_plus,  intvalue(1), 1); break;
-            case POSTDEC_N  : result = tableset3(table, node->left, op_minus, intvalue(-1), 1); break;
+            case PREINC_N   : result = tableset3(table, node->left,  op_plus,  intval(1), 0); break;
+            case PREDEC_N   : result = tableset3(table, node->left, op_minus, intval(-1), 0); break;
+            case POSTINC_N  : result = tableset3(table, node->left,  op_plus,  intval(1), 1); break;
+            case POSTDEC_N  : result = tableset3(table, node->left, op_minus, intval(-1), 1); break;
 
             case PLEQ_N     : result = tableset3(table, node->left,  op_plus, eval(node->right, table), 0); break;
             case MIEQ_N     : result = tableset3(table, node->left, op_minus, eval(node->right, table), 0); break;
@@ -313,7 +313,7 @@ VALUE* eval(NODE* node, SYMTBL* table) {
             case POW_N      : result = op_pow(eval(node->left, table), eval(node->right, table)); break;
 
             case '?'        : result = op_cond(node->left, node->right, node->righter, table); break;
-            case ';'        : freevalue(eval(node->left, table)); result = eval(node->right, table); break;
+            case ';'        : freeval(eval(node->left, table)); result = eval(node->right, table); break;
             default         : LogicError(&node->loc, "Invalid node type: %s", nodetype(node)); break;
         }
     }

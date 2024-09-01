@@ -10,7 +10,7 @@
 
 typedef struct VEC VEC;
 typedef struct NODE NODE;
-typedef struct VALUE VALUE;
+typedef struct VAL VAL;
 typedef struct SYMTBL SYMTBL;
 
 
@@ -30,7 +30,7 @@ typedef enum {
 * TYPES
 */
 
-typedef VALUE* (*BINARY_FN)(VEC* args, SYMTBL* table);
+typedef VAL* (*BINARY_FN)(VEC* args, SYMTBL* table);
 
 typedef struct FUNC {
     func_t type;
@@ -56,7 +56,7 @@ FUNC* dupfunc(FUNC* func);
 void freefunc(FUNC* func);
 
 VEC* funcargs(const char* sig, VEC* nodes, SYMTBL* table);
-VALUE* funcexec(FUNC* func, VEC* nodes, SYMTBL* table);
+VAL* funcexec(FUNC* func, VEC* nodes, SYMTBL* table);
 char* funcastr(FUNC* func);
 
 

@@ -4,7 +4,7 @@
 #include "node.h"
 #include "parse.h"
 #include "error.h"
-#include "value.h"
+#include "val.h"
 
 extern int yylex();
 

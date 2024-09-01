@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "map.h"
 #include "builtin.h"
+#include "map.h"
 #include "symtbl.h"
-#include "value.h"
+#include "val.h"
 
 
 /* ***************************************************************************
@@ -20,7 +20,7 @@ SYMTBL* newtable(SYMTBL* parent) {
 
     /* Add UPSCOPE */
     if(parent) {
-        mapset(table->symbols, "UPSCOPE", objvalue(dupmap(parent->symbols)));
+        mapset(table->symbols, "UPSCOPE", objval(dupmap(parent->symbols)));
     }
 
     /* Add built-in symbols */
@@ -63,18 +63,18 @@ void freetable(SYMTBL* table) {
 }
 
 
-void tableset(SYMTBL* table, const char* name, VALUE* value) {
+void tableset(SYMTBL* table, const char* name, VAL* val) {
     /* Set at this level if the symbol exists at this level */
     if(mapget(table->symbols, name)) {
-        mapset(table->symbols, name, value);
+        mapset(table->symbols, name, val);
     }
     /* Set in parent if the symbol exists at the higher level */
     else if(table->parent && tableget(table->parent, name)) {
-        tableset(table->parent, name, value);
+        tableset(table->parent, name, val);
     }
     /* Otherwise set at this level */
     else {
-        mapset(table->symbols, name, value);
+        mapset(table->symbols, name, val);
     }
 }
 
@@ -91,11 +91,11 @@ void tableunset(SYMTBL* table, const char* name) {
 }
 
 
-VALUE* tableget(SYMTBL* table, const char* name) {
-    VALUE* value = NULL;
+VAL* tableget(SYMTBL* table, const char* name) {
+    VAL* val = NULL;
 
-    if(table && !value) value = mapget(table->symbols, name);
-    if(table && !value) value = tableget(table->parent, name);
+    if(table && !val) val = mapget(table->symbols, name);
+    if(table && !val) val = tableget(table->parent, name);
 
-    return value;
+    return val;
 }

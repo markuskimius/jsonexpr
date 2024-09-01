@@ -9,7 +9,7 @@
 * FORWARD DECLARATIONS
 */
 
-typedef struct VALUE VALUE;
+typedef struct VAL VAL;
 typedef struct YYLTYPE YYLTYPE;
 
 

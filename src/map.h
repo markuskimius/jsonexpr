@@ -6,7 +6,7 @@
 * FORWARD DECLARATIONS
 */
 
-typedef struct VALUE VALUE;
+typedef struct VAL VAL;
 
 
 /* ***************************************************************************
@@ -14,7 +14,7 @@ typedef struct VALUE VALUE;
 */
 
 typedef struct MAP {
-    VALUE* value;
+    VAL* value;
     char* key;
     struct MAP* next[256];
     struct MAP* prev;
@@ -32,9 +32,9 @@ MAP* newmap();
 MAP* dupmap(MAP* map);
 void freemap(MAP* map);
 
-void mapset(MAP* map, const char* key, VALUE* value);
+void mapset(MAP* map, const char* key, VAL* value);
 void mapunset(MAP* map, const char* key);
-VALUE* mapget(MAP* map, const char* key);
+VAL* mapget(MAP* map, const char* key);
 
 int mapcmp(MAP* map1, MAP* map2);
 MAP* mapnext(MAP* map);

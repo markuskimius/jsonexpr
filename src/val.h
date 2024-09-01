@@ -1,5 +1,5 @@
-#ifndef VALUE_H_
-#define VALUE_H_
+#ifndef VAL_H_
+#define VAL_H_
 
 #include <inttypes.h>
 
@@ -28,15 +28,15 @@ typedef enum {
     OBJECT_V    = 'O',
     FUNCTION_V  = 'F',
     NODE_V      = 'N',
-} value_t;
+} val_t;
 
 
 /* ***************************************************************************
 * TYPES
 */
 
-typedef struct VALUE {
-    value_t type;
+typedef struct VAL {
+    val_t type;
 
     union {
         int64_t i;
@@ -49,45 +49,45 @@ typedef struct VALUE {
     } value;
     char* astrdecoded;
     char* astrencoded;
-} VALUE;
+} VAL;
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-VALUE* nullvalue();
-VALUE* boolvalue(int64_t i64);
-VALUE* intvalue(int64_t i64);
-VALUE* dblvalue(double f64);
-VALUE* strvalue(char* str);
-VALUE* arrvalue(VEC* vec);
-VALUE* objvalue(MAP* map);
-VALUE* funcvalue(FUNC* func);
-VALUE* nodevalue(NODE* node);
-VALUE* dupvalue(VALUE* value);
-void swapvalue(VALUE* value1, VALUE* value2);
-void freevalue(VALUE* value);
+VAL* nullval();
+VAL* boolval(int64_t i64);
+VAL* intval(int64_t i64);
+VAL* dblval(double f64);
+VAL* strval(char* str);
+VAL* arrval(VEC* vec);
+VAL* objval(MAP* map);
+VAL* funcval(FUNC* func);
+VAL* nodeval(NODE* node);
+VAL* dupval(VAL* val);
+void swapval(VAL* val1, VAL* val2);
+void freeval(VAL* val);
 
-int valuetrue(VALUE* value);
-int valuecmp(VALUE* value1, VALUE* value2);
+int valtrue(VAL* val);
+int valcmp(VAL* val1, VAL* val2);
 
-char* valuestr(VALUE* value);
-char* valueqstr(VALUE* value);
-const char* valuetype(VALUE* value);
+char* valstr(VAL* val);
+char* valqstr(VAL* val);
+const char* valtype(VAL* val);
 
 
 /* ***************************************************************************
 * EXPORTED FUNCTIONS
 */
 
-int gettype(VALUE* value);
-int64_t getint64(VALUE* value);
-double getdouble(VALUE* value);
-char* getstring(VALUE* value);
-VEC* getarray(VALUE* value);
-MAP* getobject(VALUE* value);
-FUNC* getbuiltin(VALUE* value);
+int gettype(VAL* val);
+int64_t getint64(VAL* val);
+double getdouble(VAL* val);
+char* getstring(VAL* val);
+VEC* getarray(VAL* val);
+MAP* getobject(VAL* val);
+FUNC* getbuiltin(VAL* val);
 
 
-#endif /* VALUE_H_ */
+#endif /* VAL_H_ */
