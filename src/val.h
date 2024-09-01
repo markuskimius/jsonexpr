@@ -47,6 +47,7 @@ typedef struct VAL {
         FUNC* fn;
         NODE* n;
     } value;
+
     char* astrdecoded;
     char* astrencoded;
 } VAL;

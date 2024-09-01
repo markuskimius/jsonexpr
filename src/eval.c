@@ -262,7 +262,7 @@ VAL* eval(NODE* node, SYMTBL* table) {
             case BOOL_N     : result = boolval(node->value.i); break;
             case INT_N      : result = intval(node->value.i); break;
             case FLOAT_N    : result = dblval(node->value.f); break;
-            case STRING_N   : result = strval(strdup(node->value.s)); break;
+            case STRING_N   : result = strval(node->value.s); break;
             case ARRAY_N    : result = arrval(newlist(node->left, table, NULL)); break;
             case OBJECT_N   : result = objval(newpairlist(node->left, table, NULL)); break;
             case CALL_N     : result = call(table, node); break;

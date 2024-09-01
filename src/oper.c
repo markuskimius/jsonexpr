@@ -71,6 +71,8 @@ VAL* op_plus(VAL* lval, VAL* rval) {
 
         asprintf(&buf, "%s%s", valstr(lval), valstr(rval));
         result = strval(buf);
+
+        free(buf);
     }
 
     freeval(lval);

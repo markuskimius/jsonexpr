@@ -75,7 +75,7 @@ VAL* strval(char* str) {
     VAL* val = calloc(1, sizeof(VAL));
 
     val->type = STRING_V;
-    val->value.s = str;
+    val->value.s = strdup(str);
 
     return val;
 }
@@ -164,6 +164,10 @@ void freeval(VAL* val) {
 
     if(val->astrdecoded) free(val->astrdecoded);
     if(val->astrencoded) free(val->astrencoded);
+
+    val->astrencoded = NULL;
+    val->astrdecoded = NULL;
+    val->value.s = NULL;
     free(val);
 }
 
