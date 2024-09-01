@@ -4,7 +4,7 @@
 #include "util.h"
 #include "error.h"
 #include "value.h"
-#include "vector.h"
+#include "vec.h"
 
 
 /* ***************************************************************************
@@ -58,44 +58,11 @@ void freevec(VEC* vec) {
 }
 
 
-char* astrvec(VEC* vec) {
-    char* str = calloc(1, strlen("[  ]")+1);
-
-    /* Opening bracket */
-    snprintf(str, 2, "[");
-
-    /* Items */
-    for(size_t i=0; i<vec->length; i++) {
-        if(i > 0) str = astrcat(str, ",");
-        str = astrcat(str, " ");
-        str = astrcat(str, strencoded(vec->item[i]));
-    }
-
-    /* Closing bracket */
-    str = astrcat(str, " ]");
-
-    return str;
-}
-
-
-void pushvec(VEC* vec, VALUE* item) {
-    /* Allocate more memory if needed */
-    if(vec->length >= vec->capacity) {
-        vec->item = realloc(vec->item, vec->capacity*2 * sizeof(VALUE*));
-        vec->capacity *= 2;
-    }
-
-    /* Insert */
-    vec->item[vec->length] = item;
-    vec->length++;
-}
-
-
-int setvec(VEC* vec, size_t index, VALUE* item) {
+int vecset(VEC* vec, size_t index, VALUE* item) {
     int isok = 1;
 
     if(index == vec->length) {
-        pushvec(vec, item);
+        vecpush(vec, item);
     }
     else if(index < vec->length) {
         freevalue(vec->item[index]);
@@ -110,7 +77,7 @@ int setvec(VEC* vec, size_t index, VALUE* item) {
 }
 
 
-void popvec(VEC* vec) {
+void vecpop(VEC* vec) {
     if(vec->length) {
         freevalue(vec->item[vec->length-1]);
         vec->length--;
@@ -118,7 +85,20 @@ void popvec(VEC* vec) {
 }
 
 
-VALUE* getvec(VEC* vec, size_t index) {
+void vecpush(VEC* vec, VALUE* item) {
+    /* Allocate more memory if needed */
+    if(vec->length >= vec->capacity) {
+        vec->item = realloc(vec->item, vec->capacity*2 * sizeof(VALUE*));
+        vec->capacity *= 2;
+    }
+
+    /* Insert */
+    vec->item[vec->length] = item;
+    vec->length++;
+}
+
+
+VALUE* vecget(VEC* vec, size_t index) {
     VALUE* item = NULL;
 
     if(index < vec->length) {
@@ -129,12 +109,48 @@ VALUE* getvec(VEC* vec, size_t index) {
 }
 
 
-VALUE* backvec(VEC* vec) {
+VALUE* vecback(VEC* vec) {
     VALUE* item = NULL;
 
     if(vec->length) item = vec->item[vec->length-1];
 
     return item;
+}
+
+
+int veccmp(VEC* vec1, VEC* vec2) {
+    size_t len = MAX(vec1->length, vec2->length);
+    int cmp = 0;
+
+    for(size_t i=0; i<len; i++) {
+        if     (i<vec1->length && i<vec2->length) cmp = valuecmp(vec1->item[i], vec2->item[i]);
+        else if(i<vec1->length)                   cmp = 1;
+        else                                      cmp = -1;
+
+        if(cmp != 0) break;
+    }
+
+    return cmp;
+}
+
+
+char* vecastr(VEC* vec) {
+    char* str = calloc(1, strlen("[  ]")+1);
+
+    /* Opening bracket */
+    snprintf(str, 2, "[");
+
+    /* Items */
+    for(size_t i=0; i<vec->length; i++) {
+        if(i > 0) str = astrcat(str, ",");
+        str = astrcat(str, " ");
+        str = astrcat(str, valueqstr(vec->item[i]));
+    }
+
+    /* Closing bracket */
+    str = astrcat(str, " ]");
+
+    return str;
 }
 
 
@@ -145,8 +161,8 @@ VALUE* backvec(VEC* vec) {
 void _testvec() {
     VEC* vec = newvec();
 
-    pushvec(vec, strvalue("Hello, world!"));
-    pushvec(vec, strvalue("Bye, world!"));
+    vecpush(vec, strvalue("Hello, world!"));
+    vecpush(vec, strvalue("Bye, world!"));
 
     for(int i=0; i<vec->length; i++) {
         VALUE* value = vec->item[i];
@@ -155,20 +171,4 @@ void _testvec() {
     }
 
     freevec(vec);
-}
-
-
-int cmpvec(VEC* vec1, VEC* vec2) {
-    size_t len = MAX(vec1->length, vec2->length);
-    int cmp = 0;
-
-    for(size_t i=0; i<len; i++) {
-        if     (i<vec1->length && i<vec2->length) cmp = cmpvalue(vec1->item[i], vec2->item[i]);
-        else if(i<vec1->length)                   cmp = 1;
-        else                                      cmp = -1;
-
-        if(cmp != 0) break;
-    }
-
-    return cmp;
 }

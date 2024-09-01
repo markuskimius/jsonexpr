@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "map.h"
 #include "builtin.h"
-#include "symtable.h"
+#include "symtbl.h"
 #include "value.h"
 
 
@@ -10,9 +10,9 @@
 * PUBLIC FUNCTIONS
 */
 
-SYM_TABLE* newtable(SYM_TABLE* parent) {
-    SYM_TABLE* table = calloc(1, sizeof(SYM_TABLE));
-    SYM_TABLE* pp = parent;
+SYMTBL* newtable(SYMTBL* parent) {
+    SYMTBL* table = calloc(1, sizeof(SYMTBL));
+    SYMTBL* pp = parent;
 
     table->symbols = newmap();
     table->parent = parent;
@@ -20,15 +20,15 @@ SYM_TABLE* newtable(SYM_TABLE* parent) {
 
     /* Add UPSCOPE */
     if(parent) {
-        setmap(table->symbols, "UPSCOPE", objvalue(dupmap(parent->symbols)));
+        mapset(table->symbols, "UPSCOPE", objvalue(dupmap(parent->symbols)));
     }
 
     /* Add built-in symbols */
     if(!parent) {
         MAP* bi = builtin();
 
-        while((bi = nextmap(bi))) {
-            setmap(table->symbols, bi->key, bi->value);
+        while((bi = mapnext(bi))) {
+            mapset(table->symbols, bi->key, bi->value);
         }
     }
 
@@ -36,7 +36,7 @@ SYM_TABLE* newtable(SYM_TABLE* parent) {
 }
 
 
-SYM_TABLE* duptable(SYM_TABLE* table) {
+SYMTBL* duptable(SYMTBL* table) {
     table->count++;
 
     if(table->parent) {
@@ -47,7 +47,7 @@ SYM_TABLE* duptable(SYM_TABLE* table) {
 }
 
 
-void freetable(SYM_TABLE* table) {
+void freetable(SYMTBL* table) {
     table->count--;
 
     /* Free this table if it's no longer used */
@@ -63,39 +63,39 @@ void freetable(SYM_TABLE* table) {
 }
 
 
-void settable(SYM_TABLE* table, const char* name, VALUE* value) {
+void tableset(SYMTBL* table, const char* name, VALUE* value) {
     /* Set at this level if the symbol exists at this level */
-    if(getmap(table->symbols, name)) {
-        setmap(table->symbols, name, value);
+    if(mapget(table->symbols, name)) {
+        mapset(table->symbols, name, value);
     }
     /* Set in parent if the symbol exists at the higher level */
-    else if(table->parent && gettable(table->parent, name)) {
-        settable(table->parent, name, value);
+    else if(table->parent && tableget(table->parent, name)) {
+        tableset(table->parent, name, value);
     }
     /* Otherwise set at this level */
     else {
-        setmap(table->symbols, name, value);
+        mapset(table->symbols, name, value);
     }
 }
 
 
-void unsettable(SYM_TABLE* table, const char* name) {
+void tableunset(SYMTBL* table, const char* name) {
     /* Unset at this level if the symbol exists at this level */
-    if(getmap(table->symbols, name)) {
-        unsetmap(table->symbols, name);
+    if(mapget(table->symbols, name)) {
+        mapunset(table->symbols, name);
     }
     /* Unset in parent if the symbol exists at the higher level */
-    else if(table->parent && gettable(table->parent, name)) {
-        unsettable(table->parent, name);
+    else if(table->parent && tableget(table->parent, name)) {
+        tableunset(table->parent, name);
     }
 }
 
 
-VALUE* gettable(SYM_TABLE* table, const char* name) {
+VALUE* tableget(SYMTBL* table, const char* name) {
     VALUE* value = NULL;
 
-    if(table && !value) value = getmap(table->symbols, name);
-    if(table && !value) value = gettable(table->parent, name);
+    if(table && !value) value = mapget(table->symbols, name);
+    if(table && !value) value = tableget(table->parent, name);
 
     return value;
 }

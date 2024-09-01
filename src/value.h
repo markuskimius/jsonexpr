@@ -69,12 +69,12 @@ VALUE* dupvalue(VALUE* value);
 void swapvalue(VALUE* value1, VALUE* value2);
 void freevalue(VALUE* value);
 
-char* strdecoded(VALUE* value);
-char* strencoded(VALUE* value);
-const char* valuetype(VALUE* value);
+int valuetrue(VALUE* value);
+int valuecmp(VALUE* value1, VALUE* value2);
 
-int istrue(VALUE* value);
-int cmpvalue(VALUE* value1, VALUE* value2);
+char* valuestr(VALUE* value);
+char* valueqstr(VALUE* value);
+const char* valuetype(VALUE* value);
 
 
 /* ***************************************************************************

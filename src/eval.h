@@ -8,14 +8,14 @@
 
 typedef struct VALUE VALUE;
 typedef struct NODE NODE;
-typedef struct SYM_TABLE SYM_TABLE;
+typedef struct SYMTBL SYMTBL;
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-VALUE* eval(NODE* node, SYM_TABLE* table);
+VALUE* eval(NODE* node, SYMTBL* table);
 
 
 #endif /* EVAL_H_ */

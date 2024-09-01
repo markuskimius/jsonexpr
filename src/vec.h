@@ -1,5 +1,5 @@
-#ifndef VECTOR_H_
-#define VECTOR_H_
+#ifndef VEC_H_
+#define VEC_H_
 
 #include <inttypes.h>
 
@@ -30,14 +30,15 @@ typedef struct VEC {
 VEC* newvec();
 VEC* dupvec(VEC* vec);
 void freevec(VEC* vec);
-char* astrvec(VEC* vec);
-void pushvec(VEC* vec, VALUE* item);
-int setvec(VEC* vec, size_t index, VALUE* item);
-void popvec(VEC* vec);
-VALUE* getvec(VEC* vec, size_t index);
-VALUE* backvec(VEC* vec);
 
-int cmpvec(VEC* vec1, VEC* vec2);
+int vecset(VEC* vec, size_t index, VALUE* item);
+void vecpop(VEC* vec);
+void vecpush(VEC* vec, VALUE* item);
+VALUE* vecget(VEC* vec, size_t index);
+VALUE* vecback(VEC* vec);
+
+int veccmp(VEC* vec1, VEC* vec2);
+char* vecastr(VEC* vec);
 
 
-#endif /* VECTOR_H_ */
+#endif /* VEC_H_ */

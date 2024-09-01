@@ -10,7 +10,7 @@
 #include "util.h"
 #include "parse.h"
 #include "value.h"
-#include "vector.h"
+#include "vec.h"
 
 #define IBUFSIZE 32
 #define DBUFSIZE 320
@@ -74,7 +74,7 @@ VALUE* op_plus(VALUE* lvalue, VALUE* rvalue) {
     else if(lvalue->type == STRING_V || rvalue->type == STRING_V) {
         char* buf;
 
-        asprintf(&buf, "%s%s", strdecoded(lvalue), strdecoded(rvalue));
+        asprintf(&buf, "%s%s", valuestr(lvalue), valuestr(rvalue));
         result = strvalue(buf);
     }
 
@@ -251,7 +251,7 @@ VALUE* op_bnot(VALUE* value) {
 
 
 VALUE* op_lnot(VALUE* value) {
-    VALUE* result = istrue(value) ? boolvalue(0) : boolvalue(1);
+    VALUE* result = valuetrue(value) ? boolvalue(0) : boolvalue(1);
 
     freevalue(value);
 
@@ -260,7 +260,7 @@ VALUE* op_lnot(VALUE* value) {
 
 
 VALUE* op_eq(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = cmpvalue(lvalue, rvalue);
+    int cmp = valuecmp(lvalue, rvalue);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -270,7 +270,7 @@ VALUE* op_eq(VALUE* lvalue, VALUE* rvalue) {
 
 
 VALUE* op_ne(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = cmpvalue(lvalue, rvalue);
+    int cmp = valuecmp(lvalue, rvalue);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -280,7 +280,7 @@ VALUE* op_ne(VALUE* lvalue, VALUE* rvalue) {
 
 
 VALUE* op_lt(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = cmpvalue(lvalue, rvalue);
+    int cmp = valuecmp(lvalue, rvalue);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -290,7 +290,7 @@ VALUE* op_lt(VALUE* lvalue, VALUE* rvalue) {
 
 
 VALUE* op_le(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = cmpvalue(lvalue, rvalue);
+    int cmp = valuecmp(lvalue, rvalue);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -300,7 +300,7 @@ VALUE* op_le(VALUE* lvalue, VALUE* rvalue) {
 
 
 VALUE* op_gt(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = cmpvalue(lvalue, rvalue);
+    int cmp = valuecmp(lvalue, rvalue);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -310,7 +310,7 @@ VALUE* op_gt(VALUE* lvalue, VALUE* rvalue) {
 
 
 VALUE* op_ge(VALUE* lvalue, VALUE* rvalue) {
-    int cmp = cmpvalue(lvalue, rvalue);
+    int cmp = valuecmp(lvalue, rvalue);
 
     freevalue(lvalue);
     freevalue(rvalue);
@@ -369,10 +369,10 @@ VALUE* op_pow(VALUE* lvalue, VALUE* rvalue) {
 }
 
 
-VALUE* op_lor(NODE* left, NODE* right, SYM_TABLE* table) {
+VALUE* op_lor(NODE* left, NODE* right, SYMTBL* table) {
     VALUE* result = eval(left, table);
 
-    if(!istrue(result)) {
+    if(!valuetrue(result)) {
         freevalue(result);
         result = eval(right, table);
     }
@@ -381,10 +381,10 @@ VALUE* op_lor(NODE* left, NODE* right, SYM_TABLE* table) {
 }
 
 
-VALUE* op_land(NODE* left, NODE* right, SYM_TABLE* table) {
+VALUE* op_land(NODE* left, NODE* right, SYMTBL* table) {
     VALUE* result = eval(left, table);
 
-    if(istrue(result)) {
+    if(valuetrue(result)) {
         freevalue(result);
         result = eval(right, table);
     }
@@ -393,11 +393,11 @@ VALUE* op_land(NODE* left, NODE* right, SYM_TABLE* table) {
 }
 
 
-VALUE* op_cond(NODE* test, NODE* iftrue, NODE* iffalse, SYM_TABLE* table) {
+VALUE* op_cond(NODE* test, NODE* iftrue, NODE* iffalse, SYMTBL* table) {
     VALUE* value = eval(test, table);
     VALUE* result = NULL;
 
-    if(istrue(value)) result = eval(iftrue, table);
+    if(valuetrue(value)) result = eval(iftrue, table);
     else result = eval(iffalse, table);
 
     freevalue(value);

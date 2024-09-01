@@ -90,6 +90,7 @@ NODE* newinode(int type, int64_t i, YYLTYPE* loc);
 NODE* newfnode(int type, double f, YYLTYPE* loc);
 NODE* newsnode(int type, char* s, YYLTYPE* loc);
 void freenode(NODE* node);
+
 char* nodetree(NODE* node);
 const char* nodetype(NODE* node);
 

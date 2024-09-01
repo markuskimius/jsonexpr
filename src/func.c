@@ -8,8 +8,8 @@
 #include "node.h"
 #include "error.h"
 #include "value.h"
-#include "vector.h"
-#include "symtable.h"
+#include "vec.h"
+#include "symtbl.h"
 
 
 /* ***************************************************************************
@@ -28,7 +28,7 @@ FUNC* newfunc(BINARY_FN handler, const char* name, const char* sig) {
 }
 
 
-FUNC* newcustfunc(NODE* handler, const char* name, const char* sig, SYM_TABLE* ctx) {
+FUNC* newcustfunc(NODE* handler, const char* name, const char* sig, SYMTBL* ctx) {
     FUNC* func = calloc(1, sizeof(FUNC));
 
     func->type = CUSTOM_FT;
@@ -61,12 +61,7 @@ void freefunc(FUNC* func) {
 }
 
 
-char* astrfunc(FUNC* func) {
-    return strdup(func->name);
-}
-
-
-VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
+VEC* funcargs(const char* sig, VEC* nodes, SYMTBL* table) {
     VEC* args = newvec();
     const char* cp = sig;
     int isok = 1;
@@ -92,19 +87,19 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
                 isok = 0;
             }
 
-            pushvec(args, v);
+            vecpush(args, v);
             cp++;
         }
         /* no evaluate */
         else if(*cp == '.') {
             /* No validation */
-            pushvec(args, dupvalue(value));
+            vecpush(args, dupvalue(value));
             cp++;
         }
         /* many arguments */
         else if(*cp == '*') {
-            if(*(cp+1) == '*') pushvec(args, dupvalue(nodes->item[i]));
-            else pushvec(args, eval(node, table));
+            if(*(cp+1) == '*') vecpush(args, dupvalue(nodes->item[i]));
+            else vecpush(args, eval(node, table));
 
             /* do not advance cp */
         }
@@ -127,7 +122,7 @@ VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table) {
 }
 
 
-VALUE* funcexec(FUNC* func, VEC* nodes, SYM_TABLE* table) {
+VALUE* funcexec(FUNC* func, VEC* nodes, SYMTBL* table) {
     VEC* args = funcargs(func->sig, nodes, table);
     VALUE* result = NULL;
 
@@ -140,9 +135,9 @@ VALUE* funcexec(FUNC* func, VEC* nodes, SYM_TABLE* table) {
             }
 
             case CUSTOM_FT : {
-                SYM_TABLE* ctx = newtable(func->ctx);
+                SYMTBL* ctx = newtable(func->ctx);
 
-                settable(ctx, "ARG", arrvalue(args));
+                tableset(ctx, "ARG", arrvalue(args));
                 result = eval(func->handler.cust, ctx);
 
                 freetable(ctx);  /* also frees ARG */
@@ -156,4 +151,9 @@ VALUE* funcexec(FUNC* func, VEC* nodes, SYM_TABLE* table) {
     }
 
     return result;
+}
+
+
+char* funcastr(FUNC* func) {
+    return strdup(func->name);
 }

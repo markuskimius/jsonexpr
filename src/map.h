@@ -31,13 +31,14 @@ typedef struct MAP {
 MAP* newmap();
 MAP* dupmap(MAP* map);
 void freemap(MAP* map);
-char* astrmap(MAP* map);
-void setmap(MAP* map, const char* key, VALUE* value);
-void unsetmap(MAP* map, const char* key);
-VALUE* getmap(MAP* map, const char* key);
-MAP* nextmap(const MAP* map);
 
-int cmpmap(MAP* map1, MAP* map2);
+void mapset(MAP* map, const char* key, VALUE* value);
+void mapunset(MAP* map, const char* key);
+VALUE* mapget(MAP* map, const char* key);
+
+int mapcmp(MAP* map1, MAP* map2);
+MAP* mapnext(MAP* map);
+char* mapastr(MAP* map);
 
 
 #endif /* MAP_H_ */

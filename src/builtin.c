@@ -9,7 +9,7 @@
 #include "node.h"
 #include "error.h"
 #include "value.h"
-#include "vector.h"
+#include "vec.h"
 
 
 /* ***************************************************************************
@@ -33,9 +33,9 @@ static size_t ncustfunc = 0;
 * PRIVATE FUNCTIONS
 */
 
-static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
+static VALUE* FUNCTION(VEC* args, SYMTBL* table) {
     VALUE* spec = args->item[0];
-    char* sig = strdecoded(spec);
+    char* sig = valuestr(spec);
     int isok = 1;
 
     if(spec->type == STRING_V) {
@@ -84,7 +84,7 @@ static VALUE* FUNCTION(VEC* args, SYM_TABLE* table) {
 }
 
 
-static VALUE* PRINT(VEC* args, SYM_TABLE* table) {
+static VALUE* PRINT(VEC* args, SYMTBL* table) {
     VALUE* last = nullvalue();
 
     for(size_t i=0; i<args->length; i++) {
@@ -92,7 +92,7 @@ static VALUE* PRINT(VEC* args, SYM_TABLE* table) {
         last = dupvalue(args->item[i]);
 
         if(i > 0) printf(" ");
-        printf("%s", strdecoded(last));
+        printf("%s", valuestr(last));
     }
 
     printf("\n");
@@ -101,7 +101,7 @@ static VALUE* PRINT(VEC* args, SYM_TABLE* table) {
 }
 
 
-static VALUE* SQRT(VEC* args, SYM_TABLE* table) {
+static VALUE* SQRT(VEC* args, SYMTBL* table) {
     VALUE* result = nullvalue();
     VALUE* value = args->item[0];
 
@@ -115,12 +115,12 @@ static VALUE* SQRT(VEC* args, SYM_TABLE* table) {
 }
 
 
-static VALUE* LEN(VEC* args, SYM_TABLE* table) {
+static VALUE* LEN(VEC* args, SYMTBL* table) {
     VALUE* result = NULL;
     VALUE* value = args->item[0];
 
     switch(value->type) {
-        case STRING_V   : result = intvalue(strlen(strdecoded(value))); break;
+        case STRING_V   : result = intvalue(strlen(valuestr(value))); break;
         case ARRAY_V    : result = intvalue(value->value.v->length); break;
         case OBJECT_V   : result = intvalue(value->value.m->length); break;
         default         : throwLater("Type has no length: '%c' (%d)", value->type, value->type); break;
@@ -130,7 +130,7 @@ static VALUE* LEN(VEC* args, SYM_TABLE* table) {
 }
 
 
-static VALUE* FOR(VEC* args, SYM_TABLE* table) {
+static VALUE* FOR(VEC* args, SYMTBL* table) {
     VALUE* result = nullvalue();
     VALUE* last = eval(args->item[0]->value.n, table);
 
@@ -138,7 +138,7 @@ static VALUE* FOR(VEC* args, SYM_TABLE* table) {
         freevalue(last);
         last = eval(args->item[1]->value.n, table);
 
-        if(!istrue(last)) break;
+        if(!valuetrue(last)) break;
         result = eval(args->item[3]->value.n, table);
 
         freevalue(last);
@@ -151,13 +151,13 @@ static VALUE* FOR(VEC* args, SYM_TABLE* table) {
 }
 
 
-static VALUE* IF(VEC* args, SYM_TABLE* table) {
+static VALUE* IF(VEC* args, SYMTBL* table) {
     VALUE* result = NULL;
 
     for(size_t i=0; i<(args->length & ~1UL); i+=2) {
         VALUE* cond = eval(args->item[i]->value.n, table);
 
-        if(istrue(cond)) {
+        if(valuetrue(cond)) {
             result = eval(args->item[i+1]->value.n, table);
             break;
         }
@@ -179,12 +179,12 @@ MAP* builtin() {
     if(!BUILTINS) {
         BUILTINS = newmap();
 
-        setmap(BUILTINS, "FUNCTION", funcvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
-        setmap(BUILTINS, "PRINT"   , funcvalue(newfunc(PRINT   , "PRINT()"   , "*")));
-        setmap(BUILTINS, "SQRT"    , funcvalue(newfunc(SQRT    , "SQRT()"    , "?")));
-        setmap(BUILTINS, "LEN"     , funcvalue(newfunc(LEN     , "LEN()"     , "?")));
-        setmap(BUILTINS, "FOR"     , funcvalue(newfunc(FOR     , "FOR()"     , "....")));
-        setmap(BUILTINS, "IF"      , funcvalue(newfunc(IF      , "IF()"      , ".**")));
+        mapset(BUILTINS, "FUNCTION", funcvalue(newfunc(FUNCTION, "FUNCTION()", "S.")));
+        mapset(BUILTINS, "PRINT"   , funcvalue(newfunc(PRINT   , "PRINT()"   , "*")));
+        mapset(BUILTINS, "SQRT"    , funcvalue(newfunc(SQRT    , "SQRT()"    , "?")));
+        mapset(BUILTINS, "LEN"     , funcvalue(newfunc(LEN     , "LEN()"     , "?")));
+        mapset(BUILTINS, "FOR"     , funcvalue(newfunc(FOR     , "FOR()"     , "....")));
+        mapset(BUILTINS, "IF"      , funcvalue(newfunc(IF      , "IF()"      , ".**")));
     }
 
     return BUILTINS;

@@ -8,7 +8,7 @@
 #include "util.h"
 #include "parse.h"
 #include "value.h"
-#include "vector.h"
+#include "vec.h"
 
 
 /* ***************************************************************************
@@ -85,7 +85,7 @@ int doMyCodeThing(const char* code) {
     free(tree);
     */
 
-    printf("%s\n", strencoded(result));
+    printf("%s\n", valueqstr(result));
 
     freevalue(result);
     freenode(ast);

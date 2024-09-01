@@ -11,7 +11,7 @@
 typedef struct VEC VEC;
 typedef struct NODE NODE;
 typedef struct VALUE VALUE;
-typedef struct SYM_TABLE SYM_TABLE;
+typedef struct SYMTBL SYMTBL;
 
 
 /* ***************************************************************************
@@ -30,7 +30,7 @@ typedef enum {
 * TYPES
 */
 
-typedef VALUE* (*BINARY_FN)(VEC* args, SYM_TABLE* table);
+typedef VALUE* (*BINARY_FN)(VEC* args, SYMTBL* table);
 
 typedef struct FUNC {
     func_t type;
@@ -41,7 +41,7 @@ typedef struct FUNC {
 
     char* name;
     char* sig;
-    SYM_TABLE* ctx;
+    SYMTBL* ctx;
     size_t count;
 } FUNC;
 
@@ -51,12 +51,13 @@ typedef struct FUNC {
 */
 
 FUNC* newfunc(BINARY_FN handler, const char* name, const char* spec);
-FUNC* newcustfunc(NODE* handler, const char* name, const char* sig, SYM_TABLE* ctx);
+FUNC* newcustfunc(NODE* handler, const char* name, const char* sig, SYMTBL* ctx);
 FUNC* dupfunc(FUNC* func);
 void freefunc(FUNC* func);
-char* astrfunc(FUNC* func);
-VEC* funcargs(const char* sig, VEC* nodes, SYM_TABLE* table);
-VALUE* funcexec(FUNC* func, VEC* nodes, SYM_TABLE* table);
+
+VEC* funcargs(const char* sig, VEC* nodes, SYMTBL* table);
+VALUE* funcexec(FUNC* func, VEC* nodes, SYMTBL* table);
+char* funcastr(FUNC* func);
 
 
 #endif /* FUNC_H_ */

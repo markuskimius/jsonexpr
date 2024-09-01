@@ -7,7 +7,7 @@
 #include "util.h"
 #include "error.h"
 #include "value.h"
-#include "vector.h"
+#include "vec.h"
 
 
 /* ***************************************************************************
@@ -168,7 +168,44 @@ void freevalue(VALUE* value) {
 }
 
 
-char* strdecoded(VALUE* value) {
+int valuetrue(VALUE* value) {
+    int result = 0;
+
+    if     (value->type == NULL_V    ) result = 0;
+    else if(value->type == BOOL_V    ) result = value->value.i ? 1 : 0;
+    else if(value->type == INT_V     ) result = value->value.i ? 1 : 0;
+    else if(value->type == FLOAT_V   ) result = value->value.f ? 1 : 0;
+    else if(value->type == STRING_V  ) result = strlen(value->value.s) ? 1 : 0;
+    else if(value->type == ARRAY_V   ) result = value->value.v->length ? 1 : 0;
+    else if(value->type == OBJECT_V  ) result = value->value.m->length ? 1 : 0;
+    else if(value->type == FUNCTION_V) result = 1;
+    else if(value->type == NODE_V    ) result = 1;
+
+    return result;
+}
+
+
+int valuecmp(VALUE* value1, VALUE* value2) {
+    int result = 0;
+
+    if     (value1->type == NULL_V     && value2->type == NULL_V    ) result = 0;
+    else if(value1->type == BOOL_V     && value2->type == BOOL_V    ) result = value1->value.i < value2->value.i ? -1 : value1->value.i == value2->value.i ? 0 : 1;
+    else if(value1->type == INT_V      && value2->type == INT_V     ) result = value1->value.i < value2->value.i ? -1 : value1->value.i == value2->value.i ? 0 : 1;
+    else if(value1->type == INT_V      && value2->type == FLOAT_V   ) result = value1->value.i < value2->value.f ? -1 : value1->value.i == value2->value.f ? 0 : 1;
+    else if(value1->type == FLOAT_V    && value2->type == INT_V     ) result = value1->value.f < value2->value.i ? -1 : value1->value.f == value2->value.i ? 0 : 1;
+    else if(value1->type == FLOAT_V    && value2->type == FLOAT_V   ) result = value1->value.f < value2->value.f ? -1 : value1->value.f == value2->value.f ? 0 : 1;
+    else if(value1->type == STRING_V   && value2->type == STRING_V  ) result = strcmp(value1->value.s, value2->value.s);
+    else if(value1->type == ARRAY_V    && value2->type == ARRAY_V   ) result = veccmp(value1->value.v, value2->value.v);
+    else if(value1->type == OBJECT_V   && value2->type == OBJECT_V  ) result = mapcmp(value1->value.m, value2->value.m);
+    else if(value1->type == FUNCTION_V && value2->type == FUNCTION_V) result = value1->value.fn < value2->value.fn ? -1 : value1->value.fn == value2->value.fn ? 0 : 1;
+    else if(value1->type == NODE_V     && value2->type == NODE_V    ) result = value1->value.n < value2->value.n ? -1 : value1->value.n == value2->value.n ? 0 : 1;
+    else                                                              result = value2->type - value1->type;
+
+    return result;
+}
+
+
+char* valuestr(VALUE* value) {
     if(value) {
         /* Reset the previous representation */
         if(value->astrdecoded && value->type != NULL_V) {
@@ -183,9 +220,9 @@ char* strdecoded(VALUE* value) {
             case INT_V      : value->astrdecoded = astri64(value->value.i); break;
             case FLOAT_V    : value->astrdecoded = astrf64(value->value.f); break;
             case STRING_V   : value->astrdecoded = strdup(value->value.s); break;
-            case ARRAY_V    : value->astrdecoded = astrvec(value->value.v); break;
-            case OBJECT_V   : value->astrdecoded = astrmap(value->value.m); break;
-            case FUNCTION_V : value->astrdecoded = astrfunc(value->value.fn); break;
+            case ARRAY_V    : value->astrdecoded = vecastr(value->value.v); break;
+            case OBJECT_V   : value->astrdecoded = mapastr(value->value.m); break;
+            case FUNCTION_V : value->astrdecoded = funcastr(value->value.fn); break;
             case NODE_V     : value->astrdecoded = strdup("NODE"); break;
             default         : die("Invalid value type '%c' (%d)\n", value->type, value->type); break;
         }
@@ -202,7 +239,7 @@ char* strdecoded(VALUE* value) {
 }
 
 
-char* strencoded(VALUE* value) {
+char* valueqstr(VALUE* value) {
     if(value) {
         /* Reset the previous representation */
         if(value->astrencoded && value->type != NULL_V) {
@@ -217,9 +254,9 @@ char* strencoded(VALUE* value) {
             case INT_V      : value->astrencoded = astri64(value->value.i); break;
             case FLOAT_V    : value->astrencoded = astrf64(value->value.f); break;
             case STRING_V   : value->astrencoded = astrencode(value->value.s); break;
-            case ARRAY_V    : value->astrencoded = astrvec(value->value.v); break;
-            case OBJECT_V   : value->astrencoded = astrmap(value->value.m); break;
-            case FUNCTION_V : value->astrencoded = astrfunc(value->value.fn); break;
+            case ARRAY_V    : value->astrencoded = vecastr(value->value.v); break;
+            case OBJECT_V   : value->astrencoded = mapastr(value->value.m); break;
+            case FUNCTION_V : value->astrencoded = funcastr(value->value.fn); break;
             case NODE_V     : value->astrencoded = strdup("NODE"); break;
             default         : die("Invalid value type '%c' (%d)\n", value->type, value->type); break;
         }
@@ -261,42 +298,9 @@ const char* valuetype(VALUE* value) {
 }
 
 
-int istrue(VALUE* value) {
-    int result = 0;
-
-    if     (value->type == NULL_V    ) result = 0;
-    else if(value->type == BOOL_V    ) result = value->value.i ? 1 : 0;
-    else if(value->type == INT_V     ) result = value->value.i ? 1 : 0;
-    else if(value->type == FLOAT_V   ) result = value->value.f ? 1 : 0;
-    else if(value->type == STRING_V  ) result = strlen(value->value.s) ? 1 : 0;
-    else if(value->type == ARRAY_V   ) result = value->value.v->length ? 1 : 0;
-    else if(value->type == OBJECT_V  ) result = value->value.m->length ? 1 : 0;
-    else if(value->type == FUNCTION_V) result = 1;
-    else if(value->type == NODE_V    ) result = 1;
-
-    return result;
-}
-
-
-int cmpvalue(VALUE* value1, VALUE* value2) {
-    int result = 0;
-
-    if     (value1->type == NULL_V     && value2->type == NULL_V    ) result = 0;
-    else if(value1->type == BOOL_V     && value2->type == BOOL_V    ) result = value1->value.i < value2->value.i ? -1 : value1->value.i == value2->value.i ? 0 : 1;
-    else if(value1->type == INT_V      && value2->type == INT_V     ) result = value1->value.i < value2->value.i ? -1 : value1->value.i == value2->value.i ? 0 : 1;
-    else if(value1->type == INT_V      && value2->type == FLOAT_V   ) result = value1->value.i < value2->value.f ? -1 : value1->value.i == value2->value.f ? 0 : 1;
-    else if(value1->type == FLOAT_V    && value2->type == INT_V     ) result = value1->value.f < value2->value.i ? -1 : value1->value.f == value2->value.i ? 0 : 1;
-    else if(value1->type == FLOAT_V    && value2->type == FLOAT_V   ) result = value1->value.f < value2->value.f ? -1 : value1->value.f == value2->value.f ? 0 : 1;
-    else if(value1->type == STRING_V   && value2->type == STRING_V  ) result = strcmp(value1->value.s, value2->value.s);
-    else if(value1->type == ARRAY_V    && value2->type == ARRAY_V   ) result = cmpvec(value1->value.v, value2->value.v);
-    else if(value1->type == OBJECT_V   && value2->type == OBJECT_V  ) result = cmpmap(value1->value.m, value2->value.m);
-    else if(value1->type == FUNCTION_V && value2->type == FUNCTION_V) result = value1->value.fn < value2->value.fn ? -1 : value1->value.fn == value2->value.fn ? 0 : 1;
-    else if(value1->type == NODE_V     && value2->type == NODE_V    ) result = value1->value.n < value2->value.n ? -1 : value1->value.n == value2->value.n ? 0 : 1;
-    else                                                              result = value2->type - value1->type;
-
-    return result;
-}
-
+/* ***************************************************************************
+* EXPORTED FUNCTIONS
+*/
 
 int gettype(VALUE* value) {
     return value ? value->type : NULL_V;

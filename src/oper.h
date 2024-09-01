@@ -8,7 +8,7 @@
 
 typedef struct NODE NODE;
 typedef struct VALUE VALUE;
-typedef struct SYM_TABLE SYM_TABLE;
+typedef struct SYMTBL SYMTBL;
 typedef struct VEC VEC;
 
 
@@ -38,9 +38,9 @@ VALUE* op_shl(VALUE* lvalue, VALUE* rvalue);
 VALUE* op_asr(VALUE* lvalue, VALUE* rvalue);
 VALUE* op_shr(VALUE* lvalue, VALUE* rvalue);
 VALUE* op_pow(VALUE* lvalue, VALUE* rvalue);
-VALUE* op_lor(NODE* left, NODE* right, SYM_TABLE* table);
-VALUE* op_land(NODE* left, NODE* right, SYM_TABLE* table);
-VALUE* op_cond(NODE* test, NODE* iftrue, NODE* iffalse, SYM_TABLE* table);
+VALUE* op_lor(NODE* left, NODE* right, SYMTBL* table);
+VALUE* op_land(NODE* left, NODE* right, SYMTBL* table);
+VALUE* op_cond(NODE* test, NODE* iftrue, NODE* iffalse, SYMTBL* table);
 
 
 #endif /* OPS_H_ */

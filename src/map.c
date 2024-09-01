@@ -4,7 +4,7 @@
 #include "map.h"
 #include "util.h"
 #include "value.h"
-#include "vector.h"
+#include "vec.h"
 
 
 /* ***************************************************************************
@@ -18,7 +18,7 @@
 * PRIVATE FUNCTIONS
 */
 
-static int _setmap(MAP* map, const char* key0, const char* keyi, VALUE* value) {
+static int _mapset(MAP* map, const char* key0, const char* keyi, VALUE* value) {
     int ni = *(const unsigned char*)keyi;
     MAP* nn = map->next[ni];
     int incr = 1;
@@ -41,10 +41,10 @@ static int _setmap(MAP* map, const char* key0, const char* keyi, VALUE* value) {
     }
 
     /* Traverse to next node */
-    return _setmap(nn, key0, keyi+1, value);
+    return _mapset(nn, key0, keyi+1, value);
 }
 
-static int _unsetmap(MAP* map, const char* key) {
+static int _mapunset(MAP* map, const char* key) {
     int ni = *(const unsigned char*)key;
     MAP* nn = map->next[ni];
     int freed = 0;
@@ -59,7 +59,7 @@ static int _unsetmap(MAP* map, const char* key) {
     }
     /* Traverse to the next node */
     else if(nn) {
-        int cfreed = _unsetmap(nn, key+1);
+        int cfreed = _mapunset(nn, key+1);
 
         if(cfreed) {
             map->next[ni] = NULL;
@@ -77,7 +77,7 @@ static int _unsetmap(MAP* map, const char* key) {
 }
 
 
-static MAP* _nextmap(const MAP* map, const char* lastkey, int i) {
+static MAP* _mapnext(MAP* map, const char* lastkey, int i) {
     int ni = *((const unsigned char*)lastkey + i) + 1;
 
     /* Next child, if any */
@@ -86,7 +86,7 @@ static MAP* _nextmap(const MAP* map, const char* lastkey, int i) {
 
         if(nn) {
             if(nn->value) return nn;            /* Child node is terminal -> return it */
-            else return _nextmap(nn, "\0", 0);  /* Child node is nonterminal -> traverse to it */
+            else return _mapnext(nn, "\0", 0);  /* Child node is nonterminal -> traverse to it */
         }
 
         ni++;
@@ -94,7 +94,7 @@ static MAP* _nextmap(const MAP* map, const char* lastkey, int i) {
 
     /* Next child of parent */
     if(map->prev && i>=0) {
-        return _nextmap(map->prev, lastkey, i-1);
+        return _mapnext(map->prev, lastkey, i-1);
     }
 
     return NULL;
@@ -141,7 +141,57 @@ void freemap(MAP* map) {
 }
 
 
-char* astrmap(MAP* map) {
+void mapset(MAP* map, const char* key, VALUE* value) {
+    map->length += _mapset(map, key, key, value);
+}
+
+
+void mapunset(MAP* map, const char* key) {
+    if(mapget(map, key)) map->length--;
+
+    _mapunset(map, key);
+}
+
+
+VALUE* mapget(MAP* map, const char* key) {
+    int ni = (unsigned)*key;
+    MAP* nn = map->next[ni];
+
+    if(ni == 0) return map->value;          /* Terminal node -> return the value at this node */
+    else if(nn) return mapget(nn, key+1);   /* Traverse to next node */
+    else        return NULL;                /* Not found */
+}
+
+
+int mapcmp(MAP* map1, MAP* map2) {
+    int cmp = 0;
+
+    while(1) {
+        map1 = mapnext(map1);
+        map2 = mapnext(map2);
+
+        if(map1 && map2) {
+            cmp = strcmp(map1->key, map2->key);
+            if(cmp == 0) cmp = valuecmp(map1->value, map2->value);
+        }
+        else if(map1) cmp = 1;
+        else if(map2) cmp = -1;
+        else          break;
+
+        if(cmp != 0) break;
+    }
+
+    return cmp;
+}
+
+
+MAP* mapnext(MAP* map) {
+    if(map->key) return _mapnext(map, map->key, strlen(map->key));
+    else return _mapnext(map, "\0", 0);
+}
+
+
+char* mapastr(MAP* map) {
     char* str = calloc(1, strlen("{  }")+1);
     size_t i = 0;
 
@@ -149,9 +199,9 @@ char* astrmap(MAP* map) {
     str = astrcat(str, "{");
 
     /* Elements */
-    while((map = nextmap(map))) {
+    while((map = mapnext(map))) {
         char* kstr = astrencode(map->key);
-        char* vstr = strencoded(map->value);
+        char* vstr = valueqstr(map->value);
 
         if(i++ > 0) str = astrcat(str, ",");
         str = astrcat(str, " ");
@@ -169,41 +219,13 @@ char* astrmap(MAP* map) {
 }
 
 
-void setmap(MAP* map, const char* key, VALUE* value) {
-    map->length += _setmap(map, key, key, value);
-}
-
-
-void unsetmap(MAP* map, const char* key) {
-    if(getmap(map, key)) map->length--;
-
-    _unsetmap(map, key);
-}
-
-
-VALUE* getmap(MAP* map, const char* key) {
-    int ni = (unsigned)*key;
-    MAP* nn = map->next[ni];
-
-    if(ni == 0) return map->value;          /* Terminal node -> return the value at this node */
-    else if(nn) return getmap(nn, key+1);   /* Traverse to next node */
-    else        return NULL;                /* Not found */
-}
-
-
-MAP* nextmap(const MAP* map) {
-    if(map->key) return _nextmap(map, map->key, strlen(map->key));
-    else return _nextmap(map, "\0", 0);
-}
-
-
 /* ***************************************************************************
 * TEST FUNCTIONS
 */
 
 void _printmap(const MAP* map, char c, int depth) {
     for(int i=0; i<depth; i++) printf("  ");
-    printf("[%c] => addr=%p, prev=%p, key=%s, value=%s\n", c, map, map->prev, map->key, strdecoded(map->value));
+    printf("[%c] => addr=%p, prev=%p, key=%s, value=%s\n", c, map, map->prev, map->key, valuestr(map->value));
 
     for(int i=0; i<NDEGREE; i++) {
         const MAP* next = map->next[i];
@@ -215,49 +237,27 @@ void _printmap(const MAP* map, char c, int depth) {
 
 void _testmap() {
     MAP* map = newmap();
-    const MAP* mapi = map;
+    MAP* mapi = map;
 
     /* Set test */
-    setmap(map, "Hello", strvalue("world!"));
-    setmap(map, "Bye", strvalue("cruel world!"));
+    mapset(map, "Hello", strvalue("world!"));
+    mapset(map, "Bye", strvalue("cruel world!"));
 
     /* Get test */
-    printf("Bye, %s\n", strencoded(getmap(map, "Bye")));
-    printf("Hello, %s\n", strencoded(getmap(map, "Hello")));
-    printf("Nosuchkey: %s\n", strencoded(getmap(map, "Nosuchkey")));
+    printf("Bye, %s\n", valueqstr(mapget(map, "Bye")));
+    printf("Hello, %s\n", valueqstr(mapget(map, "Hello")));
+    printf("Nosuchkey: %s\n", valueqstr(mapget(map, "Nosuchkey")));
     printf("\n");
 
     /* Print the map */
     // _printmap(map, 0, 0);
 
     /* Iterator test */
-    while((mapi = nextmap(mapi))) {
-        printf("%s, %s\n", mapi->key, strencoded(mapi->value));
+    while((mapi = mapnext(mapi))) {
+        printf("%s, %s\n", mapi->key, valueqstr(mapi->value));
     }
     printf("\n");
 
     /* Free test */
     freemap(map);
-}
-
-
-int cmpmap(MAP* map1, MAP* map2) {
-    int cmp = 0;
-
-    while(1) {
-        map1 = nextmap(map1);
-        map2 = nextmap(map2);
-
-        if(map1 && map2) {
-            cmp = strcmp(map1->key, map2->key);
-            if(cmp == 0) cmp = cmpvalue(map1->value, map2->value);
-        }
-        else if(map1) cmp = 1;
-        else if(map2) cmp = -1;
-        else          break;
-
-        if(cmp != 0) break;
-    }
-
-    return cmp;
 }

@@ -32,35 +32,35 @@ clean:
 ##############################################################################
 # MAIN
 
-je.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o error.o util.o value.o vector.o parse.tab.o lex.yy.o
+je.wasm: builtin.o eval.o func.o main.o map.o node.o oper.o symtbl.o error.o util.o value.o vec.o parse.tab.o lex.yy.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
-je: builtin.o eval.o func.o main.o map.o node.o oper.o symtable.o error.o util.o value.o vector.o parse.tab.o lex.yy.o
+je: builtin.o eval.o func.o main.o map.o node.o oper.o symtbl.o error.o util.o value.o vec.o parse.tab.o lex.yy.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-builtin.o: builtin.c builtin.h eval.h func.h map.h node.h value.h vector.h
+builtin.o: builtin.c builtin.h eval.h func.h map.h node.h value.h vec.h
 
-eval.o: eval.c eval.h func.h map.h node.h oper.h error.h value.h vector.h symtable.h
+eval.o: eval.c eval.h func.h map.h node.h oper.h error.h value.h vec.h symtbl.h
 
-func.o: func.c eval.h func.h node.h value.h vector.h symtable.h
+func.o: func.c eval.h func.h node.h value.h vec.h symtbl.h
 
-main.o: main.c eval.h map.h util.h parse.h value.h vector.h
+main.o: main.c eval.h map.h util.h parse.h value.h vec.h
 
-map.o: map.c map.h util.h value.h vector.h
+map.o: map.c map.h util.h value.h vec.h
 
 node.o: node.c node.h
 
-oper.o: oper.c map.h eval.h node.h oper.h util.h parse.h value.h vector.h
+oper.o: oper.c map.h eval.h node.h oper.h util.h parse.h value.h vec.h
 
 error.o: error.c node.h error.h
 
-symtable.o: symtable.c map.h builtin.h symtable.h value.h
+symtbl.o: symtbl.c map.h builtin.h symtbl.h value.h
 
 util.o: util.c util.h
 
-value.o: value.c func.h map.h util.h value.h vector.h
+value.o: value.c func.h map.h util.h value.h vec.h
 
-vector.o: vector.c util.h value.h vector.h
+vec.o: vec.c util.h value.h vec.h
 
 parse.tab.o: parse.tab.c parse.tab.h node.h parse.h error.h
 

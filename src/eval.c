@@ -8,15 +8,15 @@
 #include "oper.h"
 #include "error.h"
 #include "value.h"
-#include "vector.h"
-#include "symtable.h"
+#include "vec.h"
+#include "symtbl.h"
 
 
 /* ***************************************************************************
 * PRIVATE FUNCTIONS
 */
 
-static VEC* newlist(NODE* node, SYM_TABLE* table, VEC* list) {
+static VEC* newlist(NODE* node, SYMTBL* table, VEC* list) {
     if(!list) list = newvec();
 
     if(node) {
@@ -27,7 +27,7 @@ static VEC* newlist(NODE* node, SYM_TABLE* table, VEC* list) {
                 break;
 
             default:
-                pushvec(list, eval(node, table));
+                vecpush(list, eval(node, table));
                 break;
         }
     }
@@ -36,13 +36,13 @@ static VEC* newlist(NODE* node, SYM_TABLE* table, VEC* list) {
 }
 
 
-static MAP* newpair(NODE* node, SYM_TABLE* table, MAP* list) {
+static MAP* newpair(NODE* node, SYMTBL* table, MAP* list) {
     switch(node->type) {
         case ':': {
             NODE* left = node->left;
             VALUE* right = eval(node->right, table);
 
-            if(left->type == STRING_N) setmap(list, left->value.s, right);
+            if(left->type == STRING_N) mapset(list, left->value.s, right);
             else {
                 freevalue(right);
                 RuntimeError(&left->loc, "STRING expected, got %s", nodetype(left));
@@ -62,7 +62,7 @@ static MAP* newpair(NODE* node, SYM_TABLE* table, MAP* list) {
 }
 
 
-static MAP* newpairlist(NODE* node, SYM_TABLE* table, MAP* list) {
+static MAP* newpairlist(NODE* node, SYMTBL* table, MAP* list) {
     if(!list) list = newmap();
 
     if(node) {
@@ -82,27 +82,27 @@ static MAP* newpairlist(NODE* node, SYM_TABLE* table, MAP* list) {
 }
 
 
-static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
+static VALUE* tableget2(SYMTBL* table, NODE* node) {
     VALUE* value = nullvalue();
 
     switch(node->type) {
         case IDENT_N:
-            value = gettable(table, node->value.s);
+            value = tableget(table, node->value.s);
             break;
 
         case '[': {
-            VALUE* left = gettable2(table, node->left);
+            VALUE* left = tableget2(table, node->left);
             VALUE* right = eval(node->right, table);
 
             if(left->type == ARRAY_V && right->type == INT_V) {
-                value = getvec(left->value.v, right->value.i);
+                value = vecget(left->value.v, right->value.i);
                 if(!value) {
                     RuntimeError(&node->loc, "Invalid index, max %ld, got %ld", left->value.v->length-1, right->value.i);
                 }
             }
             else if(left->type == OBJECT_V && right->type == STRING_V) {
-                value = getmap(left->value.m, right->value.s);
-                if(!value) RuntimeError(&node->loc, "Invalid key, %s", strencoded(right));
+                value = mapget(left->value.m, right->value.s);
+                if(!value) RuntimeError(&node->loc, "Invalid key, %s", valueqstr(right));
             }
             else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valuetype(right));
             else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valuetype(right));
@@ -113,10 +113,10 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
         }
 
         case '.': {
-            VALUE* left = gettable2(table, node->left);
+            VALUE* left = tableget2(table, node->left);
             NODE* right = node->right;
 
-            if     (left->type == OBJECT_V && right->type == IDENT_N) value = getmap(left->value.m, right->value.s);
+            if     (left->type == OBJECT_V && right->type == IDENT_N) value = mapget(left->value.m, right->value.s);
             else if(left->type == OBJECT_V                          ) RuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", nodetype(right));
             else                                                      RuntimeError(&node->loc, "OBJECT expected before '.' but got %s", valuetype(left));
 
@@ -136,26 +136,26 @@ static VALUE* gettable2(SYM_TABLE* table, NODE* node) {
 }
 
 
-static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
+static VALUE* tableset2(SYMTBL* table, NODE* node, VALUE* value) {
     switch(node->type) {
         case IDENT_N:
-            settable(table, node->value.s, value);
+            tableset(table, node->value.s, value);
             break;
 
         case '[': {
-            VALUE* left = gettable2(table, node->left);
+            VALUE* left = tableget2(table, node->left);
             VALUE* right = eval(node->right, table);
 
             if(!left) {
                 RuntimeError(&node->left->loc, "No such element");
             }
             else if(left->type == ARRAY_V && right->type == INT_V) {
-                if(!setvec(left->value.v, right->value.i, value)) {
+                if(!vecset(left->value.v, right->value.i, value)) {
                     RuntimeError(&node->loc, "%s", throwText);
                 }
             }
             else if(left->type == OBJECT_V && right->type == STRING_V) {
-                setmap(left->value.m, right->value.s, value);
+                mapset(left->value.m, right->value.s, value);
             }
             else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valuetype(right));
             else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valuetype(right));
@@ -166,11 +166,11 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
         }
 
         case '.': {
-            VALUE* left = gettable2(table, node->left);
+            VALUE* left = tableget2(table, node->left);
             NODE* right = node->right;
 
             if     (!left                                           ) RuntimeError(&node->left->loc, "No such item");
-            else if(left->type == OBJECT_V && right->type == IDENT_N) setmap(left->value.m, right->value.s, value);
+            else if(left->type == OBJECT_V && right->type == IDENT_N) mapset(left->value.m, right->value.s, value);
             else if(left->type != OBJECT_V                          ) RuntimeError(&node->loc, "OBJECT expected, got %s", valuetype(left));
             else                                                      RuntimeError(&node->loc, "IDENTIFIER expected, got %s", nodetype(right));
 
@@ -186,8 +186,8 @@ static VALUE* settable2(SYM_TABLE* table, NODE* node, VALUE* value) {
 }
 
 
-static VALUE* settable3(SYM_TABLE* table, NODE* node, VALUE* (*op)(VALUE*,VALUE*), VALUE* value, int ispostop) {
-    VALUE* prevalue = gettable2(table, node);
+static VALUE* tableset3(SYMTBL* table, NODE* node, VALUE* (*op)(VALUE*,VALUE*), VALUE* value, int ispostop) {
+    VALUE* prevalue = tableget2(table, node);
     VALUE* left = dupvalue(prevalue);
     VALUE* right = value;
     VALUE* postvalue = op(left, right);
@@ -208,14 +208,14 @@ static void getnodelist(VEC* list, NODE* node) {
             break;
 
         default:
-            pushvec(list, nodevalue(node));
+            vecpush(list, nodevalue(node));
             break;
     }
 }
 
 
-static VALUE* call(SYM_TABLE* table, NODE* node) {
-    VALUE* func = gettable2(table, node->left);
+static VALUE* call(SYMTBL* table, NODE* node) {
+    VALUE* func = tableget2(table, node->left);
     VALUE* value = nullvalue();
     VEC* nodes = newvec();
 
@@ -246,7 +246,7 @@ static VALUE* call(SYM_TABLE* table, NODE* node) {
 * PUBLIC FUNCTIONS
 */
 
-VALUE* eval(NODE* node, SYM_TABLE* table) {
+VALUE* eval(NODE* node, SYMTBL* table) {
     VALUE* result = NULL;
     int mytable = 0;
 
@@ -266,26 +266,26 @@ VALUE* eval(NODE* node, SYM_TABLE* table) {
             case ARRAY_N    : result = arrvalue(newlist(node->left, table, NULL)); break;
             case OBJECT_N   : result = objvalue(newpairlist(node->left, table, NULL)); break;
             case CALL_N     : result = call(table, node); break;
-            case SYMBOL_N   : result = dupvalue(gettable2(table, node->left)); break;
-            case '='        : result = dupvalue(settable2(table, node->left, eval(node->right, table))); break;
+            case SYMBOL_N   : result = dupvalue(tableget2(table, node->left)); break;
+            case '='        : result = dupvalue(tableset2(table, node->left, eval(node->right, table))); break;
 
-            case PREINC_N   : result = settable3(table, node->left,  op_plus,  intvalue(1), 0); break;
-            case PREDEC_N   : result = settable3(table, node->left, op_minus, intvalue(-1), 0); break;
-            case POSTINC_N  : result = settable3(table, node->left,  op_plus,  intvalue(1), 1); break;
-            case POSTDEC_N  : result = settable3(table, node->left, op_minus, intvalue(-1), 1); break;
+            case PREINC_N   : result = tableset3(table, node->left,  op_plus,  intvalue(1), 0); break;
+            case PREDEC_N   : result = tableset3(table, node->left, op_minus, intvalue(-1), 0); break;
+            case POSTINC_N  : result = tableset3(table, node->left,  op_plus,  intvalue(1), 1); break;
+            case POSTDEC_N  : result = tableset3(table, node->left, op_minus, intvalue(-1), 1); break;
 
-            case PLEQ_N     : result = settable3(table, node->left,  op_plus, eval(node->right, table), 0); break;
-            case MIEQ_N     : result = settable3(table, node->left, op_minus, eval(node->right, table), 0); break;
-            case TIEQ_N     : result = settable3(table, node->left, op_times, eval(node->right, table), 0); break;
-            case DIEQ_N     : result = settable3(table, node->left, op_divby, eval(node->right, table), 0); break;
-            case MOEQ_N     : result = settable3(table, node->left,   op_mod, eval(node->right, table), 0); break;
-            case SHLEQ_N    : result = settable3(table, node->left,   op_shl, eval(node->right, table), 0); break;
-            case ASREQ_N    : result = settable3(table, node->left,   op_asr, eval(node->right, table), 0); break;
-            case SHREQ_N    : result = settable3(table, node->left,   op_shr, eval(node->right, table), 0); break;
-            case ANDEQ_N    : result = settable3(table, node->left,  op_band, eval(node->right, table), 0); break;
-            case XOREQ_N    : result = settable3(table, node->left,  op_bxor, eval(node->right, table), 0); break;
-            case OREQ_N     : result = settable3(table, node->left,   op_bor, eval(node->right, table), 0); break;
-            case POWEQ_N    : result = settable3(table, node->left,   op_pow, eval(node->right, table), 0); break;
+            case PLEQ_N     : result = tableset3(table, node->left,  op_plus, eval(node->right, table), 0); break;
+            case MIEQ_N     : result = tableset3(table, node->left, op_minus, eval(node->right, table), 0); break;
+            case TIEQ_N     : result = tableset3(table, node->left, op_times, eval(node->right, table), 0); break;
+            case DIEQ_N     : result = tableset3(table, node->left, op_divby, eval(node->right, table), 0); break;
+            case MOEQ_N     : result = tableset3(table, node->left,   op_mod, eval(node->right, table), 0); break;
+            case SHLEQ_N    : result = tableset3(table, node->left,   op_shl, eval(node->right, table), 0); break;
+            case ASREQ_N    : result = tableset3(table, node->left,   op_asr, eval(node->right, table), 0); break;
+            case SHREQ_N    : result = tableset3(table, node->left,   op_shr, eval(node->right, table), 0); break;
+            case ANDEQ_N    : result = tableset3(table, node->left,  op_band, eval(node->right, table), 0); break;
+            case XOREQ_N    : result = tableset3(table, node->left,  op_bxor, eval(node->right, table), 0); break;
+            case OREQ_N     : result = tableset3(table, node->left,   op_bor, eval(node->right, table), 0); break;
+            case POWEQ_N    : result = tableset3(table, node->left,   op_pow, eval(node->right, table), 0); break;
 
             case '*'        : result = op_times(eval(node->left, table), eval(node->right, table)); break;
             case '/'        : result = op_divby(eval(node->left, table), eval(node->right, table)); break;
