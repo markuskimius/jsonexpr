@@ -19,7 +19,8 @@ SYMTBL* newtable(SYMTBL* parent) {
     table->count = 1;
 
     /* Add UPSCOPE */
-    if(parent) {
+    if(table->parent) {
+        duptable(table->parent);
         mapset(table->symbols, "UPSCOPE", objval(dupmap(parent->symbols)));
     }
 
@@ -50,15 +51,15 @@ SYMTBL* duptable(SYMTBL* table) {
 void freetable(SYMTBL* table) {
     table->count--;
 
+    /* Reduce parent counter */
+    if(table->parent) {
+        freetable(table->parent);
+    }
+
     /* Free this table if it's no longer used */
     if(table->count == 0) {
         freemap(table->symbols);
         free(table);
-    }
-
-    /* Reduce parent counter */
-    if(table->parent) {
-        freetable(table->parent);
     }
 }
 
