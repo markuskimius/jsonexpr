@@ -88,6 +88,7 @@ FUNC* newfunc(BINARY_FN handler, const char* name, const char* sig) {
     func->handler.bin = handler;
     func->name = strdup(name);
     func->sig = strdup(sig);
+    func->count = 1;
 
     return func;
 }
