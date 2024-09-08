@@ -109,13 +109,13 @@ expr        : NULL_T                    { $$ = newinode(NULL_N, 0, &@$);        
             | '{' '}'                   { $$ = newnode( OBJECT_N, NULL, NULL, NULL, &@$);   }
             | '{' members '}'           { $$ = newnode( OBJECT_N,   $2, NULL, NULL, &@$);   }
             | symbol                    { $$ = newnode( SYMBOL_N,   $1, NULL, NULL, &@$);   }
-            | symbol '(' ')'            { $$ = newnode(   CALL_N,   $1, NULL, NULL, &@$);   }
-            | symbol '(' list ')'       { $$ = newnode(   CALL_N,   $1,   $3, NULL, &@$);   }
-            | symbol '=' expr           { $$ = newnode(      '=',   $1,   $3, NULL, &@$);   }
-            | symbol INC_T              { $$ = newnode(POSTINC_N,   $1, NULL, NULL, &@$);   }
-            | symbol DEC_T              { $$ = newnode(POSTDEC_N,   $1, NULL, NULL, &@$);   }
-            | INC_T symbol %prec PRE_P  { $$ = newnode( PREINC_N,   $2, NULL, NULL, &@$);   }
-            | DEC_T symbol %prec PRE_P  { $$ = newnode( PREDEC_N,   $2, NULL, NULL, &@$);   }
+            | symbol '(' ')'            { $$ = newnode(   CALL_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$), NULL, NULL, &@$);   }
+            | symbol '(' list ')'       { $$ = newnode(   CALL_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol '=' expr           { $$ = newnode(      '=',   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol INC_T              { $$ = newnode(POSTINC_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$), NULL, NULL, &@$);   }
+            | symbol DEC_T              { $$ = newnode(POSTDEC_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$), NULL, NULL, &@$);   }
+            | INC_T symbol %prec PRE_P  { $$ = newnode( PREINC_N,   newnode(SYMBOL_N,$2,NULL,NULL,&@$), NULL, NULL, &@$);   }
+            | DEC_T symbol %prec PRE_P  { $$ = newnode( PREDEC_N,   newnode(SYMBOL_N,$2,NULL,NULL,&@$), NULL, NULL, &@$);   }
             | '+' expr %prec UNI_P      { $$ = newnode(  UPLUS_N,   $2, NULL, NULL, &@$);   }
             | '-' expr %prec UNI_P      { $$ = newnode( UMINUS_N,   $2, NULL, NULL, &@$);   }
             | '!' expr                  { $$ = newnode(      '!',   $2, NULL, NULL, &@$);   }
@@ -140,18 +140,18 @@ expr        : NULL_T                    { $$ = newinode(NULL_N, 0, &@$);        
             | expr SHL_T expr           { $$ = newnode(    SHL_N,   $1,   $3, NULL, &@$);   }
             | expr ASR_T expr           { $$ = newnode(    ASR_N,   $1,   $3, NULL, &@$);   }
             | expr SHR_T expr           { $$ = newnode(    SHR_N,   $1,   $3, NULL, &@$);   }
-            | symbol PLEQ_T expr        { $$ = newnode(   PLEQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol MIEQ_T expr        { $$ = newnode(   MIEQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol TIEQ_T expr        { $$ = newnode(   TIEQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol DIEQ_T expr        { $$ = newnode(   DIEQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol MOEQ_T expr        { $$ = newnode(   MOEQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol SHLEQ_T expr       { $$ = newnode(  SHLEQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol ASREQ_T expr       { $$ = newnode(  ASREQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol SHREQ_T expr       { $$ = newnode(  SHREQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol ANDEQ_T expr       { $$ = newnode(  ANDEQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol XOREQ_T expr       { $$ = newnode(  XOREQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol OREQ_T expr        { $$ = newnode(   OREQ_N,   $1,   $3, NULL, &@$);   }
-            | symbol POWEQ_T expr       { $$ = newnode(  POWEQ_N,   $1,   $3, NULL, &@$);   }
+            | symbol PLEQ_T expr        { $$ = newnode(   PLEQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol MIEQ_T expr        { $$ = newnode(   MIEQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol TIEQ_T expr        { $$ = newnode(   TIEQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol DIEQ_T expr        { $$ = newnode(   DIEQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol MOEQ_T expr        { $$ = newnode(   MOEQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol SHLEQ_T expr       { $$ = newnode(  SHLEQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol ASREQ_T expr       { $$ = newnode(  ASREQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol SHREQ_T expr       { $$ = newnode(  SHREQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol ANDEQ_T expr       { $$ = newnode(  ANDEQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol XOREQ_T expr       { $$ = newnode(  XOREQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol OREQ_T expr        { $$ = newnode(   OREQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | symbol POWEQ_T expr       { $$ = newnode(  POWEQ_N,   newnode(SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
             | expr '?' expr ':' expr    { $$ = newnode(      '?',   $1,   $3,   $5, &@$);   }
             | expr ';' expr             { $$ = newnode(      ';',   $1,   $3, NULL, &@$);   }
             ;
@@ -169,7 +169,7 @@ members     : pair                      { $$ = newnode(      ',',   $1, NULL, NU
             | pair ',' members          { $$ = newnode(      ',',   $1,   $3, NULL, &@$);   }
             ;
 
-symbol      : IDENT_T                   { $$ = newsnode(  IDENT_N, $1, &@$);                }
+symbol      : IDENT_T                   { $$ = newsnode(IDENT_N, $1, &@$);                  }
             | symbol '[' expr ']'       { $$ = newnode(      '[',   $1,   $3, NULL, &@$);   }
             | symbol '.' symbol         { $$ = newnode(      '.',   $1,   $3, NULL, &@$);   }
             ;

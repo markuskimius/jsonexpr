@@ -15,7 +15,7 @@ typedef struct YYLTYPE YYLTYPE;
 */
 
 #define die(args...) _die(__FILE__, __FUNCTION__, __LINE__, args)
-#define LogicError(args...) throw("LogicError", args)
+#define LogicError(args...) throwx(__FILE__, __FUNCTION__, __LINE__, "LogicError", args)
 #define ParseError(args...) throw("ParseError", args)
 #define RuntimeError(args...) throw("RuntimeError", args)
 
@@ -33,6 +33,7 @@ extern char* throwText;
 
 void _die(const char* file, const char* func, size_t line, const char* format, ...);
 void throw(const char* type, YYLTYPE* loc, const char* format, ...);
+void throwx(const char* file, const char* func, size_t line, const char* type, YYLTYPE* loc, const char* format, ...);
 void throwLater(const char* format, ...);
 
 

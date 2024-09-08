@@ -48,6 +48,22 @@ void throw(const char* type, YYLTYPE* loc, const char* format, ...) {
 }
 
 
+void throwx(const char* file, const char* func, size_t line, const char* type, YYLTYPE* loc, const char* format, ...) {
+    va_list ap;
+    char* text = textat(loc);
+    char* buf;
+
+    va_start(ap, format);
+    vasprintf(&buf, format, ap);
+    va_end(ap);
+
+    fprintf(stderr, "[%s:%zu@%s()] %s at line %zu col %zu near `%s`: %s\n", file, line, func, type, loc->first_line, loc->first_column, text, buf);
+    free(text);
+    free(buf);
+    exit(1);
+}
+
+
 void throwLater(const char* format, ...) {
     va_list ap;
 

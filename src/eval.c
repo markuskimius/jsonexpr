@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "builtin.h"
 #include "error.h"
 #include "eval.h"
 #include "func.h"
@@ -83,7 +84,7 @@ static MAP* newpairlist(NODE* node, SYMTBL* table, MAP* list) {
 
 
 static VAL* tableget2(SYMTBL* table, NODE* node) {
-    VAL* val = nullval();
+    VAL* val = NULL;
 
     switch(node->type) {
         case IDENT_N:
@@ -132,7 +133,7 @@ static VAL* tableget2(SYMTBL* table, NODE* node) {
         RuntimeError(&node->loc, "Undefined symbol");
     }
 
-    return val;
+    return val ? val : nullval();
 }
 
 
@@ -216,7 +217,7 @@ static void getnodelist(VEC* list, NODE* node) {
 
 static VAL* call(SYMTBL* table, NODE* node) {
     VAL* func = tableget2(table, node->left);
-    VAL* val = nullval();
+    VAL* val = NULL;
     VEC* nodes = newvec();
 
     /* Get arguments */
@@ -238,7 +239,7 @@ static VAL* call(SYMTBL* table, NODE* node) {
         RuntimeError(&node->left->loc, "%s", throwText);
     }
 
-    return val;
+    return val ? val : nullval();
 }
 
 
@@ -265,55 +266,57 @@ VAL* eval(NODE* node, SYMTBL* table) {
             case STRING_N   : result = strval(node->value.s); break;
             case ARRAY_N    : result = arrval(newlist(node->left, table, NULL)); break;
             case OBJECT_N   : result = objval(newpairlist(node->left, table, NULL)); break;
-            case CALL_N     : result = call(table, node); break;
-            case SYMBOL_N   : result = dupval(tableget2(table, node->left)); break;
-            case '='        : result = dupval(tableset2(table, node->left, eval(node->right, table))); break;
 
-            case PREINC_N   : result = tableset3(table, node->left,  op_plus,  intval(1), 0); break;
-            case PREDEC_N   : result = tableset3(table, node->left, op_minus, intval(-1), 0); break;
-            case POSTINC_N  : result = tableset3(table, node->left,  op_plus,  intval(1), 1); break;
-            case POSTDEC_N  : result = tableset3(table, node->left, op_minus, intval(-1), 1); break;
+            case SYMBOL_N   : result = opexec("*x", table, node->left, NULL, NULL); break;
+            case CALL_N     : result = opexec("()", table, node->left, node->right, NULL); break;
 
-            case PLEQ_N     : result = tableset3(table, node->left,  op_plus, eval(node->right, table), 0); break;
-            case MIEQ_N     : result = tableset3(table, node->left, op_minus, eval(node->right, table), 0); break;
-            case TIEQ_N     : result = tableset3(table, node->left, op_times, eval(node->right, table), 0); break;
-            case DIEQ_N     : result = tableset3(table, node->left, op_divby, eval(node->right, table), 0); break;
-            case MOEQ_N     : result = tableset3(table, node->left,   op_mod, eval(node->right, table), 0); break;
-            case SHLEQ_N    : result = tableset3(table, node->left,   op_shl, eval(node->right, table), 0); break;
-            case ASREQ_N    : result = tableset3(table, node->left,   op_asr, eval(node->right, table), 0); break;
-            case SHREQ_N    : result = tableset3(table, node->left,   op_shr, eval(node->right, table), 0); break;
-            case ANDEQ_N    : result = tableset3(table, node->left,  op_band, eval(node->right, table), 0); break;
-            case XOREQ_N    : result = tableset3(table, node->left,  op_bxor, eval(node->right, table), 0); break;
-            case OREQ_N     : result = tableset3(table, node->left,   op_bor, eval(node->right, table), 0); break;
-            case POWEQ_N    : result = tableset3(table, node->left,   op_pow, eval(node->right, table), 0); break;
+            case '~'        : result = opexec("~", table, node->left, NULL, NULL); break;
+            case '!'        : result = opexec("!", table, node->left, NULL, NULL); break;
+            case UPLUS_N    : result = opexec("+x", table, node->left, NULL, NULL); break;
+            case UMINUS_N   : result = opexec("-x", table, node->left, NULL, NULL); break;
 
-            case '*'        : result = op_times(eval(node->left, table), eval(node->right, table)); break;
-            case '/'        : result = op_divby(eval(node->left, table), eval(node->right, table)); break;
-            case '%'        : result = op_mod(eval(node->left, table), eval(node->right, table)); break;
-            case '+'        : result = op_plus(eval(node->left, table), eval(node->right, table)); break;
-            case '-'        : result = op_minus(eval(node->left, table), eval(node->right, table)); break;
-            case '|'        : result = op_bor(eval(node->left, table), eval(node->right, table)); break;
-            case '&'        : result = op_band(eval(node->left, table), eval(node->right, table)); break;
-            case '^'        : result = op_bxor(eval(node->left, table), eval(node->right, table)); break;
-            case '~'        : result = op_bnot(eval(node->left, table)); break;
-            case '!'        : result = op_lnot(eval(node->left, table)); break;
-            case EQ_N       : result = op_eq(eval(node->left, table), eval(node->right, table)); break;
-            case NE_N       : result = op_ne(eval(node->left, table), eval(node->right, table)); break;
-            case LT_N       : result = op_lt(eval(node->left, table), eval(node->right, table)); break;
-            case LE_N       : result = op_le(eval(node->left, table), eval(node->right, table)); break;
-            case GT_N       : result = op_gt(eval(node->left, table), eval(node->right, table)); break;
-            case GE_N       : result = op_ge(eval(node->left, table), eval(node->right, table)); break;
-            case OR_N       : result = op_lor(node->left, node->right, table); break;
-            case AND_N      : result = op_land(node->left, node->right, table); break;
-            case UPLUS_N    : result = op_uplus(eval(node->left, table)); break;
-            case UMINUS_N   : result = op_uminus(eval(node->left, table)); break;
-            case SHL_N      : result = op_shl(eval(node->left, table), eval(node->right, table)); break;
-            case ASR_N      : result = op_asr(eval(node->left, table), eval(node->right, table)); break;
-            case SHR_N      : result = op_shr(eval(node->left, table), eval(node->right, table)); break;
-            case POW_N      : result = op_pow(eval(node->left, table), eval(node->right, table)); break;
+            case '*'        : result = opexec("*", table, node->left, node->right, NULL); break;
+            case '/'        : result = opexec("/", table, node->left, node->right, NULL); break;
+            case '%'        : result = opexec("%", table, node->left, node->right, NULL); break;
+            case '+'        : result = opexec("+", table, node->left, node->right, NULL); break;
+            case '-'        : result = opexec("-", table, node->left, node->right, NULL); break;
+            case '|'        : result = opexec("|", table, node->left, node->right, NULL); break;
+            case '&'        : result = opexec("&", table, node->left, node->right, NULL); break;
+            case '^'        : result = opexec("^", table, node->left, node->right, NULL); break;
+            case LT_N       : result = opexec("<", table, node->left, node->right, NULL); break;
+            case GT_N       : result = opexec(">", table, node->left, node->right, NULL); break;
+            case POW_N      : result = opexec("**", table, node->left, node->right, NULL); break;
+            case EQ_N       : result = opexec("==", table, node->left, node->right, NULL); break;
+            case NE_N       : result = opexec("!=", table, node->left, node->right, NULL); break;
+            case LE_N       : result = opexec("<=", table, node->left, node->right, NULL); break;
+            case GE_N       : result = opexec(">=", table, node->left, node->right, NULL); break;
+            case OR_N       : result = opexec("||", table, node->left, node->right, NULL); break;
+            case AND_N      : result = opexec("&&", table, node->left, node->right, NULL); break;
+            case SHL_N      : result = opexec("<<", table, node->left, node->right, NULL); break;
+            case ASR_N      : result = opexec(">>", table, node->left, node->right, NULL); break;
+            case SHR_N      : result = opexec(">>>", table, node->left, node->right, NULL); break;
 
-            case '?'        : result = op_cond(node->left, node->right, node->righter, table); break;
-            case ';'        : freeval(eval(node->left, table)); result = eval(node->right, table); break;
+            case PREINC_N   : result = opexec("++x", table, node->left, NULL, NULL); break;
+            case PREDEC_N   : result = opexec("--x", table, node->left, NULL, NULL); break;
+            case POSTINC_N  : result = opexec("x++", table, node->left, NULL, NULL); break;
+            case POSTDEC_N  : result = opexec("x--", table, node->left, NULL, NULL); break;
+
+            case '='        : result = opexec("=", table, node->left, node->right, NULL); break;
+            case PLEQ_N     : result = opexec("+=", table, node->left, node->right, NULL); break;
+            case MIEQ_N     : result = opexec("-=", table, node->left, node->right, NULL); break;
+            case TIEQ_N     : result = opexec("*=", table, node->left, node->right, NULL); break;
+            case DIEQ_N     : result = opexec("/=", table, node->left, node->right, NULL); break;
+            case MOEQ_N     : result = opexec("%=", table, node->left, node->right, NULL); break;
+            case ANDEQ_N    : result = opexec("&=", table, node->left, node->right, NULL); break;
+            case XOREQ_N    : result = opexec("^=", table, node->left, node->right, NULL); break;
+            case OREQ_N     : result = opexec("|=", table, node->left, node->right, NULL); break;
+            case POWEQ_N    : result = opexec("**=", table, node->left, node->right, NULL); break;
+            case SHLEQ_N    : result = opexec("<<=", table, node->left, node->right, NULL); break;
+            case ASREQ_N    : result = opexec(">>=", table, node->left, node->right, NULL); break;
+            case SHREQ_N    : result = opexec(">>>=", table, node->left, node->right, NULL); break;
+
+            case ';'        : result = opexec(";", table, node->left, node->right, NULL); break;
+            case '?'        : result = opexec("?:", table, node->left, node->right, node->righter); break;
             default         : LogicError(&node->loc, "Invalid node type: %s", nodetype(node)); break;
         }
     }

@@ -8,10 +8,11 @@
 * FORWARD DECLARATIONS
 */
 
-typedef struct MAP MAP;
-typedef struct VEC VEC;
 typedef struct FUNC FUNC;
 typedef struct NODE NODE;
+typedef struct MAP MAP;
+typedef struct VAL VAL;
+typedef struct VEC VEC;
 
 
 /* ***************************************************************************
@@ -46,6 +47,7 @@ typedef struct VAL {
         MAP* m;
         FUNC* fn;
         NODE* n;
+        VAL* r;
     } value;
 
     char* astrdecoded;
@@ -88,7 +90,7 @@ double getdouble(VAL* val);
 char* getstring(VAL* val);
 VEC* getarray(VAL* val);
 MAP* getobject(VAL* val);
-FUNC* getbuiltin(VAL* val);
+FUNC* getfunct(VAL* val);
 
 
 #endif /* VAL_H_ */

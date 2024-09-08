@@ -9,6 +9,72 @@
 #include "symtbl.h"
 #include "val.h"
 #include "vec.h"
+#include "node.h"
+#include "map.h"
+
+
+/* ***************************************************************************
+* PRIVATE FUNCTIONS
+*/
+
+static VAL* tablemod(SYMTBL* table, NODE* node) {
+    VAL* val = NULL;
+
+    switch(node->type) {
+        case IDENT_N:
+            val = tableget(table, node->value.s);
+
+            if(!val) {
+                val = nullval();
+                tableset(table, node->value.s, val);
+            }
+
+            break;
+
+        case '[': {
+            VAL* left = tablemod(table, node->left);
+            VAL* right = eval(node->right, table);
+
+            if(left->type == ARRAY_V && right->type == INT_V) {
+                val = vecget(left->value.v, right->value.i);
+                if(!val) {
+                    RuntimeError(&node->loc, "Invalid index, max %ld, got %ld", left->value.v->length-1, right->value.i);
+                }
+            }
+            else if(left->type == OBJECT_V && right->type == STRING_V) {
+                val = mapget(left->value.m, right->value.s);
+                if(!val) RuntimeError(&node->loc, "Invalid key, %s", valqstr(right));
+            }
+            else if(left->type == ARRAY_V ) RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", valtype(right));
+            else if(left->type == OBJECT_V) RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", valtype(right));
+            else                            RuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", valtype(left));
+
+            freeval(right);
+            break;
+        }
+
+        case '.': {
+            VAL* left = tablemod(table, node->left);
+            NODE* right = node->right;
+
+            if     (left->type == OBJECT_V && right->type == IDENT_N) val = mapget(left->value.m, right->value.s);
+            else if(left->type == OBJECT_V                          ) RuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", nodetype(right));
+            else                                                      RuntimeError(&node->loc, "OBJECT expected before '.' but got %s", valtype(left));
+
+            break;
+        }
+
+        default:
+            ParseError(&node->loc, "Invalid node type: %s", nodetype(node));
+            break;
+    }
+
+    if(!val) {
+        RuntimeError(&node->loc, "Undefined symbol");
+    }
+
+    return val ? val : nullval();
+}
 
 
 /* ***************************************************************************
@@ -78,10 +144,13 @@ VEC* funcargs(const char* sig, VEC* nodes, SYMTBL* table) {
             isok = 0;
         }
         /* evaluate */
-        else if(strchr("BIDSAOFf?", *cp)) {
+        else if(strchr("BIDSAOF#?", *cp)) {
             VAL* v = eval(node, table);
 
-            if(*cp != '?' && tolower(v->type) != tolower(*cp)) {
+            if(*cp=='?' || *cp==v->type || (*cp=='#'&&strchr("ID",v->type))) {
+                /* ok */
+            }
+            else {
                 throwLater("Invalid argument type, expected %c, got %c", *cp, v->type);
                 isok = 0;
             }

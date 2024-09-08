@@ -21,8 +21,6 @@
 * GLOBALS
 */
 
-VAL* null = NULL;
-
 static char VALNAME[128][NAMEMAX];
 
 
@@ -31,11 +29,9 @@ static char VALNAME[128][NAMEMAX];
 */
 
 VAL* nullval() {
-    if(!null) {
-        null = calloc(1, sizeof(VAL));
+    VAL* null = calloc(1, sizeof(VAL));
 
-        null->type = NULL_V;
-    }
+    null->type = NULL_V;
 
     return null;
 }
@@ -150,7 +146,7 @@ void swapval(VAL* val1, VAL* val2) {
 
 void freeval(VAL* val) {
     switch(val->type) {
-        case NULL_V     : /* Do not free null */ return;
+        case NULL_V     : break;
         case BOOL_V     : break;
         case INT_V      : break;
         case FLOAT_V    : break;
@@ -203,7 +199,7 @@ int valcmp(VAL* val1, VAL* val2) {
     else if(val1->type == OBJECT_V   && val2->type == OBJECT_V  ) result = mapcmp(val1->value.m, val2->value.m);
     else if(val1->type == FUNCTION_V && val2->type == FUNCTION_V) result = val1->value.fn < val2->value.fn ? -1 : val1->value.fn == val2->value.fn ? 0 : 1;
     else if(val1->type == NODE_V     && val2->type == NODE_V    ) result = val1->value.n < val2->value.n ? -1 : val1->value.n == val2->value.n ? 0 : 1;
-    else                                                              result = val2->type - val1->type;
+    else                                                          result = val2->type - val1->type;
 
     return result;
 }
@@ -336,6 +332,6 @@ MAP* getobject(VAL* val) {
 }
 
 
-FUNC* getfunction(VAL* val) {
+FUNC* getfunc(VAL* val) {
     return val->value.fn;
 }

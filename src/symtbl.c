@@ -26,7 +26,7 @@ SYMTBL* newtable(SYMTBL* parent) {
 
     /* Add built-in symbols */
     if(!parent) {
-        MAP* bi = builtin();
+        MAP* bi = binfns();
 
         while((bi = mapnext(bi))) {
             mapset(table->symbols, bi->key, bi->value);

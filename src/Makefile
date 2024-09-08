@@ -38,13 +38,13 @@ je.wasm: builtin.o error.o eval.o func.o main.o map.o node.o oper.o symtbl.o uti
 je: builtin.o error.o eval.o func.o main.o map.o node.o oper.o symtbl.o util.o val.o vec.o parse.tab.o lex.yy.o
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-builtin.o: builtin.c builtin.h error.h eval.h func.h map.h val.h vec.h
+builtin.o: builtin.c builtin.h error.h eval.h func.h map.h val.h vec.h node.h symtbl.h util.h
 
 error.o: error.c error.h node.h util.h
 
-eval.o: eval.c error.h eval.h func.h map.h node.h oper.h symtbl.h val.h vec.h
+eval.o: eval.c builtin.h error.h eval.h func.h map.h node.h oper.h symtbl.h val.h vec.h
 
-func.o: func.c error.h eval.h func.h symtbl.h val.h vec.h
+func.o: func.c error.h eval.h func.h symtbl.h val.h vec.h node.h map.h
 
 main.o: main.c eval.h node.h parse.h val.h
 

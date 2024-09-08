@@ -46,10 +46,10 @@ char* utf8str(uint32_t c) {
 }
 
 
-char* astri64(uint64_t src) {
+char* astri64(int64_t src) {
     char* dest = calloc(1, IBUFSIZE);
 
-    snprintf(dest, IBUFSIZE, "%llu", (unsigned long long) src);
+    snprintf(dest, IBUFSIZE, "%lld", (unsigned long long) src);
 
     return dest;
 }
