@@ -118,7 +118,10 @@ class WasmIface:
 
 def doMyThing():
     store = Store()
+    wasm = None
+    module = None
     memory8 = None
+    instance = None
 
     def read(fd:"i32", buf:"i32", count:"i32") -> "i32":
         data = os.read(fd, count)
@@ -146,109 +149,23 @@ def doMyThing():
 
         memory8 = instance.exports.memory.uint8_view()
 
-        with WasmIface(instance) as wasm:
-            # instance.exports._testmap()
+    if len(sys.argv) <= 1:
+        doExecThing(sys.stdin, instance)
 
-            # code = wasm.strdup('1; 2; 3; "Hello, world!"; -((3 + 4) / 2.0 * 3.0); HELLO = "Hello" + ", world!"; "Bye, " + -12329123489134821234.1234 + "!"; HELLO = [1,[2,"Hello, world!",4],5]; HELLO[1][1]')
-            # code = wasm.strdup('1; 2; 3; "Hello, world!"; -((3 + 4) / 2.0 * 3.0); HELLO = "Hello" + ", world!"; "Bye, " + -12329123489134821234.1234 + "!"; HELLO = [1,[2,"Hello, world!",4],5]; HELLO[1][2] = "Bye, cruel world!"; HELLO')
-            # code = wasm.strdup('''
-            #     MYARRAY = [
-            #         123,
-            #         456,
-            #         789,
-            #         true,
-            #         false,
-            #         null,
-            #     ];
+    for filename in sys.argv[1:]:
+        with open(filename, mode="rt") as fd:
+            doExecThing(fd, instance)
 
-            #     MYARRAY[1] = FUNCTION("?",
-            #         PRINT("Bye, world!");
-            #     );
+def doExecThing(fd, instance):
+    code = fd.read()
 
-            #     MYARRAY[1](5);
-            #     MYARRAY
-            # ''')
-            # code = wasm.strdup('''
-            #     {
-            #       "menu": {
-            #         "id": "file",
-            #         "value": "File",
-            #         "popup": {
-            #             "menuitem": [
-            #               {
-            #                 "value": "New",
-            #                 "onclick": "CreateNewDoc()"
-            #               },
-            #               {
-            #                 "value": "Open",
-            #                 "onclick": "OpenDoc()"
-            #               },
-            #               {
-            #                 "value": "Close",
-            #                 "onclick": "CloseDoc()"
-            #               }
-            #             ]
-            #         }
-            #       }
-            #     };
-            # ''')
-            # code = wasm.strdup('''
-            #     {
-            #       "menu": {
-            #         "id": "file",
-            #         "value": "File",
-            #         "popup": {
-            #         }
-            #       }
-            #     }
-            # ''')
-            # code = wasm.strdup('''
-            #     MYOBJ = {
-            #         "hello" : 123,
-            #         "myfn"  : 789,
-            #         "world" : 456,
-            #     };
+    with WasmIface(instance) as wasm:
+        ccode = wasm.strdup(code)
+        ast = instance.exports.parse(ccode)
+        result = instance.exports.eval(ast, 0)
+        svalue = instance.exports.valstr(result);
 
-            #     MYOBJ.myfn = FUNCTION("",
-            #         PRINT("Bye, world!");
-            #     );
-
-            #     MYOBJ.myfn();
-            #     MYOBJ["myfn"]();
-            #     MYOBJ;
-            # ''')
-            # code = wasm.strdup('''
-            #     PRINT("Hello, world!");
-
-            #     myfn = FUNCTION("*",
-            #         PRINT(ARG);
-            #     );
-
-            #     myfn("Hello", "world!");
-            #     null;
-            # ''')
-            code = wasm.strdup('''
-                memo = [ 0, 1 ];
-                fib = FUNCTION("I",
-                    x = ARG[0];
-
-                    IF(x >= LEN(memo),
-                        x1 = fib(x-1);
-                        x2 = fib(x-2);
-
-                        memo[x] = x1 + x2
-                    );
-
-                    memo[x]
-                );
-
-                fib(20);
-            ''')
-            ast = instance.exports.parse(code)
-            result = instance.exports.eval(ast, 0)
-            svalue = instance.exports.valstr(result);
-
-            print(wasm.strat(svalue))
+        print(wasm.strat(svalue))
 
 
 ##############################################################################
