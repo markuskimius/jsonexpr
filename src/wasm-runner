@@ -113,7 +113,7 @@ class WasmIface:
         while(self.memory8[addr+len] != 0):
             len += 1
 
-        return bytearray(self.memory8[addr:addr+len]).decode("latin1")
+        return bytearray(self.memory8[addr:addr+len]).decode("utf-8")
 
 
 def doMyThing():
