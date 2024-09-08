@@ -76,6 +76,11 @@ static VAL* tablemod(SYMTBL* table, NODE* node, int create) {
             VAL* right = eval(node->right, table);
 
             if(left->type == ARRAY_V && right->type == INT_V) {
+                /* Index to 1 element past last -> push a new element if "create" is requested */
+                if(create && left->value.v->length == right->value.i) {
+                    vecpush(left->value.v, nullval());
+                }
+
                 val = vecget(left->value.v, right->value.i);
                 if(!val) {
                     RuntimeError(&node->loc, "Invalid index, max %ld, got %ld", left->value.v->length-1, right->value.i);
@@ -768,10 +773,10 @@ static VAL* OP_ADD(VEC* args, SYMTBL* table) {
     VAL* right = vecget(args, 1);
     VAL* result = NULL;
 
-    if     (left->type == INT_V    && right->type == INT_V   ) result = intval(left->value.i / right->value.i);
-    else if(left->type == INT_V    && right->type == FLOAT_V ) result = dblval(left->value.i / right->value.f);
-    else if(left->type == FLOAT_V  && right->type == INT_V   ) result = dblval(left->value.f / right->value.i);
-    else if(left->type == FLOAT_V  && right->type == FLOAT_V ) result = dblval(left->value.f / right->value.f);
+    if     (left->type == INT_V    && right->type == INT_V   ) result = intval(left->value.i + right->value.i);
+    else if(left->type == INT_V    && right->type == FLOAT_V ) result = dblval(left->value.i + right->value.f);
+    else if(left->type == FLOAT_V  && right->type == INT_V   ) result = dblval(left->value.f + right->value.i);
+    else if(left->type == FLOAT_V  && right->type == FLOAT_V ) result = dblval(left->value.f + right->value.f);
     else if(left->type == STRING_V || right->type == STRING_V) {
         char* buf = NULL;
 
