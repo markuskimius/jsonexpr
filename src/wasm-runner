@@ -165,7 +165,10 @@ def doExecThing(fd, instance):
         result = instance.exports.eval(ast, 0)
         svalue = instance.exports.valstr(result);
 
-        print(wasm.strat(svalue))
+        # print(wasm.strat(svalue))
+
+        instance.exports.freeval(result)
+        instance.exports.freenode(ast)
 
 
 ##############################################################################

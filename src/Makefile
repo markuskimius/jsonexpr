@@ -5,8 +5,15 @@ ifeq ($(findstring wasm,$(TARGET)),wasm)
 	LD:=wasm-ld
 	PREFIX:=/opt/wasm
 	CPPFLAGS:=-I$(PREFIX)/include --target=wasm32 -nostdlib $(CPPFLAGS)
-	LDFLAGS:=-L$(PREFIX)/lib --export=newtable --export=freetable --export=parse --export=eval --export=valstr \
-		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=tableget
+	LDFLAGS:=-L$(PREFIX)/lib --export=parse --export=eval \
+		--export=nullval --export=boolval --export=intval --export=dblval --export=strval --export=arrval --export=objval --export=freeval \
+		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=getarray --export=getobject --export=getfunc \
+		--export=valtype --export=valtrue --export=valstr --export=valqstr --export=valcmp \
+		--export=newtable --export=freetable --export=tableget --export=tableset --export=tableunset \
+		--export=newmap --export=freemap --export=mapget --export=mapset --export=mapunset \
+		--export=mapnext --export=mapcmp --export=mapastr \
+		--export=newvec --export=freevec --export=vecset --export=vecget --export=vecpop --export=vecpush --export=vecback --export=veccmp --export=vecastr \
+		--export=freenode --export=nodetree
 	LDLIBS:=-lc-wasm
 else
 	CPPFLAGS:=-Wno-unknown-attributes $(CPPFLAGS)

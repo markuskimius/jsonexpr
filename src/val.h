@@ -90,7 +90,7 @@ double getdouble(VAL* val);
 char* getstring(VAL* val);
 VEC* getarray(VAL* val);
 MAP* getobject(VAL* val);
-FUNC* getfunct(VAL* val);
+FUNC* getfunc(VAL* val);
 
 
 #endif /* VAL_H_ */
