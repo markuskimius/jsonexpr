@@ -17,9 +17,9 @@ FRAC    ([.][0-9]+)
 EXP     ([eE][-+]?[0-9]+)
 
 %{
-#include "parse.h"
-#include "error.h"
-#include "util.h"
+#include "je_parse.h"
+#include "je_error.h"
+#include "je_util.h"
 
 #define YYCODE_INITSIZE 80
 #define YYSTR_INITSIZE 8
@@ -28,7 +28,7 @@ char** yycodeptr = NULL;
 size_t yypos = 0;
 size_t yycolumn = 1;
 char* yystrvalue = NULL;
-NODE* yyast = NULL;
+JE_NODE* yyast = NULL;
 
 #define YY_USER_ACTION                          \
     if(YY_START == INITIAL) {                   \
@@ -42,7 +42,7 @@ NODE* yyast = NULL;
     yylloc.last_pos = yypos;                    \
     yylloc.last_line = yylineno;                \
     yylloc.last_column = yycolumn;              \
-    *yycodeptr = astrcat(*yycodeptr, yytext);   \
+    *yycodeptr = je_astrcat(*yycodeptr, yytext);   \
 
 static void yynextline() {
     yycolumn = 1;
@@ -52,7 +52,7 @@ static void yynextline() {
 
 %%
 
-[ \r\t]                 ; /* Ignore whitespaces */
+[ \r\t\xc2\xa0]         ; /* Ignore whitespaces */
 [\n]                    { yynextline(); }
 "null"                  { return NULL_T; }
 "true"                  { yylval.i = 1; return BOOL_T; }
@@ -113,23 +113,23 @@ static void yynextline() {
 "|="                    { return OREQ_T; }
 "**="                   { return POWEQ_T; }
 ["]                     { BEGIN(STRING); yystrvalue = calloc(1, YYSTR_INITSIZE); }
-<STRING>[^"\\\n]+       { yystrvalue = astrcat(yystrvalue, yytext); }
-<STRING>\n              { yystrvalue = astrcat(yystrvalue, yytext); yynextline(); }
-<STRING>\\U{HEX8}       { yystrvalue = astrcat(yystrvalue, utf8str(strtoll(yytext+2, NULL, 16))); }
-<STRING>\\u{HEX4}       { yystrvalue = astrcat(yystrvalue, utf8str(strtoll(yytext+2, NULL, 16))); }
-<STRING>\\x{HEX2}       { yystrvalue = astrcat(yystrvalue, utf8str(strtoll(yytext+2, NULL, 16))); }
-<STRING>\\X{HEX2}       { yystrvalue = astrcat(yystrvalue, utf8str(strtoll(yytext+2, NULL, 16))); }
-<STRING>\\[\"]          { yystrvalue = astrcat(yystrvalue, "\""); }
-<STRING>\\\\            { yystrvalue = astrcat(yystrvalue, "\\"); }
-<STRING>\\[/]           { yystrvalue = astrcat(yystrvalue, "/");  }
-<STRING>\\b             { yystrvalue = astrcat(yystrvalue, "\b"); }
-<STRING>\\f             { yystrvalue = astrcat(yystrvalue, "\f"); }
-<STRING>\\n             { yystrvalue = astrcat(yystrvalue, "\n"); }
-<STRING>\\r             { yystrvalue = astrcat(yystrvalue, "\r"); }
-<STRING>\\t             { yystrvalue = astrcat(yystrvalue, "\t"); }
+<STRING>[^"\\\n]+       { yystrvalue = je_astrcat(yystrvalue, yytext); }
+<STRING>\n              { yystrvalue = je_astrcat(yystrvalue, yytext); yynextline(); }
+<STRING>\\U{HEX8}       { yystrvalue = je_astrcat(yystrvalue, je_utf8str(strtoll(yytext+2, NULL, 16))); }
+<STRING>\\u{HEX4}       { yystrvalue = je_astrcat(yystrvalue, je_utf8str(strtoll(yytext+2, NULL, 16))); }
+<STRING>\\x{HEX2}       { yystrvalue = je_astrcat(yystrvalue, je_utf8str(strtoll(yytext+2, NULL, 16))); }
+<STRING>\\X{HEX2}       { yystrvalue = je_astrcat(yystrvalue, je_utf8str(strtoll(yytext+2, NULL, 16))); }
+<STRING>\\[\"]          { yystrvalue = je_astrcat(yystrvalue, "\""); }
+<STRING>\\\\            { yystrvalue = je_astrcat(yystrvalue, "\\"); }
+<STRING>\\[/]           { yystrvalue = je_astrcat(yystrvalue, "/");  }
+<STRING>\\b             { yystrvalue = je_astrcat(yystrvalue, "\b"); }
+<STRING>\\f             { yystrvalue = je_astrcat(yystrvalue, "\f"); }
+<STRING>\\n             { yystrvalue = je_astrcat(yystrvalue, "\n"); }
+<STRING>\\r             { yystrvalue = je_astrcat(yystrvalue, "\r"); }
+<STRING>\\t             { yystrvalue = je_astrcat(yystrvalue, "\t"); }
 <STRING>\\\n            { yynextline(); }
-<STRING>\\              { ParseError(&yylloc, "String with a bad backslash sequence"); return BAD_T; }
-<STRING><<EOF>>         { ParseError(&yylloc, "String with a missing terminating quote"); return BAD_T; }
+<STRING>\\              { JeParseError(&yylloc, "String with a bad backslash sequence"); return BAD_T; }
+<STRING><<EOF>>         { JeParseError(&yylloc, "String with a missing terminating quote"); return BAD_T; }
 <STRING>\"              { BEGIN(INITIAL); yylval.s = yystrvalue; return STRING_T; }
 "#"                     { BEGIN(COMMENT); }
 <COMMENT>.              ;
@@ -138,12 +138,12 @@ static void yynextline() {
 <COMMENT2>.             ;
 <COMMENT2>\n            { yynextline(); }
 <COMMENT2>"*/"          { BEGIN(INITIAL); }
-<COMMENT2><<EOF>>       { ParseError(&yylloc, "Multiline-comment with a missing comment terminator"); }
-.                       { LogicError(&yylloc, "We shouldn't get here"); }
+<COMMENT2><<EOF>>       { JeParseError(&yylloc, "Multiline-comment with a missing comment terminator"); }
+.                       { JeLogicError(&yylloc, "(%d): We shouldn't get here", ((unsigned) yytext[0]) & 0xff); }
 
 %%
 
-NODE* parse(const char* code) {
+JE_NODE* je_parse(const char* code) {
     /* Initialize globals */
     yypos = 0;
     yylineno = 1;

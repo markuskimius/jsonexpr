@@ -1,23 +1,23 @@
-#ifndef PARSE_H_
-#define PARSE_H_
+#ifndef JE_PARSE_H_
+#define JE_PARSE_H_
 
-#include "parse.tab.h"
+#include "je_parse.tab.h"
 
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
 */
 
-typedef struct NODE NODE;
+typedef struct JE_NODE JE_NODE;
 
-extern NODE* yyast;
+extern JE_NODE* yyast;
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-NODE* parse(const char* code);
+JE_NODE* je_parse(const char* code);
 
 
-#endif /* PARSE_H_ */
+#endif /* JE_PARSE_H_ */

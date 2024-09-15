@@ -2,39 +2,39 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "error.h"
-#include "node.h"
-#include "util.h"
+#include "je_error.h"
+#include "je_node.h"
+#include "je_util.h"
 
 
 /* ***************************************************************************
 * GLOBALS
 */
 
-char* throwText = NULL;
+char* je_throwText = NULL;
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-void _die(const char* file, const char* func, size_t line, const char* format, ...) {
+void _je_die(const char* file, const char* func, size_t line, const char* format, ...) {
     va_list ap;
 
-    if(throwText) free(throwText);
+    if(je_throwText) free(je_throwText);
 
     va_start(ap, format);
-    vasprintf(&throwText, format, ap);
+    vasprintf(&je_throwText, format, ap);
     va_end(ap);
 
-    fprintf(stderr, "%s line %zu in %s(): %s\n", file, line, func, throwText);
+    fprintf(stderr, "%s line %zu in %s(): %s\n", file, line, func, je_throwText);
     exit(1);
 }
 
 
-void throw(const char* type, YYLTYPE* loc, const char* format, ...) {
+void je_throw(const char* type, YYLTYPE* loc, const char* format, ...) {
     va_list ap;
-    char* text = textat(loc);
+    char* text = je_textat(loc);
     char* buf;
 
     va_start(ap, format);
@@ -48,9 +48,9 @@ void throw(const char* type, YYLTYPE* loc, const char* format, ...) {
 }
 
 
-void throwx(const char* file, const char* func, size_t line, const char* type, YYLTYPE* loc, const char* format, ...) {
+void je_throwx(const char* file, const char* func, size_t line, const char* type, YYLTYPE* loc, const char* format, ...) {
     va_list ap;
-    char* text = textat(loc);
+    char* text = je_textat(loc);
     char* buf;
 
     va_start(ap, format);
@@ -64,12 +64,12 @@ void throwx(const char* file, const char* func, size_t line, const char* type, Y
 }
 
 
-void throwLater(const char* format, ...) {
+void je_throwLater(const char* format, ...) {
     va_list ap;
 
-    if(throwText) free(throwText);
+    if(je_throwText) free(je_throwText);
 
     va_start(ap, format);
-    vasprintf(&throwText, format, ap);
+    vasprintf(&je_throwText, format, ap);
     va_end(ap);
 }

@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "error.h"
-#include "util.h"
-#include "val.h"
-#include "vec.h"
+#include "je_error.h"
+#include "je_util.h"
+#include "je_val.h"
+#include "je_vec.h"
 
 
 /* ***************************************************************************
@@ -25,10 +25,10 @@
 * PUBLIC FUNCTIONS
 */
 
-VEC* newvec() {
-    VEC* vec = calloc(1, sizeof(VEC));
+JE_VEC* je_newvec() {
+    JE_VEC* vec = calloc(1, sizeof(JE_VEC));
 
-    vec->item = calloc(INITSIZE, sizeof(VAL*));
+    vec->item = calloc(INITSIZE, sizeof(JE_VAL*));
     vec->count = 1;
     vec->length = 0;
     vec->capacity = INITSIZE;
@@ -37,19 +37,19 @@ VEC* newvec() {
 }
 
 
-VEC* dupvec(VEC* vec) {
+JE_VEC* je_dupvec(JE_VEC* vec) {
     vec->count++;
 
     return vec;
 }
 
 
-void freevec(VEC* vec) {
+void je_freevec(JE_VEC* vec) {
     vec->count--;
 
     if(vec->count == 0) {
         for(size_t i=0; i<vec->length; i++) {
-            freeval(vec->item[i]);
+            je_freeval(vec->item[i]);
         }
 
         if(vec->item) free(vec->item);
@@ -62,18 +62,18 @@ void freevec(VEC* vec) {
 }
 
 
-int vecset(VEC* vec, size_t index, VAL* item) {
+int je_vecset(JE_VEC* vec, size_t index, JE_VAL* item) {
     int isok = 1;
 
     if(index == vec->length) {
-        vecpush(vec, item);
+        je_vecpush(vec, item);
     }
     else if(index < vec->length) {
-        freeval(vec->item[index]);
+        je_freeval(vec->item[index]);
         vec->item[index] = item;
     }
     else {
-        throwLater("Insert to invalid index %zd (max %zd)", index, vec->length);
+        je_throwLater("Insert to invalid index %zd (max %zd)", index, vec->length);
         isok = 0;
     }
 
@@ -81,18 +81,18 @@ int vecset(VEC* vec, size_t index, VAL* item) {
 }
 
 
-void vecpop(VEC* vec) {
+void je_vecpop(JE_VEC* vec) {
     if(vec->length) {
-        freeval(vec->item[vec->length-1]);
+        je_freeval(vec->item[vec->length-1]);
         vec->length--;
     }
 }
 
 
-void vecpush(VEC* vec, VAL* item) {
+void je_vecpush(JE_VEC* vec, JE_VAL* item) {
     /* Allocate more memory if needed */
     if(vec->length >= vec->capacity) {
-        vec->item = realloc(vec->item, vec->capacity*2 * sizeof(VAL*));
+        vec->item = realloc(vec->item, vec->capacity*2 * sizeof(JE_VAL*));
         vec->capacity *= 2;
     }
 
@@ -102,8 +102,8 @@ void vecpush(VEC* vec, VAL* item) {
 }
 
 
-VAL* vecget(VEC* vec, size_t index) {
-    VAL* item = NULL;
+JE_VAL* je_vecget(JE_VEC* vec, size_t index) {
+    JE_VAL* item = NULL;
 
     if(index < vec->length) {
         item = vec->item[index];
@@ -113,8 +113,8 @@ VAL* vecget(VEC* vec, size_t index) {
 }
 
 
-VAL* vecback(VEC* vec) {
-    VAL* item = NULL;
+JE_VAL* je_vecback(JE_VEC* vec) {
+    JE_VAL* item = NULL;
 
     if(vec->length) item = vec->item[vec->length-1];
 
@@ -122,12 +122,12 @@ VAL* vecback(VEC* vec) {
 }
 
 
-int veccmp(VEC* vec1, VEC* vec2) {
+int je_veccmp(JE_VEC* vec1, JE_VEC* vec2) {
     size_t len = MAX(vec1->length, vec2->length);
     int cmp = 0;
 
     for(size_t i=0; i<len; i++) {
-        if     (i<vec1->length && i<vec2->length) cmp = valcmp(vec1->item[i], vec2->item[i]);
+        if     (i<vec1->length && i<vec2->length) cmp = je_valcmp(vec1->item[i], vec2->item[i]);
         else if(i<vec1->length)                   cmp = 1;
         else                                      cmp = -1;
 
@@ -138,7 +138,7 @@ int veccmp(VEC* vec1, VEC* vec2) {
 }
 
 
-char* vecastr(VEC* vec) {
+char* je_vecastr(JE_VEC* vec) {
     char* str = calloc(1, strlen("[  ]")+1);
 
     /* Opening bracket */
@@ -146,13 +146,13 @@ char* vecastr(VEC* vec) {
 
     /* Items */
     for(size_t i=0; i<vec->length; i++) {
-        if(i > 0) str = astrcat(str, ",");
-        str = astrcat(str, " ");
-        str = astrcat(str, valqstr(vec->item[i]));
+        if(i > 0) str = je_astrcat(str, ",");
+        str = je_astrcat(str, " ");
+        str = je_astrcat(str, je_valqstr(vec->item[i]));
     }
 
     /* Closing bracket */
-    str = astrcat(str, " ]");
+    str = je_astrcat(str, " ]");
 
     return str;
 }
@@ -162,17 +162,17 @@ char* vecastr(VEC* vec) {
 * TEST FUNCTIONS
 */
 
-void _testvec() {
-    VEC* vec = newvec();
+void _je_testvec() {
+    JE_VEC* vec = je_newvec();
 
-    vecpush(vec, strval("Hello, world!"));
-    vecpush(vec, strval("Bye, world!"));
+    je_vecpush(vec, je_strval("Hello, world!"));
+    je_vecpush(vec, je_strval("Bye, world!"));
 
     for(int i=0; i<vec->length; i++) {
-        VAL* val = vec->item[i];
+        JE_VAL* val = vec->item[i];
 
         printf("%s\n", val->value.s);
     }
 
-    freevec(vec);
+    je_freevec(vec);
 }

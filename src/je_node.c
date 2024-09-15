@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "node.h"
-#include "util.h"
+#include "je_node.h"
+#include "je_util.h"
 
 
 /* ***************************************************************************
@@ -18,7 +18,7 @@
 * GLOBALS
 */
 
-static char NODENAMEL[NULL_N][NAMEMAX];
+static char NODENAMEL[JE_NULL_N][NAMEMAX];
 
 static char* NODENAMEH[] = {
     "NULL_N",
@@ -69,8 +69,8 @@ static char* NODENAMEH[] = {
 * PUBLIC FUNCTIONS
 */
 
-NODE* newnode(int type, NODE* left, NODE* right, NODE* righter, YYLTYPE* loc) {
-    NODE* node = calloc(1, sizeof(NODE));
+JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, YYLTYPE* loc) {
+    JE_NODE* node = calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->left = left;
@@ -82,8 +82,8 @@ NODE* newnode(int type, NODE* left, NODE* right, NODE* righter, YYLTYPE* loc) {
 }
 
 
-NODE* newinode(int type, int64_t i, YYLTYPE* loc) {
-    NODE* node = calloc(1, sizeof(NODE));
+JE_NODE* je_newinode(int type, int64_t i, YYLTYPE* loc) {
+    JE_NODE* node = calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.i = i;
@@ -93,8 +93,8 @@ NODE* newinode(int type, int64_t i, YYLTYPE* loc) {
 }
 
 
-NODE* newfnode(int type, double f, YYLTYPE* loc) {
-    NODE* node = calloc(1, sizeof(NODE));
+JE_NODE* je_newfnode(int type, double f, YYLTYPE* loc) {
+    JE_NODE* node = calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.f = f;
@@ -104,8 +104,8 @@ NODE* newfnode(int type, double f, YYLTYPE* loc) {
 }
 
 
-NODE* newsnode(int type, char* s, YYLTYPE* loc) {
-    NODE* node = calloc(1, sizeof(NODE));
+JE_NODE* je_newsnode(int type, char* s, YYLTYPE* loc) {
+    JE_NODE* node = calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.s = s;
@@ -115,12 +115,12 @@ NODE* newsnode(int type, char* s, YYLTYPE* loc) {
 }
 
 
-void freenode(NODE* node) {
-    if(node->left) freenode(node->left);
-    if(node->right) freenode(node->right);
-    if(node->righter) freenode(node->righter);
+void je_freenode(JE_NODE* node) {
+    if(node->left) je_freenode(node->left);
+    if(node->right) je_freenode(node->right);
+    if(node->righter) je_freenode(node->righter);
 
-    if(node->type == IDENT_N || node->type == STRING_N) {
+    if(node->type == JE_IDENT_N || node->type == JE_STRING_N) {
         free(node->value.s);
     }
 
@@ -133,7 +133,7 @@ void freenode(NODE* node) {
 }
 
 
-char* nodetree(NODE* node) {
+char* je_nodetree(JE_NODE* node) {
     char* left = NULL;
     char* right = NULL;
     char* value = NULL;
@@ -142,20 +142,20 @@ char* nodetree(NODE* node) {
     char* np;
 
     /* Get the values */
-    if(node->left) left = nodetree(node->left);
-    if(node->right) right = nodetree(node->right);
-    if(!left && !right) value = textat(&node->loc);
+    if(node->left) left = je_nodetree(node->left);
+    if(node->right) right = je_nodetree(node->right);
+    if(!left && !right) value = je_textat(&node->loc);
 
     /* This node */
-    if(value) asprintf(&tree, "%s(%s) at %p\n", nodetype(node), value, node);
-    else      asprintf(&tree, "%s at %p\n", nodetype(node), node);
+    if(value) asprintf(&tree, "%s(%s) at %p\n", je_nodetype(node), value, node);
+    else      asprintf(&tree, "%s at %p\n", je_nodetype(node), node);
 
     /* Children */
     if(left) {
         for(cp=left, np=strchr(cp,'\n'); np; cp=np+1, np=strchr(cp,'\n')) {
             *np = '\0';
 
-            tree = casprintf(tree,
+            tree = je_casprintf(tree,
                 "%s %s\n",
                 (cp == left ? "+-" : right ? "| " : "  "), cp
             );
@@ -166,7 +166,7 @@ char* nodetree(NODE* node) {
         for(cp=right, np=strchr(cp,'\n'); np; cp=np+1, np=strchr(cp,'\n')) {
             *np = '\0';
 
-            tree = casprintf(tree,
+            tree = je_casprintf(tree,
                 "%s %s\n",
                 (cp == right ? "+-" : "  "), cp
             );
@@ -182,7 +182,7 @@ char* nodetree(NODE* node) {
 }
 
 
-const char* nodetype(NODE* node) {
+const char* je_nodetype(JE_NODE* node) {
     int type = node->type;
     char* name = NULL;
 
@@ -190,8 +190,8 @@ const char* nodetype(NODE* node) {
         snprintf(NODENAMEL[type], NAMEMAX, "%c", type);
         name = NODENAMEL[type];
     }
-    else if(NULL_N <= type && type < MAX_N) {
-        name = NODENAMEH[type-NULL_N];
+    else if(JE_NULL_N <= type && type < JE_MAX_N) {
+        name = NODENAMEH[type-JE_NULL_N];
     }
     else {
         asprintf(&name, "(%x)", type);   /* FIXME - Memory leak */

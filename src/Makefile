@@ -1,88 +1,136 @@
 CC:=clang
-CPPFLAGS:=-g
+CPPFLAGS:=-g -O3
 
-ifeq ($(findstring wasm,$(TARGET)),wasm)
-	LD:=wasm-ld
+ifeq ($(findstring wasm,$(HOST)),wasm)
 	PREFIX:=/opt/wasm
-	CPPFLAGS:=-I$(PREFIX)/include --target=wasm32 -nostdlib $(CPPFLAGS)
-	LDFLAGS:=-L$(PREFIX)/lib --export=parse --export=eval \
-		--export=nullval --export=boolval --export=intval --export=dblval --export=strval --export=arrval --export=objval --export=freeval \
-		--export=gettype --export=getint64 --export=getdouble --export=getstring --export=getarray --export=getobject --export=getfunc \
-		--export=valtype --export=valtrue --export=valstr --export=valqstr --export=valcmp \
-		--export=newtable --export=freetable --export=tableget --export=tableset --export=tableunset \
-		--export=newmap --export=freemap --export=mapget --export=mapset --export=mapunset \
-		--export=mapnext --export=mapcmp --export=mapastr \
-		--export=newvec --export=freevec --export=vecset --export=vecget --export=vecpop --export=vecpush --export=vecback --export=veccmp --export=vecastr \
-		--export=freenode --export=nodetree
+	BUILDDIR:=./build/wasm
+	BINARY:=$(BUILDDIR)/je.wasm
+	MODE:=644
+
+	EPREFIX:=$(PREFIX)
+	BINDIR:=$(EPREFIX)/bin
+	LIBDIR:=$(EPREFIX)/lib
+	INCLUDEDIR:=$(PREFIX)/include
+
+	LD:=wasm-ld
+	CPPFLAGS:=-I$(INCLUDEDIR) --target=wasm32 -nostdlib $(CPPFLAGS)
+	LDFLAGS:=-L$(LIBDIR) --export=je_parse --export=je_eval                                                                                                        \
+		--export=je_nullval --export=je_boolval --export=je_intval --export=je_dblval --export=je_strval --export=je_arrval --export=je_objval --export=je_freeval \
+		--export=je_gettype --export=je_getint64 --export=je_getdouble --export=je_getstring --export=je_getarray --export=je_getobject --export=je_getfunc        \
+		--export=je_valtype --export=je_valtrue --export=je_valstr --export=je_valqstr --export=je_valcmp                                                          \
+		--export=je_newtable --export=je_freetable --export=je_tableget --export=je_tableset --export=je_tableunset                                                \
+		--export=je_newmap --export=je_freemap --export=je_mapget --export=je_mapset --export=je_mapunset                                                          \
+		--export=je_mapnext --export=je_mapcmp --export=je_mapastr                                                                                                 \
+		--export=je_newvec --export=je_freevec --export=je_vecset --export=je_vecget --export=je_vecpop --export=je_vecpush --export=je_vecback --export=je_veccmp --export=je_vecastr \
+		--export=je_freenode --export=je_nodetree
 	LDLIBS:=-lc-wasm
 else
+	PREFIX:=..
+	BUILDDIR:=.
+	BINARY:=$(BUILDDIR)/je
+	MODE:=755
+
+	EPREFIX:=$(PREFIX)
+	BINDIR:=$(EPREFIX)/bin
+	LIBDIR:=$(EPREFIX)/lib
+	INCLUDEDIR:=$(PREFIX)/include
+
 	CPPFLAGS:=-Wno-unknown-attributes $(CPPFLAGS)
-	LDLIBS:=-lm
+	LDFLAGS:=-L$(BUILDDIR)
+	LDLIBS:=-lm -lje
 endif
 
 
 ##############################################################################
 # PHONIES
 
-.PHONY: all c wasm clean
+.PHONY: all clean setup install uninstall wasm wasm-clean
 
-c:
-	make TARGET:=c je
+all: setup $(BINARY)
 
-wasm:
-	make TARGET=wasm je.wasm
+setup:
+	install -m 755 -d $(BUILDDIR)
 
 clean:
-	$(RM) je.wasm je *.o *.output *.tab.c *.tab.h *.yy.c
+	$(RM) $(BINARY) $(BUILDDIR)/libje.a $(BUILDDIR)/*.o *.output *.tab.c *.tab.h *.yy.c
+	rmdir -p $(BUILDDIR) || true
+
+install: all
+	install -m 755 -d $(BINDIR)
+	install -m $(MODE) $(BINARY) $(BINDIR)
+
+uninstall:
+	$(RM) $(BINDIR)/$(BINARY)
+	rmdir -p $(BINDIR) || true
+
+wasm:
+	make HOST=wasm all
+
+wasm-clean:
+	make HOST=wasm clean
+
+
+##############################################################################
+# RULES
+
+$(BUILDDIR)/%.o: %.c
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 
 ##############################################################################
 # MAIN
 
-je.wasm: builtin.o error.o eval.o func.o main.o map.o node.o oper.o symtbl.o util.o val.o vec.o parse.tab.o lex.yy.o
-	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
-
-je: builtin.o error.o eval.o func.o main.o map.o node.o oper.o symtbl.o util.o val.o vec.o parse.tab.o lex.yy.o
+$(BUILDDIR)/je: $(BUILDDIR)/libje.a
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-builtin.o: builtin.c builtin.h error.h eval.h func.h map.h val.h vec.h node.h symtbl.h util.h
+$(BUILDDIR)/je.wasm: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o $(BUILDDIR)/je_main.o      \
+		$(BUILDDIR)/je_map.o $(BUILDDIR)/je_node.o $(BUILDDIR)/je_oper.o $(BUILDDIR)/je_symtbl.o $(BUILDDIR)/je_util.o $(BUILDDIR)/je_val.o \
+		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.yy.o
+	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
-error.o: error.c error.h node.h util.h
+$(BUILDDIR)/libje.a: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o $(BUILDDIR)/je_main.o      \
+		$(BUILDDIR)/je_map.o $(BUILDDIR)/je_node.o $(BUILDDIR)/je_oper.o $(BUILDDIR)/je_symtbl.o $(BUILDDIR)/je_util.o $(BUILDDIR)/je_val.o \
+		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.yy.o
+	llvm-ar rcs $@ $^
 
-eval.o: eval.c builtin.h error.h eval.h func.h map.h node.h oper.h symtbl.h val.h vec.h
+$(BUILDDIR)/je_builtin.o: je_builtin.c je_builtin.h je_error.h je_eval.h je_func.h je_map.h je_val.h je_vec.h je_node.h je_symtbl.h je_util.h
 
-func.o: func.c error.h eval.h func.h symtbl.h val.h vec.h node.h map.h
+$(BUILDDIR)/je_error.o: je_error.c je_error.h je_node.h je_util.h
 
-main.o: main.c eval.h node.h parse.h val.h
+$(BUILDDIR)/je_eval.o: je_eval.c je_builtin.h je_error.h je_eval.h je_func.h je_map.h je_node.h je_oper.h je_symtbl.h je_val.h je_vec.h
 
-map.o: map.c map.h util.h val.h
+$(BUILDDIR)/je_func.o: je_func.c je_error.h je_eval.h je_func.h je_symtbl.h je_val.h je_vec.h je_node.h je_map.h
 
-node.o: node.c node.h util.h
+$(BUILDDIR)/je_main.o: je_main.c je_eval.h je_node.h je_parse.h je_val.h
 
-oper.o: oper.c eval.h oper.h val.h
+$(BUILDDIR)/je_map.o: je_map.c je_map.h je_util.h je_val.h
 
-symtbl.o: symtbl.c builtin.h map.h symtbl.h val.h
+$(BUILDDIR)/je_node.o: je_node.c je_node.h je_util.h
 
-util.o: util.c parse.h util.h
+$(BUILDDIR)/je_oper.o: je_oper.c je_eval.h je_oper.h je_val.h
 
-val.o: val.c error.h func.h map.h util.h val.h vec.h
+$(BUILDDIR)/je_symtbl.o: je_symtbl.c je_builtin.h je_map.h je_symtbl.h je_val.h
 
-vec.o: vec.c error.h util.h val.h vec.h
+$(BUILDDIR)/je_util.o: je_util.c je_parse.h je_util.h
 
-parse.tab.o: parse.tab.c parse.tab.h node.h parse.h error.h val.h
+$(BUILDDIR)/je_val.o: je_val.c je_error.h je_func.h je_map.h je_util.h je_val.h je_vec.h
 
-lex.yy.o: lex.yy.c parse.h error.h util.h
+$(BUILDDIR)/je_vec.o: je_vec.c je_error.h je_util.h je_val.h je_vec.h
 
-parse.tab.c parse.tab.h: parse.y
+$(BUILDDIR)/je_parse.tab.o: je_parse.tab.c je_parse.tab.h je_node.h je_parse.h je_error.h je_val.h
+
+$(BUILDDIR)/je_lex.yy.o: lex.yy.c je_parse.h je_error.h je_util.h
+
+je_parse.tab.c je_parse.tab.h: je_parse.y
 	bison -t -v -d $<
 
-lex.yy.c: parse.l
+lex.yy.c: je_parse.l
 	flex $<
 
-parse.h: parse.tab.h
+je_parse.h: je_parse.tab.h
 	touch $@
 
-node.h: parse.h
+je_node.h: je_parse.h
 	touch $@
 
 

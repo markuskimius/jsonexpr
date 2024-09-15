@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parse.h"
-#include "util.h"
+#include "je_parse.h"
+#include "je_util.h"
 
 
 /* ***************************************************************************
@@ -31,7 +31,7 @@ char utf8buf[8];
 * sequence is allocated globally and overwritten on subsequent calls to the
 * function.
 */
-char* utf8str(uint32_t c) {
+char* je_utf8str(uint32_t c) {
     char* cp = utf8buf;
 
     if     (c <   0x0080) { *cp++ = c; }
@@ -46,7 +46,7 @@ char* utf8str(uint32_t c) {
 }
 
 
-char* astri64(int64_t src) {
+char* je_astri64(int64_t src) {
     char* dest = calloc(1, IBUFSIZE);
 
     snprintf(dest, IBUFSIZE, "%lld", (unsigned long long) src);
@@ -55,7 +55,7 @@ char* astri64(int64_t src) {
 }
 
 
-char* astrf64(double src) {
+char* je_astrf64(double src) {
     char* dest = calloc(1, DBUFSIZE);
 
     snprintf(dest, DBUFSIZE, "%lf", src);
@@ -67,7 +67,7 @@ char* astrf64(double src) {
 /**
 * Like strcat, but dest is assumed to be reallocatable.
 */
-char* astrcat(char* dest, const char* src) {
+char* je_astrcat(char* dest, const char* src) {
     size_t dlen = strlen(dest);
     size_t slen = strlen(src);
 
@@ -81,7 +81,7 @@ char* astrcat(char* dest, const char* src) {
 /**
 * Like asprintf, but append to dest and return new memory.
 */
-char* casprintf(char* dest, const char* format, ...) {
+char* je_casprintf(char* dest, const char* format, ...) {
     size_t dlen = strlen(dest);
     size_t slen = 0;
     va_list ap;
@@ -104,12 +104,12 @@ char* casprintf(char* dest, const char* format, ...) {
 }
 
 
-char* astrencode(const char* src) {
+char* je_astrencode(const char* src) {
     char* dest = calloc(1, strlen(src) + 3);
     const char* cp = src;
 
     /* Opening quote */
-    dest = astrcat(dest, "\"");
+    dest = je_astrcat(dest, "\"");
 
     /* Decode each character */
     while(*cp) {
@@ -118,29 +118,29 @@ char* astrencode(const char* src) {
         switch(*cp) {
             case '"':
             case '\\':
-                dest = astrcat(dest, "\\");
-                dest = astrcat(dest, buf);
+                dest = je_astrcat(dest, "\\");
+                dest = je_astrcat(dest, buf);
                 break;
 
-            case '\b' : buf[0] = 'b'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
-            case '\f' : buf[0] = 'f'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
-            case '\n' : buf[0] = 'n'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
-            case '\r' : buf[0] = 'r'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
-            case '\t' : buf[0] = 't'; dest = astrcat(dest, "\\"); dest = astrcat(dest, buf); break;
-            default   : dest = astrcat(dest, buf); break;
+            case '\b' : buf[0] = 'b'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
+            case '\f' : buf[0] = 'f'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
+            case '\n' : buf[0] = 'n'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
+            case '\r' : buf[0] = 'r'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
+            case '\t' : buf[0] = 't'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
+            default   : dest = je_astrcat(dest, buf); break;
         }
 
         cp++;
     }
 
     /* Closing quote */
-    dest = astrcat(dest, "\"");
+    dest = je_astrcat(dest, "\"");
 
     return dest;
 }
 
 
-char* textat(YYLTYPE* loc) {
+char* je_textat(YYLTYPE* loc) {
     size_t length = loc->last_pos - loc->first_pos + 1;
     char* code = *loc->codeptr;
     char* buf = malloc(length);;

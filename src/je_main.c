@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "eval.h"
-#include "node.h"
-#include "parse.h"
-#include "val.h"
+#include "je_eval.h"
+#include "je_node.h"
+#include "je_parse.h"
+#include "je_val.h"
 
 
 /* ***************************************************************************
@@ -73,19 +73,19 @@ int doMyFdThing(int fd) {
 
 
 int doMyCodeThing(const char* code) {
-    NODE* ast = parse(code);
-    VAL* result = eval(ast, NULL);
+    JE_NODE* ast = je_parse(code);
+    JE_VAL* result = je_eval(ast, NULL);
 
     /*
-    char* tree = nodetree(ast);
+    char* tree = je_nodetree(ast);
     printf("%s\n", tree);
     free(tree);
     */
 
-    // printf("%s\n", valqstr(result));
+    // printf("%s\n", je_valqstr(result));
 
-    freeval(result);
-    freenode(ast);
+    je_freeval(result);
+    je_freenode(ast);
 
     return 0;
 }
