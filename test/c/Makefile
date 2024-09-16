@@ -2,7 +2,7 @@ CC:=clang
 BINARIES:=test
 CFLAGS:=-I../../include
 LDFLAGS:=-L../../lib
-LDLIBS:=-lje
+LDLIBS:=-lje -lm
 
 
 ##############################################################################
