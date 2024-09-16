@@ -10,7 +10,7 @@
 */
 
 typedef struct JE_VAL JE_VAL;
-typedef struct YYLTYPE YYLTYPE;
+typedef struct JE_YYLTYPE JE_YYLTYPE;
 
 
 /* ***************************************************************************
@@ -77,7 +77,7 @@ typedef struct JE_NODE {
         double f;
         char* s;
     } value;
-    struct YYLTYPE loc;
+    struct JE_YYLTYPE loc;
 } JE_NODE;
 
 
@@ -85,10 +85,10 @@ typedef struct JE_NODE {
 * PUBLIC FUNCTIONS
 */
 
-JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, YYLTYPE* loc);
-JE_NODE* je_newinode(int type, int64_t i, YYLTYPE* loc);
-JE_NODE* je_newfnode(int type, double f, YYLTYPE* loc);
-JE_NODE* je_newsnode(int type, char* s, YYLTYPE* loc);
+JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, JE_YYLTYPE* loc);
+JE_NODE* je_newinode(int type, int64_t i, JE_YYLTYPE* loc);
+JE_NODE* je_newfnode(int type, double f, JE_YYLTYPE* loc);
+JE_NODE* je_newsnode(int type, char* s, JE_YYLTYPE* loc);
 void je_freenode(JE_NODE* node);
 
 char* je_nodetree(JE_NODE* node);

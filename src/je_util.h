@@ -8,7 +8,7 @@
 * FORWARD DECLARATIONS
 */
 
-typedef struct YYLTYPE YYLTYPE;
+typedef struct JE_YYLTYPE JE_YYLTYPE;
 
 
 /* ***************************************************************************
@@ -21,7 +21,7 @@ char* je_astrf64(double src);
 char* je_astrcat(char* dest, const char* src);
 char* je_casprintf(char* dest, const char* format, ...);
 char* je_astrencode(const char* src);
-char* je_textat(YYLTYPE* loc);
+char* je_textat(JE_YYLTYPE* loc);
 
 
 #endif /* JE_UTIL_H_ */

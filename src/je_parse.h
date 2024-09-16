@@ -10,7 +10,7 @@
 
 typedef struct JE_NODE JE_NODE;
 
-extern JE_NODE* yyast;
+extern JE_NODE* je_ast;
 
 
 /* ***************************************************************************

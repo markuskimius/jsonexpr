@@ -1,9 +1,13 @@
 *.o
 *.output
+*.swo
+*.swp
 *.tab.c
 *.tab.h
 *.wasm
-*.yy.c
-*.swp
-*.swo
+*.je_yy.c
+./bin
+./lib
+build
 je
+libje.a

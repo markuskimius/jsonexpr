@@ -6,7 +6,7 @@
 * FORWARD DECLARATIONS
 */
 
-typedef struct YYLTYPE YYLTYPE;
+typedef struct JE_YYLTYPE JE_YYLTYPE;
 
 
 /* ***************************************************************************
@@ -31,8 +31,8 @@ extern char* je_throwText;
 */
 
 void _je_die(const char* file, const char* func, size_t line, const char* format, ...);
-void je_throw(const char* type, YYLTYPE* loc, const char* format, ...);
-void je_throwx(const char* file, const char* func, size_t line, const char* type, YYLTYPE* loc, const char* format, ...);
+void je_throw(const char* type, JE_YYLTYPE* loc, const char* format, ...);
+void je_throwx(const char* file, const char* func, size_t line, const char* type, JE_YYLTYPE* loc, const char* format, ...);
 void je_throwLater(const char* format, ...);
 
 

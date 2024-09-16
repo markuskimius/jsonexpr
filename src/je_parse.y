@@ -14,9 +14,9 @@ void yyerror(const char* s) {
 %}
 
 %code requires {
-#define YYLTYPE_IS_DECLARED
+#define JE_YYLTYPE_IS_DECLARED
 
-typedef struct YYLTYPE {
+typedef struct JE_YYLTYPE {
     char** codeptr;
     size_t first_pos;
     size_t first_line;
@@ -24,27 +24,27 @@ typedef struct YYLTYPE {
     size_t last_pos;
     size_t last_line;
     size_t last_column;
-} YYLTYPE;
+} JE_YYLTYPE;
 
-#define YYLLOC_DEFAULT(Current, Rhs, N) do {                    \
-    if(N) {                                                     \
-        (Current).codeptr      = YYRHSLOC(Rhs, 1).codeptr;      \
-        (Current).first_pos    = YYRHSLOC(Rhs, 1).first_pos;    \
-        (Current).first_line   = YYRHSLOC(Rhs, 1).first_line;   \
-        (Current).first_column = YYRHSLOC(Rhs, 1).first_column; \
-        (Current).last_pos     = YYRHSLOC(Rhs, N).last_pos;     \
-        (Current).last_line    = YYRHSLOC(Rhs, N).last_line;    \
-        (Current).last_column  = YYRHSLOC(Rhs, N).last_column;  \
-    }                                                           \
-    else {                                                      \
-        (Current).codeptr      = YYRHSLOC(Rhs, 0).codeptr;      \
-        (Current).first_pos    = YYRHSLOC(Rhs, 0).first_pos;    \
-        (Current).first_line   = YYRHSLOC(Rhs, 0).first_line;   \
-        (Current).first_column = YYRHSLOC(Rhs, 0).first_column; \
-        (Current).last_pos     = YYRHSLOC(Rhs, 0).last_pos;     \
-        (Current).last_line    = YYRHSLOC(Rhs, 0).last_line;    \
-        (Current).last_column  = YYRHSLOC(Rhs, 0).last_column;  \
-    }                                                           \
+#define JE_YYLLOC_DEFAULT(Current, Rhs, N) do {                    \
+    if(N) {                                                        \
+        (Current).codeptr      = JE_YYRHSLOC(Rhs, 1).codeptr;      \
+        (Current).first_pos    = JE_YYRHSLOC(Rhs, 1).first_pos;    \
+        (Current).first_line   = JE_YYRHSLOC(Rhs, 1).first_line;   \
+        (Current).first_column = JE_YYRHSLOC(Rhs, 1).first_column; \
+        (Current).last_pos     = JE_YYRHSLOC(Rhs, N).last_pos;     \
+        (Current).last_line    = JE_YYRHSLOC(Rhs, N).last_line;    \
+        (Current).last_column  = JE_YYRHSLOC(Rhs, N).last_column;  \
+    }                                                              \
+    else {                                                         \
+        (Current).codeptr      = JE_YYRHSLOC(Rhs, 0).codeptr;      \
+        (Current).first_pos    = JE_YYRHSLOC(Rhs, 0).first_pos;    \
+        (Current).first_line   = JE_YYRHSLOC(Rhs, 0).first_line;   \
+        (Current).first_column = JE_YYRHSLOC(Rhs, 0).first_column; \
+        (Current).last_pos     = JE_YYRHSLOC(Rhs, 0).last_pos;     \
+        (Current).last_line    = JE_YYRHSLOC(Rhs, 0).last_line;    \
+        (Current).last_column  = JE_YYRHSLOC(Rhs, 0).last_column;  \
+    }                                                              \
 } while(0)
 }
 
@@ -93,8 +93,8 @@ typedef struct YYLTYPE {
 
 %%
 
-start       :                           { yyast = $$ = je_newinode(JE_NULL_N, 0, &yylloc);        }
-            | expr                      { yyast = $$ = $1;                                        }
+start       :                           { je_ast = $$ = je_newinode(JE_NULL_N, 0, &je_yylloc);       }
+            | expr                      { je_ast = $$ = $1;                                       }
             ;
 
 expr        : NULL_T                    { $$ = je_newinode(JE_NULL_N, 0, &@$);                    }

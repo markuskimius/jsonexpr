@@ -69,7 +69,7 @@ static char* NODENAMEH[] = {
 * PUBLIC FUNCTIONS
 */
 
-JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, YYLTYPE* loc) {
+JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, JE_YYLTYPE* loc) {
     JE_NODE* node = calloc(1, sizeof(JE_NODE));
 
     node->type = type;
@@ -82,7 +82,7 @@ JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, Y
 }
 
 
-JE_NODE* je_newinode(int type, int64_t i, YYLTYPE* loc) {
+JE_NODE* je_newinode(int type, int64_t i, JE_YYLTYPE* loc) {
     JE_NODE* node = calloc(1, sizeof(JE_NODE));
 
     node->type = type;
@@ -93,7 +93,7 @@ JE_NODE* je_newinode(int type, int64_t i, YYLTYPE* loc) {
 }
 
 
-JE_NODE* je_newfnode(int type, double f, YYLTYPE* loc) {
+JE_NODE* je_newfnode(int type, double f, JE_YYLTYPE* loc) {
     JE_NODE* node = calloc(1, sizeof(JE_NODE));
 
     node->type = type;
@@ -104,7 +104,7 @@ JE_NODE* je_newfnode(int type, double f, YYLTYPE* loc) {
 }
 
 
-JE_NODE* je_newsnode(int type, char* s, YYLTYPE* loc) {
+JE_NODE* je_newsnode(int type, char* s, JE_YYLTYPE* loc) {
     JE_NODE* node = calloc(1, sizeof(JE_NODE));
 
     node->type = type;

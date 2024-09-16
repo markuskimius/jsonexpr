@@ -4,16 +4,16 @@ CPPFLAGS:=-g -O3
 ifeq ($(findstring wasm,$(HOST)),wasm)
 	PREFIX:=/opt/wasm
 	BUILDDIR:=./build/wasm
-	BINARY:=$(BUILDDIR)/je.wasm
-	MODE:=644
+	BINARY:=je.wasm
+	ARCHIVE:=je.wasm
 
 	EPREFIX:=$(PREFIX)
 	BINDIR:=$(EPREFIX)/bin
 	LIBDIR:=$(EPREFIX)/lib
-	INCLUDEDIR:=$(PREFIX)/include
+	INCDIR:=$(PREFIX)/include
 
 	LD:=wasm-ld
-	CPPFLAGS:=-I$(INCLUDEDIR) --target=wasm32 -nostdlib $(CPPFLAGS)
+	CPPFLAGS:=-I$(INCDIR) --target=wasm32 -nostdlib $(CPPFLAGS)
 	LDFLAGS:=-L$(LIBDIR) --export=je_parse --export=je_eval                                                                                                        \
 		--export=je_nullval --export=je_boolval --export=je_intval --export=je_dblval --export=je_strval --export=je_arrval --export=je_objval --export=je_freeval \
 		--export=je_gettype --export=je_getint64 --export=je_getdouble --export=je_getstring --export=je_getarray --export=je_getobject --export=je_getfunc        \
@@ -26,14 +26,14 @@ ifeq ($(findstring wasm,$(HOST)),wasm)
 	LDLIBS:=-lc-wasm
 else
 	PREFIX:=..
-	BUILDDIR:=.
-	BINARY:=$(BUILDDIR)/je
-	MODE:=755
+	BUILDDIR:=./build/$(shell uname -m)
+	BINARY:=je
+	ARCHIVE:=libje.a
 
 	EPREFIX:=$(PREFIX)
 	BINDIR:=$(EPREFIX)/bin
 	LIBDIR:=$(EPREFIX)/lib
-	INCLUDEDIR:=$(PREFIX)/include
+	INCDIR:=$(PREFIX)/include/je
 
 	CPPFLAGS:=-Wno-unknown-attributes $(CPPFLAGS)
 	LDFLAGS:=-L$(BUILDDIR)
@@ -46,22 +46,36 @@ endif
 
 .PHONY: all clean setup install uninstall wasm wasm-clean
 
-all: setup $(BINARY)
+all: setup $(BUILDDIR)/$(BINARY)
 
 setup:
 	install -m 755 -d $(BUILDDIR)
 
 clean:
-	$(RM) $(BINARY) $(BUILDDIR)/libje.a $(BUILDDIR)/*.o *.output *.tab.c *.tab.h *.yy.c
-	rmdir -p $(BUILDDIR) || true
+	$(RM) $(BUILDDIR)/$(BINARY) $(BUILDDIR)/$(ARCHIVE) $(BUILDDIR)/*.o *.output *.tab.c *.tab.h *.je_yy.c
+	rmdir -p $(BUILDDIR) 2>/dev/null || true
 
 install: all
 	install -m 755 -d $(BINDIR)
-	install -m $(MODE) $(BINARY) $(BINDIR)
+	install -m 755 -d $(LIBDIR)
+	install -m 755 -d $(INCDIR)
+	install -m 755 $(BUILDDIR)/$(BINARY) $(BINDIR)
+	install -m 644 $(BUILDDIR)/$(ARCHIVE) $(LIBDIR)
+	@for i in *.h; do                         \
+		echo install -m 644 $$i $(INCDIR);    \
+		install -m 644 $$i $(INCDIR);         \
+	done
 
 uninstall:
+	@for i in *.h; do                         \
+		echo $(RM) $(INCDIR)/$$i;             \
+		$(RM) $(INCDIR)/$$i;                  \
+	done
 	$(RM) $(BINDIR)/$(BINARY)
-	rmdir -p $(BINDIR) || true
+	$(RM) $(LIBDIR)/$(ARCHIVE)
+	rmdir -p $(BINDIR) 2>/dev/null || true
+	rmdir -p $(INCDIR) 2>/dev/null || true
+	rmdir -p $(LIBDIR) 2>/dev/null || true
 
 wasm:
 	make HOST=wasm all
@@ -83,15 +97,15 @@ $(BUILDDIR)/%.o: %.c
 $(BUILDDIR)/je: $(BUILDDIR)/libje.a
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-$(BUILDDIR)/je.wasm: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o $(BUILDDIR)/je_main.o      \
-		$(BUILDDIR)/je_map.o $(BUILDDIR)/je_node.o $(BUILDDIR)/je_oper.o $(BUILDDIR)/je_symtbl.o $(BUILDDIR)/je_util.o $(BUILDDIR)/je_val.o \
-		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.yy.o
-	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
-
 $(BUILDDIR)/libje.a: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o $(BUILDDIR)/je_main.o      \
 		$(BUILDDIR)/je_map.o $(BUILDDIR)/je_node.o $(BUILDDIR)/je_oper.o $(BUILDDIR)/je_symtbl.o $(BUILDDIR)/je_util.o $(BUILDDIR)/je_val.o \
-		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.yy.o
+		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.je_yy.o
 	llvm-ar rcs $@ $^
+
+$(BUILDDIR)/je.wasm: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o $(BUILDDIR)/je_main.o      \
+		$(BUILDDIR)/je_map.o $(BUILDDIR)/je_node.o $(BUILDDIR)/je_oper.o $(BUILDDIR)/je_symtbl.o $(BUILDDIR)/je_util.o $(BUILDDIR)/je_val.o \
+		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.je_yy.o
+	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
 $(BUILDDIR)/je_builtin.o: je_builtin.c je_builtin.h je_error.h je_eval.h je_func.h je_map.h je_val.h je_vec.h je_node.h je_symtbl.h je_util.h
 
@@ -119,13 +133,13 @@ $(BUILDDIR)/je_vec.o: je_vec.c je_error.h je_util.h je_val.h je_vec.h
 
 $(BUILDDIR)/je_parse.tab.o: je_parse.tab.c je_parse.tab.h je_node.h je_parse.h je_error.h je_val.h
 
-$(BUILDDIR)/je_lex.yy.o: lex.yy.c je_parse.h je_error.h je_util.h
+$(BUILDDIR)/lex.je_yy.o: lex.je_yy.c je_parse.h je_error.h je_util.h
 
 je_parse.tab.c je_parse.tab.h: je_parse.y
-	bison -t -v -d $<
+	bison -Dapi.prefix={je_yy} -t -v -d $<
 
-lex.yy.c: je_parse.l
-	flex $<
+lex.je_yy.c: je_parse.l
+	flex -P je_yy $<
 
 je_parse.h: je_parse.tab.h
 	touch $@
