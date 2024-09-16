@@ -30,18 +30,18 @@ size_t je_yycolumn = 1;
 char* je_yystrvalue = NULL;
 JE_NODE* je_ast = NULL;
 
-#define JE_YY_USER_ACTION                        \
-    if(YY_START == INITIAL) {                   \
-        je_yylloc.codeptr = je_yycodeptr;             \
-        je_yylloc.first_pos = je_yypos;               \
-        je_yylloc.first_line = je_yylineno;           \
-        je_yylloc.first_column = je_yycolumn;         \
-    }                                           \
-    je_yypos += je_yyleng;                            \
-    je_yycolumn += je_yyleng;                         \
-    je_yylloc.last_pos = je_yypos;                    \
-    je_yylloc.last_line = je_yylineno;                \
-    je_yylloc.last_column = je_yycolumn;              \
+#define YY_USER_ACTION                                      \
+    if(YY_START == INITIAL) {                               \
+        je_yylloc.codeptr = je_yycodeptr;                   \
+        je_yylloc.first_pos = je_yypos;                     \
+        je_yylloc.first_line = je_yylineno;                 \
+        je_yylloc.first_column = je_yycolumn;               \
+    }                                                       \
+    je_yypos += je_yyleng;                                  \
+    je_yycolumn += je_yyleng;                               \
+    je_yylloc.last_pos = je_yypos;                          \
+    je_yylloc.last_line = je_yylineno;                      \
+    je_yylloc.last_column = je_yycolumn;                    \
     *je_yycodeptr = je_astrcat(*je_yycodeptr, je_yytext);   \
 
 static void je_yynextline() {

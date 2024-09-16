@@ -143,7 +143,7 @@ char* je_astrencode(const char* src) {
 char* je_textat(JE_YYLTYPE* loc) {
     size_t length = loc->last_pos - loc->first_pos + 1;
     char* code = *loc->codeptr;
-    char* buf = malloc(length);;
+    char* buf = malloc(length);
 
     snprintf(buf, length, "%s", code + loc->first_pos);
 
