@@ -77,7 +77,7 @@ typedef struct JE_NODE {
         double f;
         char* s;
     } value;
-    struct JE_YYLTYPE loc;
+    JE_YYLTYPE loc;
 } JE_NODE;
 
 
