@@ -78,7 +78,7 @@ class Compiled:
 
         self.instance.exports.free(cname)
 
-        return result is not None
+        return result != 0
     
     def __getitem__(self, name):
         jstr = self.getJson(name)
@@ -86,7 +86,7 @@ class Compiled:
         return json.loads(jstr)
     
     def __setitem__(self, name, value):
-        self.setJson(name, json.dumps(value, default=str))
+        self.setJson(name, json.dumps(value, object_hook=Object, default=str))
     
         return value
 
@@ -169,6 +169,12 @@ class Util:
 
         return addr
 
+class Object(dict):
+    pass
+
+class Array(list):
+    pass
+
 
 ##############################################################################
 # EXCEPTIONS
@@ -205,6 +211,9 @@ if __name__ == "__main__":
         });
 
         result = compiled.eval()
+        del compiled["grades"]["alice"]
+        print("hello" in compiled)
+        print("grades" in compiled)
         print(json.dumps(compiled["grades"], indent=2))
 
         # print(type(result), result)
