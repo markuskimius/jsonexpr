@@ -86,7 +86,7 @@ class Compiled:
         return json.loads(jstr)
     
     def __setitem__(self, name, value):
-        self.setJson(name, json.dumps(value, object_hook=Object, default=str))
+        self.setJson(name, json.dumps(value, default=str))
     
         return value
 
@@ -196,6 +196,7 @@ class Exit(JeException):
 
 if __name__ == "__main__":
     import sys
+    import errno
 
     def main():
         compiled = compile("""
