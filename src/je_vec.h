@@ -34,6 +34,7 @@ void je_freevec(JE_VEC* vec);
 int je_vecset(JE_VEC* vec, size_t index, JE_VAL* item);
 void je_vecpop(JE_VEC* vec);
 void je_vecpush(JE_VEC* vec, JE_VAL* item);
+void je_vecunset(JE_VEC* vec, size_t index);
 JE_VAL* je_vecget(JE_VEC* vec, size_t index);
 JE_VAL* je_vecback(JE_VEC* vec);
 

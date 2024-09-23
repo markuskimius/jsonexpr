@@ -102,6 +102,19 @@ void je_vecpush(JE_VEC* vec, JE_VAL* item) {
 }
 
 
+void je_vecunset(JE_VEC* vec, size_t index) {
+    if(index < vec->length) {
+        je_freeval(vec->item[index]);
+
+        for(size_t i=index; i<vec->length-1; i++) {
+            vec->item[i] = vec->item[i+1];
+        }
+
+        vec->length--;
+    }
+}
+
+
 JE_VAL* je_vecget(JE_VEC* vec, size_t index) {
     JE_VAL* item = NULL;
 
