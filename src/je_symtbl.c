@@ -58,6 +58,7 @@ void je_freetable(JE_SYMTBL* table) {
 
     /* Free this table if it's no longer used */
     if(table->count == 0) {
+        if(table->symval) je_freeval(table->symval);
         je_freemap(table->symbols);
         free(table);
     }
@@ -95,8 +96,14 @@ void je_tableunset(JE_SYMTBL* table, const char* name) {
 JE_VAL* je_tableget(JE_SYMTBL* table, const char* name) {
     JE_VAL* val = NULL;
 
-    if(table && !val) val = je_mapget(table->symbols, name);
-    if(table && !val) val = je_tableget(table->parent, name);
+    if(name) {
+        if(table && !val) val = je_mapget(table->symbols, name);
+        if(table && !val) val = je_tableget(table->parent, name);
+    }
+    else {
+        if(!table->symval) table->symval = je_objval(je_dupmap(table->symbols));
+        val = table->symval;
+    }
 
     return val;
 }

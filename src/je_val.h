@@ -84,13 +84,13 @@ const char* je_valtype(JE_VAL* val);
 * EXPORTED FUNCTIONS
 */
 
-int gettype(JE_VAL* val);
-int64_t getint64(JE_VAL* val);
-double getdouble(JE_VAL* val);
-char* getstring(JE_VAL* val);
-JE_VEC* getarray(JE_VAL* val);
-JE_MAP* getobject(JE_VAL* val);
-JE_FUNC* getfunc(JE_VAL* val);
+int je_gettype(JE_VAL* val);
+int64_t je_getint64(JE_VAL* val);
+double je_getdouble(JE_VAL* val);
+char* je_getstring(JE_VAL* val);
+JE_VEC* je_getarray(JE_VAL* val);
+JE_MAP* je_getobject(JE_VAL* val);
+JE_FUNC* je_getfunc(JE_VAL* val);
 
 
 #endif /* JE_VAL_H_ */

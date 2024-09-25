@@ -65,12 +65,14 @@ class Compiled:
         self.tree = self.instance.exports.je_parse(self.code)
 
     def eval(self):
-        result = self.instance.exports.je_eval(self.tree, self.symtbl)
-        cquoted = self.instance.exports.je_valqstr(result)
+        vresult = self.instance.exports.je_eval(self.tree, self.symtbl)
+        cquoted = self.instance.exports.je_valqstr(vresult)
         quoted = self.util.strat(cquoted)
-        self.instance.exports.je_freeval(result)
+        result = json_loads(quoted, self.instance, vresult)
 
-        return json.loads(quoted)
+        self.instance.exports.je_freeval(vresult)
+
+        return result
 
     def __contains__(self, name):
         cname = self.util.strdup(name)
@@ -82,21 +84,25 @@ class Compiled:
     
     def __getitem__(self, name):
         jstr = self.getJson(name)
+        cname = self.util.strdup(name)
+        symval = self.instance.exports.je_tableget(self.symtbl, cname)
 
-        return json.loads(jstr)
+        self.instance.exports.free(cname)
+
+        return json_loads(jstr, self.instance, symval)
     
     def __setitem__(self, name, value):
-        self.setJson(name, json.dumps(value, default=str))
-    
-        return value
+        self.setJson(name, json_dumps(value))
 
     def __delitem__(self, name):
         cname = self.util.strdup(name)
+
         self.instance.exports.je_tableunset(self.symtbl, cname)
+        self.instance.exports.free(cname)
 
     def setSymbols(self, symbols):
         for key,value in symbols.items():
-            self.setJson(key, json.dumps(value, default=str))
+            self.setJson(key, json_dumps(value))
 
     def setJson(self, name, jstr):
         # Verify name is an identifier
@@ -169,11 +175,123 @@ class Util:
 
         return addr
 
+def _cvalue(instance, pyvalue):
+    if   isinstance(pyvalue, bool):
+        cvalue = instance.exports.je_boolval(pyvalue)
+    elif isinstance(pyvalue, int):
+        cvalue = instance.exports.je_intval(pyvalue)
+    elif isinstance(pyvalue, float):
+        cvalue = instance.exports.je_dblval(pyvalue)
+    elif isinstance(pyvalue, list):
+        cvalue = instance.exports.je_arrval(0)
+        carray = instance.exports.je_getarray(cvalue)
+
+        for i in range(len(pyvalue)):
+            item = pyvalue[i]
+            (cval, pval) = _cvalue(instance, item)
+
+            instance.exports.je_vecpush(carray, cval)
+            pyvalue[i] = pval
+
+        pyvalue = Array(pyvalue, instance, carray)
+
+    elif isinstance(pyvalue, dict):
+        cvalue = instance.exports.je_objval(0)
+        cobject = instance.exports.je_getobject(cvalue)
+
+        with Util(instance) as util:
+            for k,v in pyvalue.items():
+                ck = util.strdup(str(k))
+                (cv, pv) = _cvalue(instance, v)
+
+                instance.exports.je_mapset(cobject, ck, cv)
+                pyvalue[k] = pv
+
+        pyvalue = Object(pyvalue, instance, cobject)
+
+    else:
+        with Util(instance) as util:
+            pyvalue = str(pyvalue)
+            cstr = util.strdup(pyvalue)
+            cvalue = instance.exports.je_strval(cstr)
+
+    return (cvalue, pyvalue)
+
 class Object(dict):
-    pass
+    def __init__(self, obj, instance, symmap):
+        super().__init__(obj)
+        self.__instance = instance
+        self.__symmap = symmap
+
+    def __setitem__(self, name, value):
+        with Util(self.__instance) as util:
+            cname = util.strdup(str(name))
+            (cvalue, pvalue) = _cvalue(self.__instance, value)
+
+            self.__instance.exports.je_mapset(self.__symmap, cname, cvalue)
+
+        return super().__setitem__(name, pvalue)
+
+    def __delitem__(self, name):
+        with Util(self.__instance) as util:
+            cname = util.strdup(name)
+
+            self.__instance.exports.je_mapunset(self.__symmap, cname)
+
+        return super().__delitem__(name)
 
 class Array(list):
-    pass
+    def __init__(self, array, instance, symvec):
+        super().__init__(array)
+        self.__instance = instance
+        self.__symvec = symvec
+
+    def __setitem__(self, index, value):
+        (cvalue, pvalue) = _cvalue(self.__instance, value)
+
+        self.__instance.exports.je_vecset(self.__symvec, index, cvalue)
+
+        return super().__setitem__(index, pvalue)
+
+    def __delitem__(self, index):
+        self.__instance.exports.je_vecunset(self.__symvec, index)
+
+        return super().__delitem__(index)
+
+
+##############################################################################
+# HELPER FUNCTIONS
+
+def json_dumps(value):
+    return json.dumps(value, default=str)
+
+def json_loads(jstr, instance, symval):
+    result = json.loads(jstr)
+
+    return _enrich(result, instance, symval);
+
+def _enrich(value, instance, symval):
+    if   isinstance(value, dict):
+        symmap = instance.exports.je_getobject(symval)
+
+        for k,v in value.items():
+            with Util(instance) as util:
+                cname = util.strdup(k)
+                csymval = instance.exports.je_mapget(symmap, cname)
+                value[k] = _enrich(v, instance, csymval)
+
+        value = Object(value, instance, symmap)
+
+    elif isinstance(value, list):
+        symvec = instance.exports.je_getarray(symval)
+
+        for i in range(len(value)):
+            csymval = instance.exports.je_vecget(symvec, i)
+            value[i] = _enrich(value[i], instance, csymval)
+
+        value = Array(value, instance, symvec)
+
+    return value
 
 
 ##############################################################################
@@ -208,14 +326,35 @@ if __name__ == "__main__":
             "grades" : {
                 "alice" : "A",
                 "bob"   : "B",
-            }
+            },
+            "nested" : {
+                "alice" : {
+                    "grade"     : [ "A", "B", "C" ],
+                    "last_name" : "Smith",
+                },
+                "bob"   : {
+                    "grade"     : "B",
+                    "last_name" : "Johnson",
+                },
+            },
         });
 
         result = compiled.eval()
-        del compiled["grades"]["alice"]
-        print("hello" in compiled)
-        print("grades" in compiled)
-        print(json.dumps(compiled["grades"], indent=2))
+
+        # compiled["nested"]["alice"]["grade"] = [ 1, 3, 2 ]
+        # compiled["nested"]["alice"]["grade"][1] = {
+        #     "a" : True,
+        #     "b" : True,
+        #     "c" : False,
+        # }
+        # compiled["nested"]["alice"]["grade"][1]["b"] = "Hello!"
+        # compiled["nested"]["alice"]["grade"] = {
+        #     "a" : "b",
+        #     "c" : "d",
+        # }
+        # print("hello" in compiled)
+        # print("grades" in compiled)
+        print(json.dumps(compiled["nested"], indent=2))
 
         # print(type(result), result)
 
