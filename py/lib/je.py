@@ -327,16 +327,16 @@ if __name__ == "__main__":
                 "alice" : "A",
                 "bob"   : "B",
             },
-            "nested" : {
-                "alice" : {
-                    "grade"     : [ "A", "B", "C" ],
-                    "last_name" : "Smith",
-                },
-                "bob"   : {
-                    "grade"     : "B",
-                    "last_name" : "Johnson",
-                },
-            },
+        #     "nested" : {
+        #         "alice" : {
+        #             "grade"     : [ "A", "B", "C" ],
+        #             "last_name" : "Smith",
+        #         },
+        #         "bob"   : {
+        #             "grade"     : "B",
+        #             "last_name" : "Johnson",
+        #         },
+        #     },
         });
 
         result = compiled.eval()
@@ -354,7 +354,7 @@ if __name__ == "__main__":
         # }
         # print("hello" in compiled)
         # print("grades" in compiled)
-        print(json.dumps(compiled["nested"], indent=2))
+        print(json.dumps(compiled["grades"], indent=2))
 
         # print(type(result), result)
 
