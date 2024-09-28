@@ -13,11 +13,6 @@ import wasmer_compiler_cranelift
 ##############################################################################
 # PUBLIC FUNCTIONS
 
-def evalfd(fd, symbols=None):
-    code = fd.read()
-
-    return eval(code, symbols)
-
 def eval(code, symbols=None):
     compiled = compile(str(code)) 
 
@@ -26,13 +21,18 @@ def eval(code, symbols=None):
 
     return compiled.eval()
 
+def evalfd(fd, symbols=None):
+    code = fd.read()
+
+    return eval(code, symbols)
+
+def compile(code):
+    return Compiled(code)
+
 def compilefd(fd):
     code = fd.read()
 
     return compile(code)
-
-def compile(code):
-    return Compiled(code)
 
 
 ##############################################################################
@@ -78,7 +78,7 @@ class Compiled:
         cname = self.util.strdup(name)
         result = self.instance.exports.je_tableget(self.symtbl, cname)
 
-        self.instance.exports.free(cname)
+        self.util.free(cname)
 
         return result != 0
     
@@ -87,7 +87,7 @@ class Compiled:
         cname = self.util.strdup(name)
         symval = self.instance.exports.je_tableget(self.symtbl, cname)
 
-        self.instance.exports.free(cname)
+        self.util.free(cname)
 
         return json_loads(jstr, self.instance, symval)
     
@@ -98,7 +98,7 @@ class Compiled:
         cname = self.util.strdup(name)
 
         self.instance.exports.je_tableunset(self.symtbl, cname)
-        self.instance.exports.free(cname)
+        self.util.free(cname)
 
     def setSymbols(self, symbols):
         for key,value in symbols.items():
@@ -116,7 +116,7 @@ class Compiled:
 
         self.instance.exports.je_freenode(tree)
         self.instance.exports.je_freeval(result)
-        self.instance.exports.free(cexpr)
+        self.util.free(cexpr)
 
     def getJson(self, name):
         cname = self.util.strdup(name)
@@ -124,7 +124,7 @@ class Compiled:
         cstr = self.instance.exports.je_valqstr(result)
         jstr = self.util.strat(cstr)
 
-        self.instance.exports.free(cname)
+        self.util.free(cname)
 
         return jstr
 
@@ -174,6 +174,12 @@ class Util:
         self.allocated += [addr]
 
         return addr
+
+    def free(self, addr):
+        if addr in self.allocated:
+            self.allocated.remove(addr);
+
+        self.instance.exports.free(addr);
 
 def _cvalue(instance, pyvalue):
     if   isinstance(pyvalue, bool):
