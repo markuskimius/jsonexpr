@@ -65,9 +65,9 @@ class Compiled {
                 const instance = result.instance;
                 const iface = new Interface(instance);
                 const wcode = iface.strdup(code);
-                const wtree = instance.exports.je_parse(wcode);
-                const wsymtbl = instance.exports.je_newtable(0);
-                const wsymmap = instance.exports.je_getobject(instance.exports.je_tableget(wsymtbl,0));
+                const wtree = iface.parse(wcode);
+                const wsymtbl = iface.symnew();
+                const wsymmap = iface.valmap(iface.symget(wsymtbl,0));
 
                 this.adapter.instance = instance;
                 this.instance = instance;
@@ -88,12 +88,12 @@ class Compiled {
     }
 
     eval() {
-        const wresult = this.instance.exports.je_eval(this.wtree, this.wsymtbl);
-        const wquoted = this.instance.exports.je_valqstr(wresult);
+        const wresult = this.iface.eval(this.wtree, this.wsymtbl);
+        const wquoted = this.iface.valqstr(wresult);
         const quoted = this.iface.strat(wquoted);
         const result = json_parse(quoted, this.instance, wresult);
 
-        this.instance.exports.je_freeval(wresult)
+        this.iface.valfree(wresult)
 
         return result;
     }
@@ -184,6 +184,62 @@ class Interface {
 
         this.instance.exports.free(waddr);
     }
+
+    parse(wcode) {
+        return this.instance.exports.je_parse(wcode);
+    }
+
+    eval(wtree, wsymtbl) {
+        return this.instance.exports.je_eval(wtree, wsymtbl);
+    }
+
+    nodefree(wnode) {
+        this.instance.exports.je_freenode(wnode);
+    }
+
+    symnew() {
+        return this.instance.exports.je_newtable(0);
+    }
+
+    symget(wsymtbl, wkey) {
+        return this.instance.exports.je_tableget(wsymtbl, wkey);
+    }
+
+    mapset(wmap, wkey, wval) {
+        return this.instance.exports.je_mapset(wmap, wkey, wval);
+    }
+
+    mapget(wmap, wkey) {
+        return this.instance.exports.je_mapget(wmap, wkey);
+    }
+
+    mapkey(wmap) {
+        return this.instance.exports.je_mapkey(wmap);
+    }
+
+    mapnext(wmap) {
+        return this.instance.exports.je_mapnext(wmap);
+    }
+
+    valmap(wval) {
+        return this.instance.exports.je_getobject(wval);
+    }
+
+    valvec(wval) {
+        return this.instance.exports.je_getarray(wval);
+    }
+
+    valstr(wval) {
+        return this.instance.exports.je_valstr(wval);
+    }
+
+    valqstr(wval) {
+        return this.instance.exports.je_valqstr(wval);
+    }
+
+    valfree(wresult) {
+        this.instance.exports.je_freeval(wresult);
+    }
 }
 
 class ObjectHandler {
@@ -195,7 +251,7 @@ class ObjectHandler {
 
     has(map, name) {
         const wname = this.iface.strdup(name);
-        const wresult = this.instance.exports.je_mapget(this.wmap, wname);
+        const wresult = this.iface.mapget(this.wmap, wname);
         const result = wresult ? true : false;
 
         this.iface.free(wname);
@@ -207,8 +263,8 @@ class ObjectHandler {
         const keys = [];
         let iter = this.wmap;
 
-        while((iter = this.instance.exports.je_mapnext(iter))) {
-            const wkey = this.instance.exports.je_mapkey(iter);
+        while((iter = this.iface.mapnext(iter))) {
+            const wkey = this.iface.mapkey(iter);
             const key = this.iface.strat(wkey);
 
             keys.push(key);
@@ -226,8 +282,8 @@ class ObjectHandler {
 
     get(map, name, receiver) {
         const wname = this.iface.strdup(name);
-        const wresult = this.instance.exports.je_mapget(this.wmap, wname);
-        const wquoted = this.instance.exports.je_valqstr(wresult);
+        const wresult = this.iface.mapget(this.wmap, wname);
+        const wquoted = this.iface.valqstr(wresult);
         const quoted = this.iface.strat(wquoted);
         const result = json_parse(quoted);
 
@@ -239,12 +295,12 @@ class ObjectHandler {
     set(map, name, value, receiver) {
         const wname = this.iface.strdup(name);
         const wexpr = this.iface.strdup(json_encode(value));
-        const wtree = this.instance.exports.je_parse(wexpr);
-        const wresult = this.instance.exports.je_eval(wtree,0);
+        const wtree = this.iface.parse(wexpr);
+        const wresult = this.iface.eval(wtree,0);
 
-        this.instance.exports.je_mapset(this.wmap, wname, wresult);
+        this.iface.mapset(this.wmap, wname, wresult);
 
-        this.instance.exports.je_freenode(wtree);
+        this.iface.nodefree(wtree);
         this.iface.free(wexpr);
         this.iface.free(wname);
 
@@ -255,12 +311,12 @@ class ObjectHandler {
         if(value instanceof ObjectHandler)     { /* Pass */ }
         else if(value instanceof ArrayHandler) { /* Pass */ }
         else if(value instanceof Array) {
-            const warray = this.instance.exports.je_getarray(wvalue);
+            const warray = this.iface.valvec(wvalue);
 
             value = new Proxy(value, new ArrayHandler(this.instance, warray));
         }
         else if(value instanceof Object) {
-            const wobject = this.instance.exports.je_getobject(wvalue);
+            const wobject = this.iface.valmap(wvalue);
 
             value = new Proxy(value, new ObjectHandler(this.instance, wobject));
         }
