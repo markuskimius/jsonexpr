@@ -40,5 +40,8 @@ int je_mapcmp(JE_MAP* map1, JE_MAP* map2);
 JE_MAP* je_mapnext(JE_MAP* map);
 char* je_mapastr(JE_MAP* map);
 
+char* je_mapkey(JE_MAP* map);
+JE_VAL* je_mapval(JE_MAP* map);
+
 
 #endif /* JE_MAP_H_ */

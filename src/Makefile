@@ -20,8 +20,9 @@ ifeq ($(findstring wasm,$(HOST)),wasm)
 		--export=je_valtype --export=je_valtrue --export=je_valstr --export=je_valqstr --export=je_valcmp                                                          \
 		--export=je_newtable --export=je_freetable --export=je_tableget --export=je_tableset --export=je_tableunset                                                \
 		--export=je_newmap --export=je_freemap --export=je_mapget --export=je_mapset --export=je_mapunset                                                          \
-		--export=je_mapnext --export=je_mapcmp --export=je_mapastr                                                                                                 \
-		--export=je_newvec --export=je_freevec --export=je_vecset --export=je_vecget --export=je_vecpop --export=je_vecpush --export=je_vecunset --export=je_vecback --export=je_veccmp --export=je_vecastr \
+		--export=je_mapnext --export=je_mapcmp --export=je_mapastr --export=je_mapkey --export=je_mapval                                                           \
+		--export=je_newvec --export=je_freevec --export=je_vecset --export=je_vecget --export=je_vecpop --export=je_vecpush --export=je_vecunset                   \
+		--export=je_vecback --export=je_veccmp --export=je_vecastr --export=je_veclen                                                                              \
 		--export=je_freenode --export=je_nodetree
 	LDLIBS:=-lc-wasm
 else

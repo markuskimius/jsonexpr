@@ -40,6 +40,7 @@ JE_VAL* je_vecback(JE_VEC* vec);
 
 int je_veccmp(JE_VEC* vec1, JE_VEC* vec2);
 char* je_vecastr(JE_VEC* vec);
+size_t je_veclen(JE_VEC* vec);
 
 
 #endif /* JE_VEC_H_ */

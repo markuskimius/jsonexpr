@@ -171,6 +171,11 @@ char* je_vecastr(JE_VEC* vec) {
 }
 
 
+size_t je_veclen(JE_VEC* vec) {
+    return vec->length;
+}
+
+
 /* ***************************************************************************
 * TEST FUNCTIONS
 */

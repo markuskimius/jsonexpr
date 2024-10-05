@@ -10,7 +10,7 @@ const JE_WASM = fetch(new URL("./je.wasm", import.meta.url))
 * PUBLIC FUNCTIONS
 */
 
-async function _eval(code, symbols=null) {
+async function _eval(code, symbols={}) {
     const compiled = await compile(code);
 
     compiled.setSymbols(symbols);
@@ -80,6 +80,20 @@ class Compiled {
 
                 return instance;
             });
+    }
+
+    get(name) {
+        return this.symtbl[name];
+    }
+
+    set(name, value) {
+        this.symtbl[name] = value;
+    }
+
+    setSymbols(symbols) {
+        for(const [k,v] of Object.entries(symbols)) {
+            this.set(k, v);
+        }
     }
 
     destructor(code) {
@@ -221,6 +235,18 @@ class Interface {
         return this.instance.exports.je_mapnext(wmap);
     }
 
+    vecset(wvec, index, wval) {
+        return this.instance.exports.je_vecset(wvec, index, wval);
+    }
+
+    vecget(wvec, index) {
+        return this.instance.exports.je_vecget(wvec, index);
+    }
+
+    veclen(wvec) {
+        return this.instance.exports.je_veclen(wvec);
+    }
+
     valmap(wval) {
         return this.instance.exports.je_getobject(wval);
     }
@@ -242,11 +268,35 @@ class Interface {
     }
 }
 
-class ObjectHandler {
-    constructor(instance, wmap) {
+class HandlerBase {
+    constructor(instance) {
         this.instance = instance;
-        this.wmap = wmap;
         this.iface = new Interface(instance);
+    }
+
+    _promote(value, wvalue) {
+        if(value instanceof ObjectHandler)     { /* Pass */ }
+        else if(value instanceof ArrayHandler) { /* Pass */ }
+        else if(value instanceof Array) {
+            const warray = this.iface.valvec(wvalue);
+
+            value = new Proxy(value, new ArrayHandler(this.instance, warray));
+        }
+        else if(value instanceof Object) {
+            const wobject = this.iface.valmap(wvalue);
+
+            value = new Proxy(value, new ObjectHandler(this.instance, wobject));
+        }
+
+        return value;
+    }
+}
+
+class ObjectHandler extends HandlerBase {
+    constructor(instance, wmap) {
+        super(instance);
+
+        this.wmap = wmap;
     }
 
     has(map, name) {
@@ -289,7 +339,7 @@ class ObjectHandler {
 
         this.iface.free(wname);
 
-        return this.#promote(result, wresult);
+        return this._promote(result, wresult);
     }
 
     set(map, name, value, receiver) {
@@ -304,41 +354,45 @@ class ObjectHandler {
         this.iface.free(wexpr);
         this.iface.free(wname);
 
-        return this.#promote(value, wresult);
-    }
-
-    #promote(value, wvalue) {
-        if(value instanceof ObjectHandler)     { /* Pass */ }
-        else if(value instanceof ArrayHandler) { /* Pass */ }
-        else if(value instanceof Array) {
-            const warray = this.iface.valvec(wvalue);
-
-            value = new Proxy(value, new ArrayHandler(this.instance, warray));
-        }
-        else if(value instanceof Object) {
-            const wobject = this.iface.valmap(wvalue);
-
-            value = new Proxy(value, new ObjectHandler(this.instance, wobject));
-        }
-
-        return value;
+        return this._promote(value, wresult);
     }
 }
 
-class ArrayHandler {
+class ArrayHandler extends HandlerBase {
     constructor(instance, wvec) {
-        this.instance = instance;
+        super(instance);
+
         this.wvec = wvec;
     }
 
-    get(target, property, receiver) {
-// TODO
-        return [];
+    get(vec, property, receiver) {
+        const index = Number(property);
+
+        if(Number.isInteger(index)) {
+            const wresult = this.iface.vecget(this.wvec, index);
+            const wquoted = this.iface.valqstr(wresult);
+            const quoted = this.iface.strat(wquoted);
+            const result = json_parse(quoted);
+
+            return this._promote(result, wresult);
+        }
+
+        switch(property) {
+            case "length": return this.iface.veclen(this.wvec); break;
+        }
     }
 
-    set(target, property, value, receiver) {
-// TODO
-        return value;
+    set(vec, index, value, receiver) {
+        const wexpr = this.iface.strdup(json_encode(value));
+        const wtree = this.iface.parse(wexpr);
+        const wresult = this.iface.eval(wtree,0);
+
+        this.iface.vecset(this.wvec, index, wresult);
+
+        this.iface.nodefree(wtree);
+        this.iface.free(wexpr);
+
+        return this._promote(value, wresult);
     }
 }
 
@@ -378,23 +432,24 @@ export class SyntaxError {
 */
 
 async function main() {
-    let compiled = await compile(`PRINT(a);`);
-    let result = null;
+    const symbols = { students : [ "Alice", "Bob", "Charlie" ] };
+    const compiled = await compile(`
+        FOR(i = 0, i < LEN(students), i++,
+            note = "";
 
-    compiled.symtbl["a"] = {
-        "b" : {
-            "c" : {
-                "d" : [ 1, 2, 3, 4 ],
-            }
-        }
-    };
+            IF(students[i] == "Alice",
+                note = " (she's my favorite)"
+            );
 
-    compiled.symtbl["a"]["b"] = { "c" : { "d" : [ 2, 3, 4, 5 ] } };
-    compiled.symtbl["a"]["b"]["c"]["d"][1] = 5;
-//    console.log(Array.isArray(compiled.symtbl["a"]["b"]["c"]["d"]));
-//    console.log(compiled.symtbl["a"]["b"]["c"]["d"].length);
-    result = compiled.eval();
-//    console.log("result", JSON.stringify(result));
+            PRINT("Student #" + (i+1) + "'s name is " + students[i] + note)
+        );
+
+        LEN(students);
+    `);
+
+    compiled.setSymbols(symbols);
+
+    console.log("result =", JSON.stringify(compiled.eval()));
 }
 
 
@@ -408,4 +463,7 @@ export default {
     evalurl     : evalurl,
     compile     : compile,
     compileurl  : compileurl,
+
+    Exit        : Exit,
+    SyntaxError : SyntaxError,
 };

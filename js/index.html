@@ -13,46 +13,43 @@
     <body>
         <textarea id="code" rows="25" cols="125">
             memo = [ 0, 1 ];&#10;
-            
+
             fib = FUNCTION("?",
             &nbsp;&nbsp;x = ARG[0];&#10;
-            
+
             &nbsp;&nbsp;IF(x &gt;= LEN(memo),
             &nbsp;&nbsp;&nbsp;&nbsp;x1 = fib(x-1);
             &nbsp;&nbsp;&nbsp;&nbsp;x2 = fib(x-2);&#10;
-            
+
             &nbsp;&nbsp;&nbsp;&nbsp;memo[x] = x1 + x2
             &nbsp;&nbsp;);&#10;
-            
+
             &nbsp;&nbsp;memo[x]
             );&#10;
-            
+
             PRINT(fib(20));
         </textarea>
         <div><button id="runButton">Run</button></div>
 
         <script type="module">
-            import { JsonExpr, WasmExit } from "./lib/je.js";
+            import je from "./lib/jsonexpr.js";
 
             function main() {
-                const je = new JsonExpr("./lib/je.wasm");
+                document.querySelector("#runButton").addEventListener("click", async () => {
+                    const code = document.querySelector("#code").value;
 
-                je.then(() => {
-                    document.querySelector("#runButton").addEventListener("click", () => {
-                        const code = document.querySelector("#code").value;
-
-                        try {
-                            const result = je.eval(code);
-                        }
-                        catch(exception) {
-                            if(exception instanceof WasmExit) console.log(`Exited with code ${exception.code}`);
-                            else throw exception;
-                        };
-                    });
+                    try {
+                        const result = await je.eval(code);
+                    }
+                    catch(exception) {
+                        if(exception instanceof je.Exit) console.log(`Exited with code ${exception.code}`);
+                        else throw exception;
+                    };
                 });
             }
 
             main();
+            // await je.main();
         </script>
     </body>
 </html>

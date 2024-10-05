@@ -226,6 +226,14 @@ char* je_mapastr(JE_MAP* map) {
     return str;
 }
 
+char* je_mapkey(JE_MAP* map) {
+    return map->key;
+}
+
+JE_VAL* je_mapval(JE_MAP* map) {
+    return map->value;
+}
+
 
 /* ***************************************************************************
 * TEST FUNCTIONS
