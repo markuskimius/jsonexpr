@@ -57,48 +57,48 @@ class Compiled:
             }
         })
         self.iface.memory8 = self.instance.exports.memory.uint8_view()
-        self.symtbl = self.instance.exports.je_newtable(0)
         self.util = Util(self.instance)
+        self.wsymtbl = self.util.symnew()
 
         # Parse
         self.code = self.util.strdup(code)
-        self.tree = self.instance.exports.je_parse(self.code)
+        self.tree = self.util.parse(self.code)
 
     def eval(self):
-        vresult = self.instance.exports.je_eval(self.tree, self.symtbl)
-        cquoted = self.instance.exports.je_valqstr(vresult)
-        quoted = self.util.strat(cquoted)
-        result = json_loads(quoted, self.instance, vresult)
+        wresult = self.util.eval(self.tree, self.wsymtbl)
+        wquoted = self.util.valqstr(wresult)
+        quoted = self.util.strat(wquoted)
+        result = json_loads(quoted, self.instance, wresult)
 
-        self.instance.exports.je_freeval(vresult)
+        self.util.valfree(wresult)
 
         return result
 
     def __contains__(self, name):
-        cname = self.util.strdup(name)
-        result = self.instance.exports.je_tableget(self.symtbl, cname)
+        wname = self.util.strdup(name)
+        result = self.util.symget(self.wsymtbl, wname)
 
-        self.util.free(cname)
+        self.util.free(wname)
 
         return result != 0
     
     def __getitem__(self, name):
         jstr = self.getJson(name)
-        cname = self.util.strdup(name)
-        symval = self.instance.exports.je_tableget(self.symtbl, cname)
+        wname = self.util.strdup(name)
+        wsymval = self.util.symget(self.wsymtbl, wname)
 
-        self.util.free(cname)
+        self.util.free(wname)
 
-        return json_loads(jstr, self.instance, symval)
+        return json_loads(jstr, self.instance, wsymval)
     
     def __setitem__(self, name, value):
         self.setJson(name, json_dumps(value))
 
     def __delitem__(self, name):
-        cname = self.util.strdup(name)
+        wname = self.util.strdup(name)
 
-        self.instance.exports.je_tableunset(self.symtbl, cname)
-        self.util.free(cname)
+        self.util.symunset(self.wsymtbl, wname)
+        self.util.free(wname)
 
     def setSymbols(self, symbols):
         for key,value in symbols.items():
@@ -110,21 +110,21 @@ class Compiled:
             raise SyntaxError(f"Identifier expected, got `{name}`")
 
         expr = f"{name} = {jstr};"
-        cexpr = self.util.strdup(expr)
-        tree = self.instance.exports.je_parse(cexpr)
-        result = self.instance.exports.je_eval(tree, self.symtbl)
+        wexpr = self.util.strdup(expr)
+        wtree = self.util.parse(wexpr)
+        wresult = self.util.eval(wtree, self.wsymtbl)
 
-        self.instance.exports.je_freenode(tree)
-        self.instance.exports.je_freeval(result)
-        self.util.free(cexpr)
+        self.util.nodefree(wtree)
+        self.util.valfree(wresult)
+        self.util.free(wexpr)
 
     def getJson(self, name):
-        cname = self.util.strdup(name)
-        result = self.instance.exports.je_tableget(self.symtbl, cname)
-        cstr = self.instance.exports.je_valqstr(result)
-        jstr = self.util.strat(cstr)
+        wname = self.util.strdup(name)
+        wresult = self.util.symget(self.wsymtbl, wname)
+        wstr = self.util.valqstr(wresult)
+        jstr = self.util.strat(wstr)
 
-        self.util.free(cname)
+        self.util.free(wname)
 
         return jstr
 
@@ -152,115 +152,191 @@ class Util:
         return self
 
     def __exit__(self, type, value, traceback):
-        for addr in self.allocated:
-            self.instance.exports.free(addr)
+        for waddr in self.allocated:
+            self.instance.exports.free(waddr)
 
         self.allocated = []
 
-    def strat(self, addr):
+    def strat(self, waddr):
         len = 0
 
-        while(self.memory8[addr+len] != 0):
+        while(self.memory8[waddr+len] != 0):
             len += 1
 
-        return bytearray(self.memory8[addr:addr+len]).decode("utf-8")
+        return bytearray(self.memory8[waddr:waddr+len]).decode("utf-8")
 
     def strdup(self, string):
         encoded = string.encode("utf-8")
-        addr = self.instance.exports.calloc(1, len(encoded)+1)
-        self.memory8[addr:addr+len(string)] = encoded
-        self.memory8[addr+len(encoded)] = 0
+        waddr = self.instance.exports.calloc(1, len(encoded)+1)
+        self.memory8[waddr:waddr+len(string)] = encoded
+        self.memory8[waddr+len(encoded)] = 0
 
-        self.allocated += [addr]
+        self.allocated += [waddr]
 
-        return addr
+        return waddr
 
-    def free(self, addr):
-        if addr in self.allocated:
-            self.allocated.remove(addr);
+    def free(self, waddr):
+        if waddr in self.allocated:
+            self.allocated.remove(waddr)
 
-        self.instance.exports.free(addr);
+        self.instance.exports.free(waddr)
 
-def _cvalue(instance, pyvalue):
-    if   isinstance(pyvalue, bool):
-        cvalue = instance.exports.je_boolval(pyvalue)
-    elif isinstance(pyvalue, int):
-        cvalue = instance.exports.je_intval(pyvalue)
-    elif isinstance(pyvalue, float):
-        cvalue = instance.exports.je_dblval(pyvalue)
-    elif isinstance(pyvalue, list):
-        cvalue = instance.exports.je_arrval(0)
-        carray = instance.exports.je_getarray(cvalue)
+    def parse(self, wcode):
+        return self.instance.exports.je_parse(wcode)
 
-        for i in range(len(pyvalue)):
-            item = pyvalue[i]
-            (cval, pval) = _cvalue(instance, item)
+    def eval(self, wtree, wsymtbl):
+        return self.instance.exports.je_eval(wtree, wsymtbl)
 
-            instance.exports.je_vecpush(carray, cval)
-            pyvalue[i] = pval
+    def nodefree(self, wnode):
+        self.instance.exports.je_freenode(wnode)
 
-        pyvalue = Array(pyvalue, instance, carray)
+    def strval(self, wstr):
+        return self.instance.exports.je_strval(wstr)
 
-    elif isinstance(pyvalue, dict):
-        cvalue = instance.exports.je_objval(0)
-        cobject = instance.exports.je_getobject(cvalue)
+    def symnew(self):
+        return self.instance.exports.je_newtable(0)
 
-        with Util(instance) as util:
-            for k,v in pyvalue.items():
-                ck = util.strdup(str(k))
-                (cv, pv) = _cvalue(instance, v)
+    def symget(self, wsymtbl, wkey):
+        return self.instance.exports.je_tableget(wsymtbl, wkey)
 
-                instance.exports.je_mapset(cobject, ck, cv)
-                pyvalue[k] = pv
+    def mapset(self, wmap, wkey, wval):
+        return self.instance.exports.je_mapset(wmap, wkey, wval)
 
-        pyvalue = Object(pyvalue, instance, cobject)
+    def mapunset(self, wmap, wkey):
+        self.instance.exports.je_mapunset(wmap, wkey)
 
-    else:
-        with Util(instance) as util:
-            pyvalue = str(pyvalue)
-            cstr = util.strdup(pyvalue)
-            cvalue = instance.exports.je_strval(cstr)
+    def mapget(self, wmap, wkey):
+        return self.instance.exports.je_mapget(wmap, wkey)
 
-    return (cvalue, pyvalue)
+    def mapkey(self, wmap):
+        return self.instance.exports.je_mapkey(wmap)
+
+    def mapnext(self, wmap):
+        return self.instance.exports.je_mapnext(wmap)
+
+    def vecset(self, wvec, index, wval):
+        return self.instance.exports.je_vecset(wvec, index, wval)
+
+    def vecpush(self, wvec, wval):
+        return self.instance.exports.je_vecpush(wvec, wval)
+
+    def vecunset(self, wvec, index):
+        self.instance.exports.je_vecunset(wvec, index)
+
+    def vecget(self, wvec, index):
+        return self.instance.exports.je_vecget(wvec, index)
+
+    def veclen(self, wvec):
+        return self.instance.exports.je_veclen(wvec)
+
+    def valbool(self, wval):
+        return self.instance.exports.je_boolval(wval)
+
+    def valint(self, wval):
+        return self.instance.exports.je_intval(wval)
+
+    def valdbl(self, wval):
+        return self.instance.exports.je_dblval(wval)
+
+    def valmap(self, wval):
+        if(wval): return self.instance.exports.je_getobject(wval)
+        else: return self.instance.exports.je_objval(0)
+
+    def valvec(self, wval):
+        if(wval): return self.instance.exports.je_getarray(wval)
+        else: return self.instance.exports.je_arrval(0)
+
+    def valstr(self, wval):
+        return self.instance.exports.je_valstr(wval)
+
+    def valqstr(self, wval):
+        return self.instance.exports.je_valqstr(wval)
+
+    def valfree(self, wresult):
+        self.instance.exports.je_freeval(wresult)
+
+def _wvalue(instance, value):
+    with Util(instance) as util:
+        if   isinstance(value, bool):
+            wvalue = util.valbool(value)
+        elif isinstance(value, int):
+            wvalue = util.valint(value)
+        elif isinstance(value, float):
+            wvalue = util.valdbl(value)
+        elif isinstance(value, list):
+            wvalue = util.valvec(0)
+            warray = util.valvec(wvalue)
+
+            for i in range(len(value)):
+                item = value[i]
+                (wval, pval) = _wvalue(instance, item)
+
+                util.vecpush(warray, wval)
+                value[i] = pval
+
+            value = Array(value, instance, warray)
+
+        elif isinstance(value, dict):
+            wvalue = util.mapvec(0)
+            wobject = util.valmap(wvalue)
+
+            with Util(instance) as util:
+                for k,v in value.items():
+                    wk = util.strdup(str(k))
+                    (wv, v2) = _wvalue(instance, v)
+
+                    util.mapset(wobject, wk, wv)
+                    value[k] = v2
+
+            value = Object(value, instance, wobject)
+
+        else:
+            value = str(value)
+            wstr = util.strdup(value)
+            wvalue = util.strval(wstr)
+
+    return (wvalue, value)
 
 class Object(dict):
-    def __init__(self, obj, instance, symmap):
+    def __init__(self, obj, instance, wsymmap):
         super().__init__(obj)
         self.__instance = instance
-        self.__symmap = symmap
+        self.__wsymmap = wsymmap
 
     def __setitem__(self, name, value):
         with Util(self.__instance) as util:
-            cname = util.strdup(str(name))
-            (cvalue, pvalue) = _cvalue(self.__instance, value)
+            wname = util.strdup(str(name))
+            (wvalue, pvalue) = _wvalue(self.__instance, value)
 
-            self.__instance.exports.je_mapset(self.__symmap, cname, cvalue)
+            util.mapset(self.__wsymmap, wname, wvalue)
 
         return super().__setitem__(name, pvalue)
 
     def __delitem__(self, name):
         with Util(self.__instance) as util:
-            cname = util.strdup(name)
+            wname = util.strdup(name)
 
-            self.__instance.exports.je_mapunset(self.__symmap, cname)
+            util.mapunset(self.__wsymmap, wname)
 
         return super().__delitem__(name)
 
 class Array(list):
-    def __init__(self, array, instance, symvec):
+    def __init__(self, array, instance, wsymvec):
         super().__init__(array)
         self.__instance = instance
-        self.__symvec = symvec
+        self.__wsymvec = wsymvec
 
     def __setitem__(self, index, value):
-        (cvalue, pvalue) = _cvalue(self.__instance, value)
+        (wvalue, pvalue) = _wvalue(self.__instance, value)
 
-        self.__instance.exports.je_vecset(self.__symvec, index, cvalue)
+        with Util(self.__instance) as util:
+            util.vecset(self.__wsymvec, index, wvalue)
 
         return super().__setitem__(index, pvalue)
 
     def __delitem__(self, index):
-        self.__instance.exports.je_vecunset(self.__symvec, index)
+        with Util(self.__instance) as util:
+            util.vecunset(self.__wsymvec, index)
 
         return super().__delitem__(index)
 
@@ -274,28 +350,29 @@ def json_dumps(value):
 def json_loads(jstr, instance, symval):
     result = json.loads(jstr)
 
-    return _enrich(result, instance, symval);
+    return _enrich(result, instance, symval)
 
 def _enrich(value, instance, symval):
     if   isinstance(value, dict):
-        symmap = instance.exports.je_getobject(symval)
+        with Util(instance) as util:
+            symmap = util.valmap(symval)
 
-        for k,v in value.items():
-            with Util(instance) as util:
-                cname = util.strdup(k)
-                csymval = instance.exports.je_mapget(symmap, cname)
-                value[k] = _enrich(v, instance, csymval)
+            for k,v in value.items():
+                wname = util.strdup(k)
+                wsymval = util.mapget(symmap, wname)
+                value[k] = _enrich(v, instance, wsymval)
 
-        value = Object(value, instance, symmap)
+            value = Object(value, instance, symmap)
 
     elif isinstance(value, list):
-        symvec = instance.exports.je_getarray(symval)
+        with Util(instance) as util:
+            symvec = util.valvec(symval)
 
-        for i in range(len(value)):
-            csymval = instance.exports.je_vecget(symvec, i)
-            value[i] = _enrich(value[i], instance, csymval)
+            for i in range(len(value)):
+                wsymval = util.vecget(symvec, i)
+                value[i] = _enrich(value[i], instance, wsymval)
 
-        value = Array(value, instance, symvec)
+            value = Array(value, instance, symvec)
 
     return value
 
@@ -343,7 +420,7 @@ if __name__ == "__main__":
         #             "last_name" : "Johnson",
         #         },
         #     },
-        });
+        })
 
         result = compiled.eval()
 
