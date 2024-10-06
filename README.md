@@ -49,6 +49,16 @@ example.
 * [Javascript](js)
 
 
+## Installation
+
+Install [libc-wasm](https://github.com/markuskimius/libc-wasm) first, then:
+
+```bash
+$ make
+$ sudo make PREFIX=/usr/local install
+```
+
+
 ## Data Types
 
 * null
