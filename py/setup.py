@@ -13,7 +13,7 @@ with open(os.path.join(SCRIPTDIR, "README.md"), encoding="utf-8") as f:
 setup(
                              name = "jsonexpr",
                       description = "An expression language.",
-                          version = "0.1.0",
+                          version = "0.0.11",
                           license = "Apache 2.0",
                            author = "Mark Kim",
                      author_email = "markuskimius+py@gmail.com",
