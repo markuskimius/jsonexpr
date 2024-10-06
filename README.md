@@ -1,9 +1,9 @@
 # jsonexpr
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/markuskimius/jsonexpr?include_prereleases&label=Pre-release)](https://github.com/markuskimius/jsonexpr/releases)
-[![Python3](https://img.shields.io/badge/Python-3.8-blue.svg)](python)
-[![Javascript](https://img.shields.io/badge/Javascript-blue.svg)](javascript)
 [![C](https://img.shields.io/badge/C-blue.svg)](c)
+[![Python3](https://img.shields.io/badge/Python-blue.svg)](python)
+[![Javascript](https://img.shields.io/badge/Javascript-blue.svg)](javascript)
 
 A light, JSON-based expression language.
 
@@ -44,9 +44,9 @@ example.
 
 ## Supported Host Languages
 
-* [C](c)
-* [Python](python): Python 3.8 and later.
-* [Javascript](javascript)
+* [C](src)
+* [Python](py)
+* [Javascript](js)
 
 
 ## Data Types
