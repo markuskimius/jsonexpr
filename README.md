@@ -61,7 +61,7 @@ jsonexpr can be embedded into JSON:
 ]
 ```
 
-... then processed through the jsonexpr binary:
+... then processed through the jsonexpr binary, je:
 
 ```bash
 $ je test.je | jq .    # jq is used to pretty format the output
@@ -81,6 +81,8 @@ $ je test.je | jq .    # jq is used to pretty format the output
 ]
 $ 
 ```
+
+(By convention, jsonexpr file has the extension `.je`.)
 
 Alternatively, JSON can be manipulated:
 
