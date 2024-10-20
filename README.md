@@ -10,39 +10,164 @@ A light, JSON-based expression language.
 
 ## Overview
 
-jsonexpr is a general-purpose expression language for running simple
-calculations.  It may be called from a host language, such as C, Python, or Javascript to run
-calculations inside a sandboxed environment.  The host language may pass
-variables and functions to the evaluation environment to enrich its
-capabilities.
+jsonexpr is a general-purpose expression language that uses JSON as its data type:
+JSON can be an input to jsonexpr, jsonexpr can be embedded into JSON, and jsonexpr outputs JSON.
+
+jsonexpr is called from a host language:
+Libraries for C, Python, and Javascript are currently provided.
+jsonexpr expression is evaluated inside a sandboxed environment.
+The host language can pass variables and functions to/from the sandboxed environment.
+
+jsonexpr also provides a binary that can be executed directly from the command line.
 
 
 ## Example
 
+To start, JSON itself is a valid jsonexpr:
+
+```json
+[
+  {
+    "name": "Alice",
+    "score": 95
+  },
+  {
+    "name": "Bob",
+    "score": 85
+  },
+  {
+    "name": "Charlie",
+    "score": 75
+  }
+]
 ```
-# The host may alternatively pass students into the evaluation environment
-students = [ "Alice", "Bob", "Charlie" ];
 
-FOR(i = 0, i < LEN(students), i++,
-    note = "";
+jsonexpr can be embedded into JSON:
 
-    IF(students[i] == "Alice",
-        note = " (she's my favorite)"
-    );
+```json
+[
+  {
+    "name": "Alice",
+    "score": (95 + 98 + 94) / 3.0
+  },
+  {
+    "name": "Bob",
+    "score": (85 + 88 + 84) / 3.0
+  },
+  {
+    "name": "Charlie",
+    "score": (75 + 78 + 74) / 3.0
+  }
+]
+```
 
-    PRINT("Student #" + (i+1) + "'s name is " + students[i] + note)
+... then processed through the jsonexpr binary:
+
+```bash
+$ je test.json | jq .    # jq is used to pretty format the output
+[
+  {
+    "name": "Alice",
+    "score": 95.666667
+  },
+  {
+    "name": "Bob",
+    "score": 85.666667
+  },
+  {
+    "name": "Charlie",
+    "score": 75.666667
+  }
+]
+$ 
+```
+
+Alternatively, JSON can be manipulated:
+
+```
+students = [
+  {
+    "name": "Alice",
+    "score": [95, 98, 94]
+  },
+  {
+    "name": "Bob",
+    "score": [85, 88, 84]
+  },
+  {
+    "name": "Charlie",
+    "score": [75, 78, 74]
+  }
+];
+
+FOR(i=0, i<LEN(students), i++,
+  pupil = students[i];
+  ssum = 0.0;
+  snum = LEN(pupil.score);
+
+  FOR(j=0, j<snum, j++,
+      ssum += pupil.score[j];
+  );
+
+  pupil.score = ssum / snum;
 );
 
-# Return the number of students (last expression always returns its value)
-LEN(students)
+students;
 ```
 
-Like many expression languages, jsonexpr uses functions for flow control, which
-is the reason the syntax of `FOR` and `IF` resemble functions in the above
-example.
+The JSON data may also be passed into jsonexpr from the host language.
+For example, in Python:
+
+```python
+compiled = jsonexpr.compile("""
+  FOR(i=0, i<LEN(students), i++,
+    pupil = students[i];
+    ssum = 0.0;
+    snum = LEN(pupil.score);
+
+    FOR(j=0, j<snum, j++,
+      ssum += pupil.score[j];
+    );
+
+    pupil.score = ssum / snum;
+  );
+
+  students;
+""")
+
+compiled.setSymbols({
+  "students" : [
+    {
+      "name" : "Alice",
+      "score": [95, 98, 94]
+    },
+    {
+      "name" : "Bob",
+      "score": [85, 88, 84]
+    },
+    {
+      "name" : "Charlie",
+      "score": [75, 78, 74]
+    }
+  ]
+})
+```
 
 
-## Supported Host Languages
+## Building
+
+To build jsonexpr from scratch,
+first install [libc-wasm](https://github.com/markuskimius/libc-wasm), then run:
+
+```bash
+$ make
+$ sudo make PREFIX=/usr/local install
+```
+
+
+## Host Languages
+
+Following host languages are supported:
 
 * [C](src)
 * [Python](py)
@@ -51,15 +176,12 @@ example.
 
 ## Installation
 
-Install [libc-wasm](https://github.com/markuskimius/libc-wasm) first, then:
-
-```bash
-$ make
-$ sudo make PREFIX=/usr/local install
-```
+For the installation instructions for each language, see the host language-specific page.
 
 
-## Data Types
+## Language Reference
+
+### Data Types
 
 * null
 * boolean
@@ -104,7 +226,7 @@ The value may be of any data type, including arrays and objects.
 Function may be a built-in or created using the built-in `FUNCTION()` function.
 
 
-## Variables
+### Variables
 
 The name of a variable must be a valid identifier.
 A valid identifier consists of one or more alphanumeric character and/or the underscore, except it may not start with a digit.
@@ -154,7 +276,7 @@ Following are valid identifiers, in the order of highest to lowest precedence:
 [^1]: Associativity is left-to-right unless noted otherwise.
 
 
-## Built-In Functions
+### Built-In Functions
 
 Following are functions built into jsonexpr, arguments they accept, and their return values.
 

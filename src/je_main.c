@@ -82,7 +82,7 @@ int doMyCodeThing(const char* code) {
     free(tree);
     */
 
-    // printf("%s\n", je_valqstr(result));
+    printf("%s\n", je_valqstr(result));
 
     je_freeval(result);
     je_freenode(ast);
