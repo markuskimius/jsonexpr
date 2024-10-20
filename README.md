@@ -21,7 +21,7 @@ The host language can pass variables and functions to/from the sandboxed environ
 jsonexpr also provides a binary that can be executed directly from the command line.
 
 
-## Example
+### Example
 
 To start, JSON itself is a valid jsonexpr:
 
@@ -156,18 +156,7 @@ compiled.setSymbols({
 ```
 
 
-## Building
-
-To build jsonexpr from scratch,
-first install [libc-wasm](https://github.com/markuskimius/libc-wasm), then run:
-
-```bash
-$ make
-$ sudo make PREFIX=/usr/local install
-```
-
-
-## Host Languages
+### Host Languages
 
 Following host languages are supported:
 
@@ -179,6 +168,14 @@ Following host languages are supported:
 ## Installation
 
 For the installation instructions for each language, see the host language-specific page.
+
+To build jsonexpr from scratch,
+first install [libc-wasm](https://github.com/markuskimius/libc-wasm), then run:
+
+```bash
+$ make
+$ sudo make PREFIX=/usr/local install
+```
 
 
 ## Language Reference
