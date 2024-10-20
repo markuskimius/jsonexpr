@@ -298,7 +298,7 @@ it returns a function object which may be assigned to a variable to be called in
 `FUNCTION()` takes two arguments:
 The first argument is a character sequence (a string) that describes the number of arguments the custom function can accept:
 the number of `?` characters in the string describes the [minimum] number of arguments expected by the function.
-The characters `B`, `I, `D`, `#`, `S`, `A`, `O`, or `F` may be used instead to test the argument's data type is
+The characters `B`, `I`, `D`, `#`, `S`, `A`, `O`, or `F` may be used instead to test the argument's data type is
 Boolean, integer, double, number, string, array, object, or function, respectively.
 If the string ends with a `*`, the function can accept any number of additional arguments.
 
