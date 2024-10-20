@@ -245,7 +245,7 @@ If the variable contains an object,
 the object's element may be accessed by the object's name followed by the period (`.`) and the key, or the key in brackets (`[...]`).
 
 
-## Operations
+### Operations
 
 Following are valid identifiers, in the order of highest to lowest precedence:
 
