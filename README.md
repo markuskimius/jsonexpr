@@ -284,7 +284,7 @@ Following are functions built into jsonexpr, arguments they accept, and their re
 * `FUNCTION(string, expr) -> function`[^2]
 * `IF(expr1, then1, [expr2, then2, [expr3, then3, ...]], [else]) -> any`[^2]
 * `LEN(string or array or object) -> int`
-* `PRINT(any, [any, [any, ...]]) -> int`
+* `PRINT(any, [any, [any, ...]]) -> any`
 * `SQRT(int or double) -> double`
 
 [^2]: These functions' arguments are delay-evaluated.
