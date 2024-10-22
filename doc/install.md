@@ -1,6 +1,6 @@
 # Installation
 
-jsonexpr may be built from scratch.
+jsonexpr may be built from scratch or installed for a specific language.
 
 
 ## Building from Scratch
