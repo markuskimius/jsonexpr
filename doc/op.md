@@ -6,7 +6,7 @@ Following are operators supported by jsonexpr, in the order of highest to lowest
 | ----------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------- |
 | `( ... )`                                                                                             |                           | Grouping                                                        |
 | `.`                                                                                                   |                           | Object member accessor                                          |
-| `[ ... ]`                                                                                             |                           | Array/object element accessor                                   |
+| `[ ... ]`                                                                                             |                           | Array element / object member accessor                          |
 | `( ... )`                                                                                             |                           | Function call                                                   |
 | `++` `--`                                                                                             |                           | Postfix increment, decrement                                    |
 | `++` `--`                                                                                             |                           | Prefix increment, decrement                                     |
