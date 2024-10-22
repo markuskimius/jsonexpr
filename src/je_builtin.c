@@ -189,7 +189,7 @@ static JE_VAL* LEN(JE_VEC* args, JE_SYMTBL* table) {
         case JE_STRING_V   : result = je_intval(strlen(je_valstr(val))); break;
         case JE_ARRAY_V    : result = je_intval(val->value.v->length); break;
         case JE_OBJECT_V   : result = je_intval(val->value.m->length); break;
-        default         : je_throwLater("Type has no length: '%c' (%d)", val->type, val->type); break;
+        default            : je_throwLater("Type has no length: '%c' (%d)", val->type, val->type); break;
     }
 
     return result;
@@ -203,7 +203,7 @@ static JE_VAL* SQRT(JE_VEC* args, JE_SYMTBL* table) {
     switch(val->type) {
         case JE_INT_V      : result = je_dblval(sqrt(val->value.i)); break;
         case JE_FLOAT_V    : result = je_dblval(sqrt(val->value.f)); break;
-        default         : je_throwLater("Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
+        default            : je_throwLater("Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
     }
 
     return result ? result : je_nullval();
@@ -294,7 +294,7 @@ static JE_VAL* OP_INC(JE_VEC* args, JE_SYMTBL* table) {
         switch(left->type) {
             case JE_INT_V   : result = je_intval(left->value.i += 1); break;
             case JE_FLOAT_V : result = je_dblval(left->value.f += 1.0); break;
-            default      : result = je_dupval(nullify(left)); break;
+            default         : result = je_dupval(nullify(left)); break;
         }
     }
 
@@ -314,7 +314,7 @@ static JE_VAL* OP_DEC(JE_VEC* args, JE_SYMTBL* table) {
         switch(left->type) {
             case JE_INT_V   : result = je_intval(left->value.i -= 1); break;
             case JE_FLOAT_V : result = je_dblval(left->value.f -= 1.0); break;
-            default      : result = je_dupval(nullify(left)); break;
+            default         : result = je_dupval(nullify(left)); break;
         }
     }
 
@@ -334,7 +334,7 @@ static JE_VAL* OP_INCPOST(JE_VEC* args, JE_SYMTBL* table) {
         switch(left->type) {
             case JE_INT_V   : result = je_intval(left->value.i); left->value.i += 1; break;
             case JE_FLOAT_V : result = je_dblval(left->value.f); left->value.f += 1.0; break;
-            default      : result = je_dupval(nullify(left)); break;
+            default         : result = je_dupval(nullify(left)); break;
         }
     }
 
@@ -354,7 +354,7 @@ static JE_VAL* OP_DECPOST(JE_VEC* args, JE_SYMTBL* table) {
         switch(left->type) {
             case JE_INT_V   : result = je_intval(left->value.i); left->value.i -= 1; break;
             case JE_FLOAT_V : result = je_dblval(left->value.f); left->value.f -= 1.0; break;
-            default      : result = je_dupval(nullify(left)); break;
+            default         : result = je_dupval(nullify(left)); break;
         }
     }
 
@@ -387,8 +387,8 @@ static JE_VAL* OP_ADDSET(JE_VEC* args, JE_SYMTBL* table) {
     else if(left->type == JE_INT_V    && right->type == JE_FLOAT_V ) { right->value.f += left->value.i; je_swapval(left, right); }
     else if(left->type == JE_FLOAT_V  && right->type == JE_INT_V   ) left->value.f += right->value.i;
     else if(left->type == JE_FLOAT_V  && right->type == JE_FLOAT_V ) left->value.f += right->value.f;
-    else if(left->type == JE_STRING_V                           ) left->value.s = je_astrcat(left->value.s, je_valstr(right));
-    else if(                          right->type == JE_STRING_V) {
+    else if(left->type == JE_STRING_V                              ) left->value.s = je_astrcat(left->value.s, je_valstr(right));
+    else if(                             right->type == JE_STRING_V) {
         JE_VAL* tmp = je_strval("");
 
         tmp->value.s = je_casprintf(tmp->value.s, "%s%s", je_valstr(left), right->value.s);
@@ -682,7 +682,7 @@ static JE_VAL* OP_POS(JE_VEC* args, JE_SYMTBL* table) {
     switch(left->type) {
         case JE_INT_V   : result = je_intval(left->value.i); break;
         case JE_FLOAT_V : result = je_dblval(left->value.f); break;
-        default      : result = je_nullval(); break;
+        default         : result = je_nullval(); break;
     }
 
     return result ? result : je_nullval();
@@ -698,7 +698,7 @@ static JE_VAL* OP_NEG(JE_VEC* args, JE_SYMTBL* table) {
     switch(left->type) {
         case JE_INT_V   : result = je_intval(-left->value.i); break;
         case JE_FLOAT_V : result = je_dblval(-left->value.f); break;
-        default      : result = je_nullval(); break;
+        default         : result = je_nullval(); break;
     }
 
     return result ? result : je_nullval();
