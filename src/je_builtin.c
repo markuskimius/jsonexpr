@@ -140,26 +140,6 @@ static void unfold(JE_VEC* vec, JE_NODE* node, JE_SYMTBL* table) {
 * BUILT-IN FUNCTIONS
 */
 
-static JE_VAL* IF(JE_VEC* args, JE_SYMTBL* table) {
-    JE_VAL* result = NULL;
-
-    for(size_t i=0; i<(args->length & ~1UL); i+=2) {
-        JE_VAL* cond = je_eval(args->item[i]->value.n, table);
-
-        if(je_valtrue(cond)) {
-            result = je_eval(args->item[i+1]->value.n, table);
-            break;
-        }
-    }
-
-    if(!result && (args->length % 2)) {
-        result = je_eval(args->item[args->length-1]->value.n, table);
-    }
-
-    return result ? result : je_nullval();
-}
-
-
 static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table) {
     JE_VAL* result = NULL;
     JE_VAL* last = je_eval(args->item[0]->value.n, table);
@@ -178,52 +158,6 @@ static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table) {
     je_freeval(last);
 
     return result ? result : je_nullval();
-}
-
-
-static JE_VAL* LEN(JE_VEC* args, JE_SYMTBL* table) {
-    JE_VAL* result = NULL;
-    JE_VAL* val = args->item[0];
-
-    switch(val->type) {
-        case JE_STRING_V   : result = je_intval(strlen(je_valstr(val))); break;
-        case JE_ARRAY_V    : result = je_intval(val->value.v->length); break;
-        case JE_OBJECT_V   : result = je_intval(val->value.m->length); break;
-        default            : je_throwLater("Type has no length: '%c' (%d)", val->type, val->type); break;
-    }
-
-    return result;
-}
-
-
-static JE_VAL* SQRT(JE_VEC* args, JE_SYMTBL* table) {
-    JE_VAL* result = NULL;
-    JE_VAL* val = args->item[0];
-
-    switch(val->type) {
-        case JE_INT_V      : result = je_dblval(sqrt(val->value.i)); break;
-        case JE_FLOAT_V    : result = je_dblval(sqrt(val->value.f)); break;
-        default            : je_throwLater("Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
-    }
-
-    return result ? result : je_nullval();
-}
-
-
-static JE_VAL* PRINT(JE_VEC* args, JE_SYMTBL* table) {
-    JE_VAL* last = NULL;
-
-    for(size_t i=0; i<args->length; i++) {
-        if(last) je_freeval(last);
-        last = je_dupval(args->item[i]);
-
-        if(i > 0) printf(" ");
-        printf("%s", je_valstr(last));
-    }
-
-    printf("\n");
-
-    return last ? last : je_nullval();
 }
 
 
@@ -275,6 +209,72 @@ static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table) {
     }
 
     return NULL;
+}
+
+
+static JE_VAL* IF(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* result = NULL;
+
+    for(size_t i=0; i<(args->length & ~1UL); i+=2) {
+        JE_VAL* cond = je_eval(args->item[i]->value.n, table);
+
+        if(je_valtrue(cond)) {
+            result = je_eval(args->item[i+1]->value.n, table);
+            break;
+        }
+    }
+
+    if(!result && (args->length % 2)) {
+        result = je_eval(args->item[args->length-1]->value.n, table);
+    }
+
+    return result ? result : je_nullval();
+}
+
+
+static JE_VAL* LEN(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* result = NULL;
+    JE_VAL* val = args->item[0];
+
+    switch(val->type) {
+        case JE_STRING_V   : result = je_intval(strlen(je_valstr(val))); break;
+        case JE_ARRAY_V    : result = je_intval(val->value.v->length); break;
+        case JE_OBJECT_V   : result = je_intval(val->value.m->length); break;
+        default            : je_throwLater("Type has no length: '%c' (%d)", val->type, val->type); break;
+    }
+
+    return result;
+}
+
+
+static JE_VAL* PRINT(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* last = NULL;
+
+    for(size_t i=0; i<args->length; i++) {
+        if(last) je_freeval(last);
+        last = je_dupval(args->item[i]);
+
+        if(i > 0) printf(" ");
+        printf("%s", je_valstr(last));
+    }
+
+    printf("\n");
+
+    return last ? last : je_nullval();
+}
+
+
+static JE_VAL* SQRT(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* result = NULL;
+    JE_VAL* val = args->item[0];
+
+    switch(val->type) {
+        case JE_INT_V      : result = je_dblval(sqrt(val->value.i)); break;
+        case JE_FLOAT_V    : result = je_dblval(sqrt(val->value.f)); break;
+        default            : je_throwLater("Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
+    }
+
+    return result ? result : je_nullval();
 }
 
 
