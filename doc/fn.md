@@ -1,5 +1,19 @@
 # Built-In Functions
 
+## CEIL
+
+`CEIL(int or double) -> int`
+
+Return a number rounded up to the nearest integer.
+
+
+## FLOOR
+
+`FLOOR(int or double) -> int`
+
+Return a number rounded down to the nearest integer.
+
+
 ## FOR
 
 `FOR(expr1, expr2, expr3, expr4) -> any`
@@ -8,8 +22,8 @@
 then evalutes `expr4` for as long as `expr2` is true.
 `expr3` is evaluated after each iteration.
 
-Its return value is the value of the last expression evaluated.
-If no expression was evaluated, it returns `null`.
+Its return value is the value of the last `expr4` expression evaluated.
+If no `expr4` expression was evaluated, it returns `null`.
 
 
 ## FUNCTION
@@ -70,8 +84,26 @@ Print one or more expressions to the standard output.
 Its return value is the number of items printed.
 
 
+## ROUND
+
+`ROUND(int or double) -> int`
+
+Return a number rounded to the nearest integer.
+x.5 is rounded up.
+
+
 ## SQRT
 
 `SQRT(int or double) -> double`
 
 Return the square root of an integer or double.
+
+
+## WHILE
+
+`WHILE(expr1, expr2) -> any`
+
+Evaluate `expr2` for as long as `expr1` is true.
+
+Its return value is the value of the last `expr2` expression evaluated.
+If no `expr2` expression was evaluated, it returns `null`.

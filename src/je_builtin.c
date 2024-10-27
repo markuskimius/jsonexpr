@@ -140,15 +140,38 @@ static void unfold(JE_VEC* vec, JE_NODE* node, JE_SYMTBL* table) {
 * BUILT-IN FUNCTIONS
 */
 
-static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table) {
+static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* value = je_vecget(args, 0);
     JE_VAL* result = NULL;
+
+    if(value->type == JE_FLOAT_V) result = je_intval(ceil(value->value.f));
+    else                          result = je_intval(value->value.i);
+
+    return result;
+}
+
+
+static JE_VAL* FLOOR(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* value = je_vecget(args, 0);
+    JE_VAL* result = NULL;
+
+    if(value->type == JE_FLOAT_V) result = je_intval(floor(value->value.f));
+    else                          result = je_intval(value->value.i);
+
+    return result;
+}
+
+
+static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table) {
     JE_VAL* last = je_eval(args->item[0]->value.n, table);
+    JE_VAL* result = NULL;
 
     while(1) {
         je_freeval(last);
         last = je_eval(args->item[1]->value.n, table);
-
         if(!je_valtrue(last)) break;
+
+        if(result) je_freeval(result);
         result = je_eval(args->item[3]->value.n, table);
 
         je_freeval(last);
@@ -158,6 +181,17 @@ static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table) {
     je_freeval(last);
 
     return result ? result : je_nullval();
+}
+
+
+static JE_VAL* ROUND(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* value = je_vecget(args, 0);
+    JE_VAL* result = NULL;
+
+    if(value->type == JE_FLOAT_V) result = je_intval(round(value->value.f));
+    else                          result = je_intval(value->value.i);
+
+    return result;
 }
 
 
@@ -270,6 +304,24 @@ static JE_VAL* SQRT(JE_VEC* args, JE_SYMTBL* table) {
         case JE_FLOAT_V    : result = je_dblval(sqrt(val->value.f)); break;
         default            : je_throwLater("Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
     }
+
+    return result ? result : je_nullval();
+}
+
+
+static JE_VAL* WHILE(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* last = je_eval(args->item[0]->value.n, table);
+    JE_VAL* result = NULL;
+
+    while(je_valtrue(last)) {
+        if(result) je_freeval(result);
+        result = je_eval(args->item[1]->value.n, table);
+
+        je_freeval(last);
+        last = je_eval(args->item[0]->value.n, table);
+    }
+
+    je_freeval(last);
 
     return result ? result : je_nullval();
 }
@@ -1036,12 +1088,16 @@ JE_MAP* je_binfns() {
     if(!BINFNS) {
         BINFNS = je_newmap();
 
-        addfn(BINFNS, "IF"      , ".**" , IF      );
+        addfn(BINFNS, "CEIL"    , "#"   , CEIL    );
+        addfn(BINFNS, "FLOOR"   , "#"   , FLOOR   );
         addfn(BINFNS, "FOR"     , "....", FOR     );
-        addfn(BINFNS, "LEN"     , "?"   , LEN     );
-        addfn(BINFNS, "SQRT"    , "?"   , SQRT    );
-        addfn(BINFNS, "PRINT"   , "*"   , PRINT   );
         addfn(BINFNS, "FUNCTION", "S."  , FUNCTION);
+        addfn(BINFNS, "IF"      , ".**" , IF      );
+        addfn(BINFNS, "LEN"     , "?"   , LEN     );
+        addfn(BINFNS, "PRINT"   , "*"   , PRINT   );
+        addfn(BINFNS, "ROUND"   , "#"   , ROUND   );
+        addfn(BINFNS, "SQRT"    , "?"   , SQRT    );
+        addfn(BINFNS, "WHILE"   , ".."  , WHILE   );
     }
 
     return BINFNS;
