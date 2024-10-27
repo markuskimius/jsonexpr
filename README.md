@@ -50,7 +50,7 @@ Javascript, or on the server side in Python.
 * [Installation](doc/install.md)
 * Language Reference
   * [Data Types](doc/datatype.md)
-  * [Operations](doc/op.md)
+  * [Operators](doc/op.md)
   * [Functions](doc/fn.md)
 
 
