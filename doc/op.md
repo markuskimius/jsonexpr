@@ -1,4 +1,4 @@
-# Operations
+# Operators
 
 Following are operators supported by jsonexpr, in the order of highest to lowest precedence:
 
