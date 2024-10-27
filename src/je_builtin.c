@@ -248,19 +248,16 @@ static JE_VAL* LEN(JE_VEC* args, JE_SYMTBL* table) {
 
 
 static JE_VAL* PRINT(JE_VEC* args, JE_SYMTBL* table) {
-    JE_VAL* last = NULL;
+    int64_t i = 0;
 
-    for(size_t i=0; i<args->length; i++) {
-        if(last) je_freeval(last);
-        last = je_dupval(args->item[i]);
-
+    for(i=0; i<args->length; i++) {
         if(i > 0) printf(" ");
-        printf("%s", je_valstr(last));
+        printf("%s", je_valstr(args->item[i]));
     }
 
     printf("\n");
 
-    return last ? last : je_nullval();
+    return je_intval(i);
 }
 
 

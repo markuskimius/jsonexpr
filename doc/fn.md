@@ -2,7 +2,7 @@
 
 ## FOR
 
-`FOR(expr1, expr2, expr3, expr4) -> any`[^1]
+`FOR(expr1, expr2, expr3, expr4) -> any`
 
 `FOR()` evaluates `expr1`,
 then evalutes `expr4` for as long as `expr2` is true.
@@ -14,7 +14,7 @@ If no expression was evaluated, it returns `null`.
 
 ## FUNCTION
 
-`FUNCTION(string, expr) -> function`[^1]
+`FUNCTION(string, expr) -> function`
 
 `FUNCTION()` creates, and returns, a custom function from `expr`.
 
@@ -42,7 +42,7 @@ The following special variables are accessible within `expr`:
 
 ## IF
 
-`IF(expr1, then1, [expr2, then2, [expr3, then3, ...]], [else]) -> any`[^1]
+`IF(expr1, then1, [expr2, then2, [expr3, then3, ...]], [else]) -> any`
 
 Evaluate `then1` if `expr1` is true,
 else evaluate `then2` if `expr2` is true,
@@ -64,11 +64,10 @@ or the number of keys in an object.
 
 ## PRINT
 
-`PRINT(any, [any, [any, ...]]) -> any`
+`PRINT(any, [any, [any, ...]]) -> int`
 
 Print one or more expressions to the standard output.
-Its return value is the last expression printed,
-or `null` otherwise.
+Its return value is the number of items printed.
 
 
 ## SQRT
