@@ -151,6 +151,17 @@ static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table) {
 }
 
 
+static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table) {
+    JE_VAL* value = je_vecget(args, 0);
+    JE_NODE* ast = je_parse(je_valstr(value));
+    JE_VAL* result = je_eval(ast, table);
+
+    je_freenode(ast);
+
+    return result;
+}
+
+
 static JE_VAL* FLOOR(JE_VEC* args, JE_SYMTBL* table) {
     JE_VAL* value = je_vecget(args, 0);
     JE_VAL* result = NULL;
@@ -1089,6 +1100,7 @@ JE_MAP* je_binfns() {
         BINFNS = je_newmap();
 
         addfn(BINFNS, "CEIL"    , "#"   , CEIL    );
+        addfn(BINFNS, "EVAL"    , "S"   , EVAL    );
         addfn(BINFNS, "FLOOR"   , "#"   , FLOOR   );
         addfn(BINFNS, "FOR"     , "....", FOR     );
         addfn(BINFNS, "FUNCTION", "S."  , FUNCTION);

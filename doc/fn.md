@@ -7,6 +7,13 @@
 Return a number rounded up to the nearest integer.
 
 
+## EVAL
+
+`EVAL(string) -> any`
+
+Evaluate a jsonexpr expression and return its result.
+
+
 ## FLOOR
 
 `FLOOR(int or double) -> int`
