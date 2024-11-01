@@ -33,6 +33,23 @@ Its return value is the value of the last `expr4` expression evaluated.
 If no `expr4` expression was evaluated, it returns `null`.
 
 
+## FOREACH
+
+`FOREACH(variable, iterable, expr) -> any`
+
+`FOREACH()` evaluates `expr` `n` times
+where `n` is the number of elements in `iterable`
+and `iterable` is either an array or an object.
+
+At the beginning of each iteration,
+the variable named `variable` will be set
+to the value of the `n`th item in `iterable`.
+If `iterable` is an object,
+`variable` will be set to an array of two elements,
+where the item at index 0 is the key
+and the item at index 1 is the value.
+
+
 ## FUNCTION
 
 `FUNCTION(string, expr) -> function`
