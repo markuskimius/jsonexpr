@@ -195,6 +195,60 @@ static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table) {
 }
 
 
+static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table) {
+    JE_NODE* var = je_vecget(args, 0)->value.n;
+    JE_VAL* iter = je_vecget(args, 1);
+    JE_NODE* expr = je_vecget(args, 2)->value.n;
+    JE_VAL* result = NULL;
+
+    /* Validate */
+    if(var->type != JE_SYMBOL_N) JeRuntimeError(&var->loc, "Identifier expected, got %s", je_nodetype(var));
+
+    switch(iter->type) {
+        case JE_ARRAY_V: {
+            const char* name = var->left->value.s;
+            JE_VEC* vec = iter->value.v;
+
+            for(size_t i=0; i<vec->length; i++) {
+                JE_VAL* item = je_vecget(vec, i);
+
+                je_tableset(table, name, je_dupval(item));
+
+                if(result) je_freeval(result);
+                result = je_eval(expr, table);
+            }
+
+            break;
+        }
+
+        case JE_OBJECT_V: {
+            const char* name = var->left->value.s;
+            JE_MAP* map = iter->value.m;
+
+            while((map = je_mapnext(map))) {
+                JE_VAL* key = je_strval(je_mapkey(map));
+                JE_VAL* value = je_mapval(map);
+                JE_VEC* pair = je_newvec();
+
+                je_vecpush(pair, key);
+                je_vecpush(pair, je_dupval(value));
+                je_tableset(table, name, je_arrval(pair));
+
+                if(result) je_freeval(result);
+                result = je_eval(expr, table);
+            }
+
+            break;
+        }
+
+        default:
+            JeRuntimeError(&var->loc, "Array or object expected, got %s", je_valtype(iter));
+    }
+
+    return result ? result : je_nullval();
+}
+
+
 static JE_VAL* ROUND(JE_VEC* args, JE_SYMTBL* table) {
     JE_VAL* value = je_vecget(args, 0);
     JE_VAL* result = NULL;
@@ -1103,6 +1157,7 @@ JE_MAP* je_binfns() {
         addfn(BINFNS, "EVAL"    , "S"   , EVAL    );
         addfn(BINFNS, "FLOOR"   , "#"   , FLOOR   );
         addfn(BINFNS, "FOR"     , "....", FOR     );
+        addfn(BINFNS, "FOREACH" , ".@." , FOREACH );
         addfn(BINFNS, "FUNCTION", "S."  , FUNCTION);
         addfn(BINFNS, "IF"      , ".**" , IF      );
         addfn(BINFNS, "LEN"     , "?"   , LEN     );

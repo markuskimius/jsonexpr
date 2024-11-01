@@ -81,10 +81,10 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table) {
             isok = 0;
         }
         /* evaluate */
-        else if(strchr("BIDSAOF#?", *cp)) {
+        else if(strchr("BIDSAOF#@?", *cp)) {
             JE_VAL* v = je_eval(node, table);
 
-            if(*cp=='?' || *cp==v->type || (*cp=='#'&&strchr("ID",v->type))) {
+            if(*cp=='?' || *cp==v->type || (*cp=='#'&&strchr("ID",v->type)) || (*cp=='@'&&strchr("AO",v->type))) {
                 /* ok */
             }
             else {
