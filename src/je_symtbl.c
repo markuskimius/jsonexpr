@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "je_builtin.h"
 #include "je_map.h"
 #include "je_symtbl.h"
@@ -12,16 +13,22 @@
 
 JE_SYMTBL* je_newtable(JE_SYMTBL* parent) {
     JE_SYMTBL* table = calloc(1, sizeof(JE_SYMTBL));
-    JE_SYMTBL* pp = parent;
+    JE_SYMTBL* global = parent ? parent->global : table;
 
     table->symbols = je_newmap();
     table->parent = parent;
+    table->global = global;
     table->count = 1;
 
     /* Add UPSCOPE */
-    if(table->parent) {
+    if(parent) {
         je_duptable(table->parent);
         je_mapset(table->symbols, "UPSCOPE", je_objval(je_dupmap(parent->symbols)));
+    }
+
+    /* Add GLOBAL (needed only 1 level below global) */
+    if(parent == global) {
+        je_mapset(table->symbols, "GLOBAL", je_objval(je_dupmap(global->symbols)));
     }
 
     /* Add built-in symbols */
