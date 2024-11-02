@@ -199,3 +199,8 @@ const char* je_nodetype(JE_NODE* node) {
 
     return name;
 }
+
+
+char* je_nodeastr(JE_NODE* node) {
+    return je_astrencode(je_textat(&node->loc));
+}

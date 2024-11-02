@@ -11,6 +11,7 @@
 #include "je_vec.h"
 #include "je_node.h"
 #include "je_map.h"
+#include "je_util.h"
 
 
 /* ***************************************************************************
@@ -160,5 +161,9 @@ JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table) {
 
 
 char* je_funcastr(JE_FUNC* func) {
-    return strdup(func->name);
+    char buf[64];
+
+    snprintf(buf, sizeof(buf), "FUNCTION##%s()", func->name);
+
+    return je_astrencode(buf);
 }

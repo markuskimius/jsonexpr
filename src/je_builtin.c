@@ -302,7 +302,7 @@ static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table) {
     if(isok) {
         char name[64];
 
-        snprintf(name, sizeof(name), "FUNCTION#%zd()", ++ncustfunc);
+        snprintf(name, sizeof(name), "%zd", ++ncustfunc);
 
         return je_funcval(je_newcustfunc(args->item[1]->value.n, name, sig, table));
     }

@@ -5,6 +5,7 @@
 #include "je_error.h"
 #include "je_func.h"
 #include "je_map.h"
+#include "je_node.h"
 #include "je_util.h"
 #include "je_val.h"
 #include "je_vec.h"
@@ -223,7 +224,7 @@ char* je_valstr(JE_VAL* val) {
             case JE_ARRAY_V    : val->astrdecoded = je_vecastr(val->value.v); break;
             case JE_OBJECT_V   : val->astrdecoded = je_mapastr(val->value.m); break;
             case JE_FUNCTION_V : val->astrdecoded = je_funcastr(val->value.fn); break;
-            case JE_NODE_V     : val->astrdecoded = strdup("JE_NODE"); break;
+            case JE_NODE_V     : val->astrdecoded = je_nodeastr(val->value.n); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }
 
@@ -257,7 +258,7 @@ char* je_valqstr(JE_VAL* val) {
             case JE_ARRAY_V    : val->astrencoded = je_vecastr(val->value.v); break;
             case JE_OBJECT_V   : val->astrencoded = je_mapastr(val->value.m); break;
             case JE_FUNCTION_V : val->astrencoded = je_funcastr(val->value.fn); break;
-            case JE_NODE_V     : val->astrencoded = strdup("JE_NODE"); break;
+            case JE_NODE_V     : val->astrencoded = je_nodeastr(val->value.n); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }
 

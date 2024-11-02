@@ -93,6 +93,7 @@ void je_freenode(JE_NODE* node);
 
 char* je_nodetree(JE_NODE* node);
 const char* je_nodetype(JE_NODE* node);
+char* je_nodeastr(JE_NODE* node);
 
 
 #endif /* JE_NODE_H_ */
