@@ -1,4 +1,9 @@
 # jsonexpr
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/markuskimius/jsonexpr?include_prereleases&label=Pre-release)](https://github.com/markuskimius/jsonexpr/releases)
+![clang17](https://img.shields.io/badge/clang-17-blue.svg)
+![python38](https://img.shields.io/badge/python-3.8-blue.svg)
+![javascript](https://img.shields.io/badge/javascript-grey.svg)
 
 A light, JSON-based expression language.
 
