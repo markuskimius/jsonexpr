@@ -27,11 +27,6 @@ JE_SYMTBL* je_newtable(JE_SYMTBL* parent) {
         je_mapset(table->symbols, "UPSCOPE", je_objval(je_dupmap(parent->symbols)));
     }
 
-    /* Add GLOBAL (needed only 1 level below global) */
-    if(parent == global) {
-        je_mapset(table->symbols, "GLOBAL", je_objval(je_dupmap(global->symbols)));
-    }
-
     /* Add built-in symbols */
     if(!parent) {
         JE_MAP* bi = je_binfns();
@@ -106,6 +101,9 @@ JE_VAL* je_tableget(JE_SYMTBL* table, const char* name) {
 
     if(name && strcmp(name,"LOCAL")==0) {
         if(table) val = je_tableget(table, NULL);
+    }
+    else if(name && strcmp(name,"GLOBAL")==0) {
+        if(table && table->global) val = je_tableget(table->global, NULL);
     }
     else if(name) {
         if(table && !val) val = je_mapget(table->symbols, name);
