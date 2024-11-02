@@ -271,7 +271,7 @@ static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table) {
         /* Validate the signature argument */
         for(size_t i=0; i<strlen(sig); i++) {
             /* Validate signature */
-            if(!strchr("BIDSAOF?.*", sig[i])) {
+            if(!strchr("BIDSAOF#@?.*", sig[i])) {
                 je_throwLater("Invalid function argument signature: %c", sig[i]);
                 isok = 0;
                 break;

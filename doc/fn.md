@@ -66,13 +66,17 @@ The following characters are recognized:
 * `S`: A string argument.
 * `A`: An array argument.
 * `O`: An object argument.
+* `@`: Any container argument (an array or an object).
 * `F`: A function argument.
 * `?`: An argument of any type.
+* `.`: An argument of any type as a node.
 * `*`: Any number of arguments of any type. Must be the last character in the sequence.
+* `**`: Any number of arguments of any type as nodes. Must be the last character in the sequence.
+  (Mutually exclusive with `*`.)
 
 The following special variables are accessible within `expr`:
 
-* `ARGS`: Values passed to `expr` may be accessed via this special array variable.
+* `ARG`: Values passed to `expr` may be accessed via this special array variable.
 * `GLOBAL`: Global variables may be accessed via this special object variable.
 * `UPSCOPE`: Variables above the current scope can be read from, or written to, explicitly through this special object variable.
   Typically they are accessed automatically if already defined in a scope above or higher, otherwise accessed locally.
