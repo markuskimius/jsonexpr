@@ -150,7 +150,7 @@ JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table) {
             case JE_CUSTOM_FT : {
                 JE_SYMTBL* ctx = je_newtable(func->ctx);
 
-                je_tableset(ctx, "ARG", je_arrval(args));
+                je_tableset(ctx, "ARG", je_arrval(args), 1);
                 result = je_eval(func->handler.cust, ctx);
 
                 je_freetable(ctx);  /* also frees ARG */

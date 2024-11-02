@@ -67,7 +67,7 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
             if(!val && create) {
                 val = je_nullval();
-                je_tableset(table, node->value.s, val);
+                je_tableset(table, node->value.s, val, 0);
             }
 
             break;
@@ -213,7 +213,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table) {
             for(size_t i=0; i<vec->length; i++) {
                 JE_VAL* item = je_vecget(vec, i);
 
-                je_tableset(table, name, je_dupval(item));
+                je_tableset(table, name, je_dupval(item), 1);
 
                 if(result) je_freeval(result);
                 result = je_eval(expr, table);
@@ -233,7 +233,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table) {
 
                 je_vecpush(pair, key);
                 je_vecpush(pair, je_dupval(value));
-                je_tableset(table, name, je_arrval(pair));
+                je_tableset(table, name, je_arrval(pair), 1);
 
                 if(result) je_freeval(result);
                 result = je_eval(expr, table);

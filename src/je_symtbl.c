@@ -16,6 +16,7 @@ JE_SYMTBL* je_newtable(JE_SYMTBL* parent) {
     JE_SYMTBL* global = parent ? parent->global : table;
 
     table->symbols = je_newmap();
+    table->symval = je_objval(je_dupmap(table->symbols));
     table->parent = parent;
     table->global = global;
     table->count = 1;
@@ -65,21 +66,21 @@ void je_freetable(JE_SYMTBL* table) {
 
     /* Free this table if it's no longer used */
     if(table->count == 0) {
-        if(table->symval) je_freeval(table->symval);
+        je_freeval(table->symval);
         je_freemap(table->symbols);
         free(table);
     }
 }
 
 
-void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* val) {
+void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* val, int localonly) {
     /* Set at this level if the symbol exists at this level */
     if(je_mapget(table->symbols, name)) {
         je_mapset(table->symbols, name, val);
     }
     /* Set in parent if the symbol exists at the higher level */
-    else if(table->parent && je_tableget(table->parent, name)) {
-        je_tableset(table->parent, name, val);
+    else if(!localonly && table->parent && je_tableget(table->parent, name)) {
+        je_tableset(table->parent, name, val, localonly);
     }
     /* Otherwise set at this level */
     else {
@@ -103,12 +104,14 @@ void je_tableunset(JE_SYMTBL* table, const char* name) {
 JE_VAL* je_tableget(JE_SYMTBL* table, const char* name) {
     JE_VAL* val = NULL;
 
-    if(name) {
+    if(name && strcmp(name,"LOCAL")==0) {
+        if(table) val = je_tableget(table, NULL);
+    }
+    else if(name) {
         if(table && !val) val = je_mapget(table->symbols, name);
         if(table && !val) val = je_tableget(table->parent, name);
     }
     else {
-        if(!table->symval) table->symval = je_objval(je_dupmap(table->symbols));
         val = table->symval;
     }
 

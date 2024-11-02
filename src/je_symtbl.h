@@ -32,7 +32,7 @@ JE_SYMTBL* je_newtable(JE_SYMTBL* parent);
 JE_SYMTBL* je_duptable(JE_SYMTBL* table);
 void je_freetable(JE_SYMTBL* table);
 
-void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* value);
+void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* value, int localonly);
 void je_tableunset(JE_SYMTBL* table, const char* name);
 JE_VAL* je_tableget(JE_SYMTBL* table, const char* name);
 
