@@ -776,7 +776,7 @@ static JE_VAL* OP_CALL(JE_VEC* args, JE_SYMTBL* table) {
 
     je_freevec(args2);
 
-    return result ? result : je_nullval();
+    return result;
 }
 
 
@@ -1261,6 +1261,10 @@ JE_VAL* je_opexec(const char* key, JE_SYMTBL* table, JE_NODE* left, JE_NODE* rig
 
         result = je_funcexec(fn, args, table);
         je_freevec(args);
+
+        if(!result) {
+            JeRuntimeError(&left->loc, "%s", je_throwText);
+        }
     }
 
     return result ? result : je_nullval();
