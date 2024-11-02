@@ -86,7 +86,14 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table) {
             JE_VAL* v = je_eval(node, table);
 
             if(*cp=='?' || *cp==v->type || (*cp=='#'&&strchr("ID",v->type)) || (*cp=='@'&&strchr("AO",v->type))) {
-                /* ok */
+                /* Same type -- ok */
+            }
+            else if(*cp=='S' && v->type==JE_NODE_V) {
+                /* Node type where string is expected -- convert node to string */
+                JE_VAL* sv = je_strval(je_valstr(v));
+
+                je_freeval(v);
+                v = sv;
             }
             else {
                 je_throwLater("Invalid argument type, expected %c, got %c", *cp, v->type);
@@ -165,5 +172,5 @@ char* je_funcastr(JE_FUNC* func) {
 
     snprintf(buf, sizeof(buf), "FUNCTION##%s()", func->name);
 
-    return je_astrencode(buf);
+    return strdup(buf);
 }

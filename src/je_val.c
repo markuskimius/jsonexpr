@@ -257,8 +257,8 @@ char* je_valqstr(JE_VAL* val) {
             case JE_STRING_V   : val->astrencoded = je_astrencode(val->value.s); break;
             case JE_ARRAY_V    : val->astrencoded = je_vecastr(val->value.v); break;
             case JE_OBJECT_V   : val->astrencoded = je_mapastr(val->value.m); break;
-            case JE_FUNCTION_V : val->astrencoded = je_funcastr(val->value.fn); break;
-            case JE_NODE_V     : val->astrencoded = je_nodeastr(val->value.n); break;
+            case JE_FUNCTION_V : val->astrencoded = je_astrencode(je_valstr(val)); break;
+            case JE_NODE_V     : val->astrencoded = je_astrencode(je_valstr(val)); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }
 

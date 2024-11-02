@@ -202,5 +202,5 @@ const char* je_nodetype(JE_NODE* node) {
 
 
 char* je_nodeastr(JE_NODE* node) {
-    return je_astrencode(je_textat(&node->loc));
+    return strdup(je_textat(&node->loc));
 }
