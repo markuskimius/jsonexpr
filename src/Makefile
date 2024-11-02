@@ -110,7 +110,7 @@ $(BUILDDIR)/je.wasm: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)
 
 $(BUILDDIR)/je_main.o: je_main.c je_eval.h je_node.h je_parse.h je_val.h
 
-$(BUILDDIR)/je_builtin.o: je_builtin.c je_builtin.h je_error.h je_eval.h je_func.h je_map.h je_val.h je_vec.h je_node.h je_symtbl.h je_util.h
+$(BUILDDIR)/je_builtin.o: je_builtin.c je_builtin.h je_error.h je_eval.h je_func.h je_map.h je_val.h je_vec.h je_node.h je_symtbl.h je_util.h je.h
 
 $(BUILDDIR)/je_error.o: je_error.c je_error.h je_node.h je_util.h
 

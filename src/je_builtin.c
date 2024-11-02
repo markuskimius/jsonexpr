@@ -14,6 +14,7 @@
 #include "je_node.h"
 #include "je_symtbl.h"
 #include "je_util.h"
+#include "je.h"
 
 
 /* ***************************************************************************
@@ -1152,6 +1153,11 @@ static JE_VAL* OP_COND(JE_VEC* args, JE_SYMTBL* table) {
 JE_MAP* je_binfns() {
     if(!BINFNS) {
         BINFNS = je_newmap();
+
+        je_mapset(BINFNS, "VERSION", je_strval(JE_VERSION));
+        je_mapset(BINFNS, "VERSION_MAJOR", je_intval(JE_VERSION_MAJOR));
+        je_mapset(BINFNS, "VERSION_MINOR", je_intval(JE_VERSION_MINOR));
+        je_mapset(BINFNS, "VERSION_PATCH", je_intval(JE_VERSION_PATCH));
 
         addfn(BINFNS, "CEIL"    , "#"   , CEIL    );
         addfn(BINFNS, "EVAL"    , "S"   , EVAL    );
