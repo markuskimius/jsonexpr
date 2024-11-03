@@ -23,7 +23,7 @@ to `/usr/local/lib` and `/usr/local/include`.
 
 ### Python
 
-Build from scratch then run `pip3 install .` from `py/`:
+Build from scratch then run `pip3 install .` from `py/`.
 
 
 ### Javascript
