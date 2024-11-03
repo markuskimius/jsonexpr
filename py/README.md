@@ -18,17 +18,19 @@ Python 3.8 and later are supported.
 ```python
 import jsonexpr
 
-symbols = {
+compiled = jsonexpr.compile("""
+    PRINT("I have " + LEN(grades) + " students");
+    PRINT("Alice's grade is " + grades.alice);
+""")
+
+compiled.setSymbols({
     "grades" : {
         "alice" : "A",
         "bob"   : "B",
     }
-}
+});
 
-jsonexpr.eval("""
-    PRINT("I have " + LEN(grades) + " students");
-    PRINT("Alice's grade is " + grades.alice);
-""", symbols)
+result = compiled.eval()
 ```
 
 Output:
