@@ -14,20 +14,40 @@ $ sudo make PREFIX=/usr/local install
 ```
 
 
-## C
+### C
+
+Build from scratch then the C libraries will be installed
+to `/usr/local/lib` and `/usr/local/include`.
+
+
+### Python
+
+Build from scratch then run `pip3 install .` from `py/`:
+
+
+### Javascript
+
+Build from scratch then copy the files in `js/lib/` into your project.
+
+
+## Installing from package
+
+### C
+
+C libraries are not available for installation from a package at this time.
 
 Build from scratch to install the C library and header files into
 `/usr/local/lib` and `/usr/local/include`, respectively.
 
 
-## Python
+### Python
 
 ```bash
 pip3 install jsonexpr
 ```
 
 
-## Javascript
+### Javascript
 
 ```javascript
 import je from "//cdn.cbreak.org/jsonexpr/je-latest.min.js";
