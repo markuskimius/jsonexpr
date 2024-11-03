@@ -53,6 +53,10 @@ Javascript, or on the server side in Python.
 ## Documentation
 
 * [Installation](doc/install.md)
+* Usage
+  * [C](src/README.md)
+  * [Python](py/README.md)
+  * [Javascript](js/README.md)
 * Language Reference
   * [Data Types](doc/datatype.md)
   * [Operators](doc/op.md)
