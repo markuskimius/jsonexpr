@@ -20,7 +20,7 @@
 static int _mapset(JE_MAP* map, const char* key0, const char* keyi, JE_VAL* val) {
     int ni = *(const unsigned char*)keyi;
     JE_MAP* nn = map->next[ni];
-    int incr = 1;
+    int incr = 0;
 
     /* Terminal node -> assign the val to this node */
     if(ni == 0) {
