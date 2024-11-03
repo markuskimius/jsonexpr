@@ -109,7 +109,7 @@ def doMyThing():
     app = tornado.web.Application([
         (r"/", Index),
         (r"/lib/(.*)", tornado.web.StaticFileHandler, {"path": opts.libdir}),
-    ])
+    ], template_whitespace="all")
 
     app.listen(opts.port, opts.server)
     loop.run_forever()

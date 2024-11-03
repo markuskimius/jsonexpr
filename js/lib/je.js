@@ -44,8 +44,6 @@ async function compileurl(codeUrl) {
 */
 
 class Compiled {
-    static rid = new RegExp("^[_a-zA-Z][_a-zA-Z0-9]*$", "m");
-
     constructor(code) {
         this.adapter = new Adapter();
         this.instance = null;

@@ -12,27 +12,27 @@
     </html>
     <body>
         <textarea id="code" rows="25" cols="125">
-            memo = [ 0, 1 ];&#10;
+memo = [ 0, 1 ];
 
-            fib = FUNCTION("?",
-            &nbsp;&nbsp;x = ARG[0];&#10;
+fib = FUNCTION("?",
+  x = ARG[0];
 
-            &nbsp;&nbsp;IF(x &gt;= LEN(memo),
-            &nbsp;&nbsp;&nbsp;&nbsp;x1 = fib(x-1);
-            &nbsp;&nbsp;&nbsp;&nbsp;x2 = fib(x-2);&#10;
+  IF(x &gt;= LEN(memo),
+    x1 = fib(x-1);
+    x2 = fib(x-2);
 
-            &nbsp;&nbsp;&nbsp;&nbsp;memo[x] = x1 + x2
-            &nbsp;&nbsp;);&#10;
+    memo[x] = x1 + x2
+  );
 
-            &nbsp;&nbsp;memo[x]
-            );&#10;
+  memo[x]
+);
 
-            PRINT(fib(20));
+PRINT(fib(20));  # Outputs to console
         </textarea>
         <div><button id="runButton">Run</button></div>
 
         <script type="module">
-            import je from "./lib/jsonexpr.js";
+            import je from "./lib/je.js";
 
             function main() {
                 document.querySelector("#runButton").addEventListener("click", async () => {
