@@ -1,5 +1,5 @@
-#ifndef JE_JE_SYMTBL_H_
-#define JE_JE_SYMTBL_H_
+#ifndef JE_SYMTBL_H_
+#define JE_SYMTBL_H_
 
 
 /* ***************************************************************************
@@ -37,4 +37,4 @@ void je_tableunset(JE_SYMTBL* table, const char* name);
 JE_VAL* je_tableget(JE_SYMTBL* table, const char* name);
 
 
-#endif /* JE_JE_SYMTBL_H_ */
+#endif /* JE_SYMTBL_H_ */
