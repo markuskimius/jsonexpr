@@ -6,9 +6,9 @@
 #include "je_parse.h"
 #include "je_val.h"
 
-#define JE_VERSION       "0.0.12"
+#define JE_VERSION       "0.0.13"
 #define JE_VERSION_MAJOR 0
 #define JE_VERSION_MINOR 0
-#define JE_VERSION_PATCH 12
+#define JE_VERSION_PATCH 13
 
 #endif /* JSONEXPR_H_ */
