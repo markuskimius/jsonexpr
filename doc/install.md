@@ -29,5 +29,6 @@ pip3 install jsonexpr
 
 ## Javascript
 
-Build from scratch, then copy `js/lib/je.wasm` and `js/lib/jsonexpr.js` into
-your application.
+```javascript
+import je from "//cdn.cbreak.org/jsonexpr/je-latest.min.js";
+```
