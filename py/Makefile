@@ -13,7 +13,7 @@ uninstall:
 	pip3 uninstall jsonexpr
 
 dist: all
-	./setup.py sdist
+	python3 setup.py sdist
 
 upload: dist
 	python3 -m twine upload dist/*.tar.gz
