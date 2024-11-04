@@ -1,0 +1,27 @@
+#!/bin/bash
+
+function main() {
+    local shdoc
+
+    for shdoc; do
+        local doc=${shdoc%.shdoc}
+
+        if [[ "$shdoc" == "$doc" ]]; then
+            printf "%s: Filename does not end in .shdoc\n" "$shdoc" 1>&2
+            continue
+        fi
+
+        # if [[ -e "$doc" ]]; then
+        #     printf "%s: Already exists, won't overwrite\n" "$doc" 1>&2
+        #     continue
+        # fi
+
+        printf "Preprocess %s -> %s ...\n" "$shdoc" "$doc"
+
+        bash <<<"cat <<__SHDOC_TEMPLATE__$$
+$(cat "$shdoc")
+__SHDOC_TEMPLATE__$$" > "$doc"
+    done
+}
+
+main "$@"

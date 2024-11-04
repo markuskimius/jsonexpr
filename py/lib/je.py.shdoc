@@ -1,6 +1,6 @@
 __copyright__ = "Copyright 2024 Mark Kim"
 __license__ = "Apache 2.0"
-__version__ = "0.0.13"
+__version__ = "${JE_VERSION}"
 __author__ = "Mark Kim"
 
 import re
@@ -106,8 +106,8 @@ class Compiled:
 
     def setJson(self, name, jstr):
         # Verify name is an identifier
-        if not re.match(r"^[_a-zA-Z][_a-zA-Z0-9]*$", name, re.MULTILINE):
-            raise SyntaxError(f"Identifier expected, got `{name}`")
+        if not re.match(r"^[_a-zA-Z][_a-zA-Z0-9]*\$", name, re.MULTILINE):
+            raise SyntaxError(f"Identifier expected, got \`{name}\`")
 
         expr = f"{name} = {jstr};"
         wexpr = self.util.strdup(expr)
@@ -448,4 +448,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("")
         sys.exit(errno.EOWNERDEAD)
-

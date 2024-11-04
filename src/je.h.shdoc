@@ -1,0 +1,14 @@
+#ifndef JSONEXPR_H_
+#define JSONEXPR_H_
+
+#include "je_eval.h"
+#include "je_node.h"
+#include "je_parse.h"
+#include "je_val.h"
+
+#define JE_VERSION       "${JE_VERSION}"
+#define JE_VERSION_MAJOR ${JE_VERSION%%.*}
+#define JE_VERSION_MINOR $(tmp=${JE_VERSION#*.}; printf "%s" "${tmp%.*}")
+#define JE_VERSION_PATCH ${JE_VERSION##*.}
+
+#endif /* JSONEXPR_H_ */

@@ -53,7 +53,7 @@ setup:
 	install -m 755 -d $(BUILDDIR)
 
 clean:
-	$(RM) $(BUILDDIR)/$(BINARY) $(BUILDDIR)/$(ARCHIVE) $(BUILDDIR)/*.o *.output *.tab.c *.tab.h *.je_yy.c
+	$(RM) $(BUILDDIR)/$(BINARY) $(BUILDDIR)/$(ARCHIVE) $(BUILDDIR)/*.o *.output *.tab.c *.tab.h *.je_yy.c je.h
 	rmdir -p $(BUILDDIR) 2>/dev/null || true
 
 install: all
@@ -148,5 +148,7 @@ je_parse.h: je_parse.tab.h
 je_node.h: je_parse.h
 	touch $@
 
+je.h: je.h.shdoc
+	make -C .. preprocess
 
 # vim:noet:
