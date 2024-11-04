@@ -118,7 +118,7 @@ class Adapter {
     }
 
     read(fd, buf, count) {
-        console.log(`read(${fd}, ${buf}, ${count})`);
+        console.log(\`read(\${fd}, \${buf}, \${count})\`);
         return 0;
     }
 
@@ -431,7 +431,7 @@ export class SyntaxError {
 
 async function main() {
     const symbols = { students : [ "Alice", "Bob", "Charlie" ] };
-    const compiled = await compile(`
+    const compiled = await compile(\`
         FOR(i = 0, i < LEN(students), i++,
             note = "";
 
@@ -443,7 +443,7 @@ async function main() {
         );
 
         LEN(students);
-    `);
+    \`);
 
     compiled.setSymbols(symbols);
 
@@ -456,12 +456,17 @@ async function main() {
 */
 
 export default {
-    main        : main,
-    eval        : _eval,
-    evalurl     : evalurl,
-    compile     : compile,
-    compileurl  : compileurl,
+    main          : main,
+    eval          : _eval,
+    evalurl       : evalurl,
+    compile       : compile,
+    compileurl    : compileurl,
 
-    Exit        : Exit,
-    SyntaxError : SyntaxError,
+    version       : "${JE_VERSION}",
+    version_major : ${JE_VERSION%%.*},
+    version_minor : $(t=${JE_VERSION#*.}; printf "%s" "${t%.*}"),
+    version_patch : ${JE_VERSION##*.},
+
+    Exit          : Exit,
+    SyntaxError   : SyntaxError,
 };

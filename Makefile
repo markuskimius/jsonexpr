@@ -1,5 +1,5 @@
 JE_VERSION:=0.0.14
-SHDOC_FILES:=src/je.h py/setup.py py/lib/__init__.py py/lib/je.py
+SHDOC_FILES:=src/je.h py/setup.py py/lib/__init__.py py/lib/je.py js/lib/je.js
 
 .PHONY: all clean install uninstall preprocess
 

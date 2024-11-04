@@ -8,7 +8,7 @@
 
 #define JE_VERSION       "${JE_VERSION}"
 #define JE_VERSION_MAJOR ${JE_VERSION%%.*}
-#define JE_VERSION_MINOR $(tmp=${JE_VERSION#*.}; printf "%s" "${tmp%.*}")
+#define JE_VERSION_MINOR $(t=${JE_VERSION#*.}; printf "%s" "${t%.*}")
 #define JE_VERSION_PATCH ${JE_VERSION##*.}
 
 #endif /* JSONEXPR_H_ */

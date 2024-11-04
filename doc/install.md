@@ -28,7 +28,7 @@ Build from scratch then run `pip3 install .` from `py/`.
 
 ### Javascript
 
-Build from scratch then copy the files in `js/lib/` into your project.
+Build from scratch then copy `js/lib/je.js` and `js/lib/je.wasm` into your project.
 
 
 ## Installing from package
