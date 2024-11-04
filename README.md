@@ -12,7 +12,7 @@ A light, JSON-based expression language.
 
 jsonexpr is a general-purpose expression language that uses JSON as its data type.
 It can manipulate JSON, use JSON as its input, and output JSON.
-As matter of a fact, a vanilla JSON is a valid expression in jsonexpr.
+As a matter of fact, a vanilla JSON is a valid expression in jsonexpr.
 
 A jsonexpr expression is evaluted in a sandbox,
 so one common use case for jsonexpr is to evaluate a user-submitted expression safely
