@@ -31,6 +31,7 @@ void usage() {
 "  FILE                  File(s) to run.\n"
 "\n"
 "  -e,--eval EXPR        Evaluate EXPR.\n"
+"  -q,--quiet            Do not output the result.\n"
 "  -v,--version          Display version and quit.\n"
     );
 }
@@ -57,10 +58,12 @@ char* evalv[256];
 
 int main(int argc, char* argv[]) {
     int errcount = 0;
+    int quiet = 0;
 
     /* Process options */
     static struct option long_options[] = {
         {"eval"   , required_argument, 0, 'e'},
+        {"quiet"  , no_argument      , 0, 'q'},
         {"version", no_argument      , 0, 'v'},
         {"help"   , no_argument      , 0, 'h'},
         {0, 0, 0, 0}
@@ -70,11 +73,12 @@ int main(int argc, char* argv[]) {
         int option_index = 0;
         int c = 0;
 
-        c = getopt_long(argc, argv, "e:vh", long_options, &option_index);
+        c = getopt_long(argc, argv, "e:qvh", long_options, &option_index);
         if(c == -1) break;
 
         switch(c) {
             case 'e' : evalv[evalc++] = optarg; break;
+            case 'q' : quiet = 1; break;
             case 'v' : version(); exit(0); break;
             case 'h' : usage(); exit(0); break;
             default  : errcount++; break;
@@ -94,11 +98,11 @@ int main(int argc, char* argv[]) {
     }
 
     for(int i=0; i<evalc; i++) {
-        doMyCodeThing(evalv[i], 1);
+        doMyCodeThing(evalv[i], !quiet);
     }
 
     if(argc <= optind && evalc == 0) {
-        doMyFdThing(0, 0);
+        doMyFdThing(0, !quiet);
     }
 
     for(int i=optind; i<argc; i++) {
@@ -109,7 +113,7 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        doMyFdThing(fd, 0);
+        doMyFdThing(fd, !quiet);
         close(fd);
     }
 
