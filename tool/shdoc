@@ -16,8 +16,6 @@ function main() {
         #     continue
         # fi
 
-        printf "Preprocess %s -> %s ...\n" "$shdoc" "$doc"
-
         bash <<<"cat <<__SHDOC_TEMPLATE__$$
 $(cat "$shdoc")
 __SHDOC_TEMPLATE__$$" > "$doc"

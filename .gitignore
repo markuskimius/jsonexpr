@@ -6,8 +6,8 @@
 *.tab.h
 *.wasm
 *.je_yy.c
-./bin
-./lib
+/bin/je
+/lib
+/include
 build
-je
 libje.a

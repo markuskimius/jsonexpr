@@ -23,6 +23,7 @@ setup(
     long_description_content_type = "text/markdown",
                          packages = [ "jsonexpr" ],
                       package_dir = { "" : "src" },
-                 install_requires = [ "wasmer", "wasmer_compiler_cranelift" ],
+                 install_requires = [ "getopts", "wasmer", "wasmer_compiler_cranelift" ],
              include_package_data = True,
+                          scripts = [ "bin/je" ],
 )

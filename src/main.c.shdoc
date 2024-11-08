@@ -1,0 +1,161 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <getopt.h>
+#include "je.h"
+
+
+/* ***************************************************************************
+* CONSTANTS
+*/
+
+#define VERSION  "${JE_VERSION}"
+#define PAGESIZE 4096
+
+
+/* ***************************************************************************
+* USAGE
+*/
+
+void usage() {
+    printf("%s\n",
+"Run a JsonExpr script.\n"
+"\n"
+"Usage: {SCRIPTNAME} [OPTIONS] [FILES]\n"
+"\n"
+"Options:\n"
+"  FILE                  File(s) to run.\n"
+"\n"
+"  -e,--eval EXPR        Evaluate EXPR.\n"
+"  -v,--version          Display version and quit.\n"
+    );
+}
+
+void version() {
+    printf("jsonexpr %s\n", VERSION);
+}
+
+
+/* ***************************************************************************
+* GLOBALS
+*/
+
+int doMyFdThing(int fd, int output);
+int doMyCodeThing(const char* code, int output);
+
+int evalc = 0;
+char* evalv[256];
+
+
+/* ***************************************************************************
+* PROGRAM BEGINS HERE
+*/
+
+int main(int argc, char* argv[]) {
+    int errcount = 0;
+
+    /* Process options */
+    static struct option long_options[] = {
+        {"eval"   , required_argument, 0, 'e'},
+        {"version", no_argument      , 0, 'v'},
+        {"help"   , no_argument      , 0, 'h'},
+        {0, 0, 0, 0}
+    };
+
+    while(1) {
+        int option_index = 0;
+        int c = 0;
+
+        c = getopt_long(argc, argv, "e:vh", long_options, &option_index);
+        if(c == -1) break;
+
+        switch(c) {
+            case 'e' : evalv[evalc++] = optarg; break;
+            case 'v' : version(); exit(0); break;
+            case 'h' : usage(); exit(0); break;
+            default  : errcount++; break;
+        }
+
+        if(evalc == sizeof(evalv)/sizeof(char*)) {
+            fprintf(stderr, "Too many -e or --eval\n");
+            errcount++;
+            evalc--;
+        }
+    }
+
+    /* Sanity check */
+    if(errcount) {
+        fprintf(stderr, "Type '%s --help' for help.\n", argv[0]);
+        exit(1);
+    }
+
+    for(int i=0; i<evalc; i++) {
+        doMyCodeThing(evalv[i], 1);
+    }
+
+    if(argc <= optind && evalc == 0) {
+        doMyFdThing(0, 0);
+    }
+
+    for(int i=optind; i<argc; i++) {
+        int fd = open(argv[i], 0);
+
+        if(fd < 0) {
+            perror(argv[i]);
+            continue;
+        }
+
+        doMyFdThing(fd, 0);
+        close(fd);
+    }
+
+    return 0;
+}
+
+
+int doMyFdThing(int fd, int output) {
+    char* code = calloc(1, PAGESIZE);
+    size_t offset = 0;
+    int result = 0;
+
+    while(1) {
+        ssize_t size = read(fd, code+offset, PAGESIZE);
+        if(size <= 0) break;
+
+        offset += size;
+        code = realloc(code, offset + PAGESIZE);
+    }
+
+    result = doMyCodeThing(code, output);
+    free(code);
+
+    return result;
+}
+
+
+int doMyCodeThing(const char* code, int output) {
+    JE_NODE* ast = je_parse(code);
+    JE_VAL* result = je_eval(ast, NULL);
+
+    /*
+    char* tree = je_nodetree(ast);
+    printf("%s\n", tree);
+    free(tree);
+    */
+
+    if(output) {
+        printf("%s\n", je_valqstr(result));
+    }
+
+    je_freeval(result);
+    je_freenode(ast);
+
+    return 0;
+}
+
+/* vim:ft=c:
+*/
