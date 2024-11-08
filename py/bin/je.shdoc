@@ -25,6 +25,7 @@ fi
 
 import os
 import sys
+import json
 import errno
 import getopts
 import jsonexpr as je
@@ -120,7 +121,7 @@ def doMyThing(code):
     result = je.eval(code)
 
     if(not opts.quiet):
-        print(result)
+        print(json.dumps(result))
 
     return result
 
