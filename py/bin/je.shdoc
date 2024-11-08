@@ -61,6 +61,7 @@ Options:
   FILE                  File(s) to run.
 
   -e,--eval EXPR        Evaluate EXPR.
+  -q,--quiet            Do not output the result.
   -v,--version          Display version and quit.
 """
 
