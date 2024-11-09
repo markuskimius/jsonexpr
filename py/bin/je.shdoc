@@ -135,6 +135,8 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("")
         sys.exit(errno.EOWNERDEAD)
-
+    except je.Exit as e:
+        print("")
+        sys.exit(e.code)
 
 # vim:ft=python:
