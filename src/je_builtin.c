@@ -84,7 +84,7 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
                 val = je_vecget(left->value.v, right->value.i);
                 if(!val) {
-                    JeRuntimeError(&node->loc, "Invalid index, max %ld, got %ld", left->value.v->length-1, right->value.i);
+                    JeRuntimeError(&node->loc, "Invalid index, max %lld, got %lld", left->value.v->length-1, right->value.i);
                 }
             }
             else if(left->type == JE_OBJECT_V && right->type == JE_STRING_V) {
