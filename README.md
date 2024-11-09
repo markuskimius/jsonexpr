@@ -49,6 +49,27 @@ Javascript, or on the server side in Python.
 ]
 ```
 
+The result of the above expression is the following JSON:
+
+```json
+[
+  {
+    "name": "Alice",
+    "score": 95.666667
+  },
+  {
+    "name": "Bob",
+    "score": 85.666667
+  },
+  {
+    "name": "Charlie",
+    "score": 75.666667
+  }
+]
+```
+
+The expression may be evaluated from a host language or from the command line.
+
 
 ## Documentation
 
