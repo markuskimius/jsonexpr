@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ##############################################################################
-# COFFEE: Buzz up your UNIX login
-# https://github.com/markuskimius/coffee
+# jsonexpr test code
+# https://github.com/markuskimius/jsonexpr
 #
-# Copyright (c)2020 Mark K. Kim
+# Copyright (c)2024 Mark K. Kim
 # Released under the Apache license 2.0
-# https://github.com/markuskimius/coffee/blob/master/LICENSE
+# https://github.com/markuskimius/jsonexpr/blob/master/LICENSE
 ##############################################################################
 
 ##############################################################################
