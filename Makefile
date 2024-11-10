@@ -26,25 +26,25 @@ uninstall:
 preprocess: $(SHDOC)
 
 src/je.h: src/je.h.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" tool/shdoc $<
+	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
 
 src/main.c: src/main.c.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" tool/shdoc $<
+	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
 
 js/lib/je.js: js/lib/je.js.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" tool/shdoc $<
+	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
 
 py/bin/je: py/bin/je.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" tool/shdoc $< && chmod a+x $@
+	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod a+x $@
 
 py/setup.py: py/setup.py.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" tool/shdoc $< && chmod a+x $@
+	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod a+x $@
 
 py/lib/je.py: py/lib/je.py.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" tool/shdoc $<
+	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
 
 py/lib/__init__.py: py/lib/__init__.py.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" tool/shdoc $<
+	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
 
 
 # vim:noet:

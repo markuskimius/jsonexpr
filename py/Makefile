@@ -4,7 +4,7 @@ all:
 	make -C .. install
 
 clean:
-	rm -rf build dist lib/__pycache__ lib/je.wasm
+	$(RM) -r build dist lib/__pycache__ lib/je.wasm src/*.egg-info
 
 install: all
 	pip3 install .
