@@ -34,6 +34,7 @@ void je_freemap(JE_MAP* map);
 
 void je_mapset(JE_MAP* map, const char* key, JE_VAL* value);
 void je_mapunset(JE_MAP* map, const char* key);
+void je_mapclear(JE_MAP* map);
 JE_VAL* je_mapget(JE_MAP* map, const char* key);
 
 int je_mapcmp(JE_MAP* map1, JE_MAP* map2);

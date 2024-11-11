@@ -1,4 +1,4 @@
-JE_VERSION:=0.0.18
+JE_VERSION:=0.0.19
 SHDOC:=src/je.h src/main.c js/lib/je.js py/bin/je py/setup.py py/lib/je.py py/lib/__init__.py
 
 .PHONY: all clean install uninstall preprocess
@@ -26,25 +26,25 @@ uninstall:
 preprocess: $(SHDOC)
 
 src/je.h: src/je.h.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
 
 src/main.c: src/main.c.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
 
 js/lib/je.js: js/lib/je.js.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
 
 py/bin/je: py/bin/je.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod a+x $@
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 555 $@
 
 py/setup.py: py/setup.py.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod a+x $@
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 555 $@
 
 py/lib/je.py: py/lib/je.py.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
 
 py/lib/__init__.py: py/lib/__init__.py.shdoc Makefile
-	JE_VERSION="$(JE_VERSION)" buildtool/shdoc $<
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
 
 
 # vim:noet:

@@ -18,8 +18,8 @@ ifeq ($(findstring wasm,$(HOST)),wasm)
 		--export=je_nullval --export=je_boolval --export=je_intval --export=je_dblval --export=je_strval --export=je_arrval --export=je_objval --export=je_freeval \
 		--export=je_gettype --export=je_getint64 --export=je_getdouble --export=je_getstring --export=je_getarray --export=je_getobject --export=je_getfunc        \
 		--export=je_valtype --export=je_valtrue --export=je_valstr --export=je_valqstr --export=je_valcmp                                                          \
-		--export=je_newtable --export=je_freetable --export=je_tableget --export=je_tableset --export=je_tableunset                                                \
-		--export=je_newmap --export=je_freemap --export=je_mapget --export=je_mapset --export=je_mapunset                                                          \
+		--export=je_newtable --export=je_freetable --export=je_tableget --export=je_tableset --export=je_tableunset --export=je_tableclear                         \
+		--export=je_newmap --export=je_freemap --export=je_mapget --export=je_mapset --export=je_mapunset --export=je_mapclear                                     \
 		--export=je_mapnext --export=je_mapcmp --export=je_mapastr --export=je_mapkey --export=je_mapval                                                           \
 		--export=je_newvec --export=je_freevec --export=je_vecset --export=je_vecget --export=je_vecpop --export=je_vecpush --export=je_vecunset                   \
 		--export=je_vecback --export=je_veccmp --export=je_vecastr --export=je_veclen                                                                              \

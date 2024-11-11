@@ -96,6 +96,16 @@ void je_tableunset(JE_SYMTBL* table, const char* name) {
 }
 
 
+void je_tableclear(JE_SYMTBL* table, int localonly) {
+    je_mapclear(table->symbols);
+
+    /* clear parent */
+    if(!localonly && table->parent) {
+        je_tableclear(table->parent, localonly);
+    }
+}
+
+
 JE_VAL* je_tableget(JE_SYMTBL* table, const char* name) {
     JE_VAL* val = NULL;
 

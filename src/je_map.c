@@ -161,6 +161,16 @@ void je_mapunset(JE_MAP* map, const char* key) {
 }
 
 
+void je_mapclear(JE_MAP* map) {
+    JE_MAP* next = map;
+
+    /* Keep removing the first item */
+    while((next = je_mapnext(map))) {
+        je_mapunset(map, next->key);
+    }
+}
+
+
 JE_VAL* je_mapget(JE_MAP* map, const char* key) {
     int ni = (unsigned)*key;
     JE_MAP* nn = map->next[ni];

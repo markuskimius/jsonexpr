@@ -58,7 +58,8 @@ class Compiled:
         })
         self.iface.memory8 = self.instance.exports.memory.uint8_view()
         self.util = Util(self.instance)
-        self.wsymtbl = self.util.symnew()
+        self.wsymtbl0 = self.util.symnew()
+        self.wsymtbl = self.util.symnew(self.wsymtbl0)
 
         # Parse
         self.code = self.util.strdup(code)
@@ -103,6 +104,9 @@ class Compiled:
     def setSymbols(self, symbols):
         for key,value in symbols.items():
             self.setJson(key, json_dumps(value))
+
+    def clearSymbols(self, localonly=1):
+        self.util.symclear(self.wsymtbl, localonly)
 
     def setJson(self, name, jstr):
         # Verify name is an identifier
@@ -193,11 +197,14 @@ class Util:
     def strval(self, wstr):
         return self.instance.exports.je_strval(wstr)
 
-    def symnew(self):
-        return self.instance.exports.je_newtable(0)
+    def symnew(self, wsymtbl=0):
+        return self.instance.exports.je_newtable(wsymtbl)
 
     def symget(self, wsymtbl, wkey):
         return self.instance.exports.je_tableget(wsymtbl, wkey)
+
+    def symclear(self, wsymtbl, localonly=1):
+        return self.instance.exports.je_tableclear(wsymtbl, localonly)
 
     def mapset(self, wmap, wkey, wval):
         return self.instance.exports.je_mapset(wmap, wkey, wval)
@@ -448,3 +455,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("")
         sys.exit(errno.EOWNERDEAD)
+
+
+# vim:ft=python:

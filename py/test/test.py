@@ -48,7 +48,7 @@ def main():
             "alice" : "A",
             "bob"   : "B",
         }
-    });
+    })
 
     result = compiled.eval()
     # print(type(result), result)
