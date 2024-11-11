@@ -66,8 +66,8 @@ static int _mapunset(JE_MAP* map, const char* key) {
         }
     }
 
-    /* Free this node if it has no children */
-    if(map->nchildren == 0) {
+    /* Free this node if it has no children (if it's not the root node) */
+    if(map->nchildren == 0 && map->prev) {
         free(map);
         freed = 1;
     }

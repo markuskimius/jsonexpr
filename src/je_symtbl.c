@@ -115,6 +115,9 @@ JE_VAL* je_tableget(JE_SYMTBL* table, const char* name) {
     else if(name && strcmp(name,"GLOBAL")==0) {
         if(table && table->global) val = je_tableget(table->global, NULL);
     }
+    else if(name && strcmp(name,"UPSCOPE")==0) {
+        if(table && table->parent) val = je_tableget(table->parent, NULL);
+    }
     else if(name) {
         if(table && !val) val = je_mapget(table->symbols, name);
         if(table && !val) val = je_tableget(table->parent, name);
