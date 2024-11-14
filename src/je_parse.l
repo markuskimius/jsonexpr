@@ -18,31 +18,33 @@ EXP     ([eE][-+]?[0-9]+)
 
 %{
 #include "je_parse.h"
+#include "je_token.h"
 #include "je_error.h"
 #include "je_util.h"
 
-#define JE_YYCODE_INITSIZE 80
 #define JE_YYSTR_INITSIZE 8
 
-char** je_yycodeptr = NULL;
 size_t je_yypos = 0;
 size_t je_yycolumn = 1;
 char* je_yystrvalue = NULL;
 JE_NODE* je_ast = NULL;
+JE_TOKEN* je_last = NULL;
+JE_TOKEN* je_first = NULL;
 
-#define YY_USER_ACTION                                      \
-    if(YY_START == INITIAL) {                               \
-        je_yylloc.codeptr = je_yycodeptr;                   \
-        je_yylloc.first_pos = je_yypos;                     \
-        je_yylloc.first_line = je_yylineno;                 \
-        je_yylloc.first_column = je_yycolumn;               \
-    }                                                       \
-    je_yypos += je_yyleng;                                  \
-    je_yycolumn += je_yyleng;                               \
-    je_yylloc.last_pos = je_yypos;                          \
-    je_yylloc.last_line = je_yylineno;                      \
-    je_yylloc.last_column = je_yycolumn;                    \
-    *je_yycodeptr = je_astrcat(*je_yycodeptr, je_yytext);   \
+#define YY_USER_ACTION                                                      \
+    if(YY_START == INITIAL) {                                               \
+        je_last = je_newtoken(je_yypos, je_yylineno, je_yycolumn, je_last); \
+        if(!je_first) je_first = je_last;                                   \
+                                                                            \
+        je_yylloc.first = je_last;                                          \
+        je_yylloc.last = je_last;                                           \
+    }                                                                       \
+    je_yypos += je_yyleng;                                                  \
+    je_yycolumn += je_yyleng;                                               \
+    je_yylloc.last->text = je_astrcat(je_last->text, je_yytext);            \
+    je_yylloc.last->last_pos = je_yypos;                                    \
+    je_yylloc.last->last_line = je_yylineno;                                \
+    je_yylloc.last->last_column = je_yycolumn;                              \
 
 static void je_yynextline() {
     je_yycolumn = 1;
@@ -149,9 +151,9 @@ JE_NODE* je_parse(const char* code) {
     je_yylineno = 1;
     je_yycolumn = 1;
     je_ast = NULL;
+    je_last = NULL;
+    je_first = NULL;
     je_yystrvalue = NULL;
-    je_yycodeptr = calloc(1, sizeof(char*));
-    *je_yycodeptr = calloc(1, JE_YYCODE_INITSIZE);
 
     /* Parse from string */
     if(code) {
@@ -171,7 +173,7 @@ JE_NODE* je_parse(const char* code) {
         } while(!feof(je_yyin));
     }
 
-    /* do not free je_yycodeptr, used by je_ast */
+printf("%s\n", je_astrtoken(je_first, NULL));
 
     return je_ast;
 }

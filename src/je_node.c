@@ -144,7 +144,7 @@ char* je_nodetree(JE_NODE* node) {
     /* Get the values */
     if(node->left) left = je_nodetree(node->left);
     if(node->right) right = je_nodetree(node->right);
-    if(!left && !right) value = je_textat(&node->loc);
+    if(!left && !right) value = je_atextat(&node->loc);
 
     /* This node */
     if(value) asprintf(&tree, "%s(%s) at %p\n", je_nodetype(node), value, node);
@@ -202,5 +202,5 @@ const char* je_nodetype(JE_NODE* node) {
 
 
 char* je_nodeastr(JE_NODE* node) {
-    return strdup(je_textat(&node->loc));
+    return je_atextat(&node->loc);
 }

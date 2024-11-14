@@ -5,6 +5,7 @@
 #include <string.h>
 #include "je_parse.h"
 #include "je_util.h"
+#include "je_token.h"
 
 
 /* ***************************************************************************
@@ -68,11 +69,16 @@ char* je_astrf64(double src) {
 * Like strcat, but dest is assumed to be reallocatable.
 */
 char* je_astrcat(char* dest, const char* src) {
-    size_t dlen = strlen(dest);
-    size_t slen = strlen(src);
+    if(dest) {
+        size_t dlen = strlen(dest);
+        size_t slen = strlen(src);
 
-    dest = realloc(dest, dlen+slen+1);
-    snprintf(dest+dlen, slen+1, "%s", src);
+        dest = realloc(dest, dlen+slen+1);
+        snprintf(dest+dlen, slen+1, "%s", src);
+    }
+    else {
+        dest = strdup(src);
+    }
 
     return dest;
 }
@@ -140,12 +146,6 @@ char* je_astrencode(const char* src) {
 }
 
 
-char* je_textat(JE_YYLTYPE* loc) {
-    size_t length = loc->last_pos - loc->first_pos + 1;
-    char* code = *loc->codeptr;
-    char* buf = malloc(length);
-
-    snprintf(buf, length, "%s", code + loc->first_pos);
-
-    return buf;
+char* je_atextat(JE_YYLTYPE* loc) {
+    return je_astrtoken(loc->first, loc->last->next);
 }

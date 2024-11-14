@@ -5,6 +5,7 @@
 #include "je_error.h"
 #include "je_node.h"
 #include "je_util.h"
+#include "je_token.h"
 
 
 /* ***************************************************************************
@@ -34,14 +35,14 @@ void _je_die(const char* file, const char* func, size_t line, const char* format
 
 void je_throw(const char* type, JE_YYLTYPE* loc, const char* format, ...) {
     va_list ap;
-    char* text = je_textat(loc);
+    char* text = je_atextat(loc);
     char* buf;
 
     va_start(ap, format);
     vasprintf(&buf, format, ap);
     va_end(ap);
 
-    fprintf(stderr, "%s at line %zu col %zu near `%s`: %s\n", type, loc->first_line, loc->first_column, text, buf);
+    fprintf(stderr, "%s at line %zu col %zu near `%s`: %s\n", type, loc->first->first_line, loc->first->first_column, text, buf);
     free(text);
     free(buf);
     exit(1);
@@ -50,14 +51,14 @@ void je_throw(const char* type, JE_YYLTYPE* loc, const char* format, ...) {
 
 void je_throwx(const char* file, const char* func, size_t line, const char* type, JE_YYLTYPE* loc, const char* format, ...) {
     va_list ap;
-    char* text = je_textat(loc);
+    char* text = je_atextat(loc);
     char* buf;
 
     va_start(ap, format);
     vasprintf(&buf, format, ap);
     va_end(ap);
 
-    fprintf(stderr, "[%s:%zu@%s()] %s at line %zu col %zu near `%s`: %s\n", file, line, func, type, loc->first_line, loc->first_column, text, buf);
+    fprintf(stderr, "[%s:%zu@%s()] %s at line %zu col %zu near `%s`: %s\n", file, line, func, type, loc->first->first_line, loc->first->first_column, text, buf);
     free(text);
     free(buf);
     exit(1);
