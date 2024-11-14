@@ -173,7 +173,7 @@ JE_NODE* je_parse(const char* code) {
         } while(!feof(je_yyin));
     }
 
-printf("%s\n", je_astrtoken(je_first, NULL));
+    // printf("%s\n", je_astrtoken(je_first, NULL));
 
     return je_ast;
 }
