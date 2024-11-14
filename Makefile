@@ -46,5 +46,4 @@ py/lib/je.py: py/lib/je.py.shdoc Makefile
 py/lib/__init__.py: py/lib/__init__.py.shdoc Makefile
 	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
 
-
 # vim:noet:
