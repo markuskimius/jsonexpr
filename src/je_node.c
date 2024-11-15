@@ -147,11 +147,24 @@ char* je_nodetree(JE_NODE* node) {
     /* Get the values */
     if(node->left) left = je_nodetree(node->left);
     if(node->right) right = je_nodetree(node->right);
-    if(!left && !right) value = je_atextat(&node->loc);
+    // if(!left && !right) value = je_atextat(&node->loc);
+    value = je_atextat(&node->loc);
 
     /* This node */
-    if(value) asprintf(&tree, "%s(%s) at %p\n", je_nodetype(node), value, node);
-    else      asprintf(&tree, "%s at %p\n", je_nodetype(node), node);
+    asprintf(&tree, "%s at %p\n", je_nodetype(node), node);
+
+    if(value) {
+        value = je_astrcat(value, "\n");
+
+        for(cp=value, np=strchr(cp,'\n'); np; cp=np+1, np=strchr(cp,'\n')) {
+            *np = '\0';
+
+            tree = je_casprintf(tree,
+                "%s %s\n",
+                (left || right) ? "| " : "  ", cp
+            );
+        }
+    }
 
     /* Children */
     if(left) {
