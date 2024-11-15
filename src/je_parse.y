@@ -78,7 +78,7 @@ typedef struct JE_YYLTYPE {
 
 %%
 
-start       :                           { je_ast = $$ = je_newinode(JE_NULL_N, 0, &je_yylloc);       }
+start       :                           { je_ast = $$ = je_newinode(JE_NULL_N, 0, &je_yylloc);    }
             | expr                      { je_ast = $$ = $1;                                       }
             ;
 
@@ -93,9 +93,9 @@ expr        : NULL_T                    { $$ = je_newinode(JE_NULL_N, 0, &@$);  
             | '[' list ']'              { $$ = je_newnode(  JE_ARRAY_N,   $2, NULL, NULL, &@$);   }
             | '{' '}'                   { $$ = je_newnode( JE_OBJECT_N, NULL, NULL, NULL, &@$);   }
             | '{' members '}'           { $$ = je_newnode( JE_OBJECT_N,   $2, NULL, NULL, &@$);   }
+            | expr '(' ')'              { $$ = je_newnode(   JE_CALL_N,   $1, NULL, NULL, &@$);   }
+            | expr '(' list ')'         { $$ = je_newnode(   JE_CALL_N,   $1,   $3, NULL, &@$);   }
             | symbol                    { $$ = je_newnode( JE_SYMBOL_N,   $1, NULL, NULL, &@$);   }
-            | symbol '(' ')'            { $$ = je_newnode(   JE_CALL_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$), NULL, NULL, &@$);   }
-            | symbol '(' list ')'       { $$ = je_newnode(   JE_CALL_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
             | symbol '=' expr           { $$ = je_newnode(         '=',   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
             | symbol INC_T              { $$ = je_newnode(JE_POSTINC_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$), NULL, NULL, &@$);   }
             | symbol DEC_T              { $$ = je_newnode(JE_POSTDEC_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$), NULL, NULL, &@$);   }
