@@ -5,6 +5,7 @@
 #include <string.h>
 #include "je_node.h"
 #include "je_util.h"
+#include "je_token.h"
 
 
 /* ***************************************************************************
@@ -119,6 +120,7 @@ void je_freenode(JE_NODE* node) {
     if(node->left) je_freenode(node->left);
     if(node->right) je_freenode(node->right);
     if(node->righter) je_freenode(node->righter);
+    if(node->head) je_freetoken(node->head, 1);
 
     if(node->type == JE_IDENT_N || node->type == JE_STRING_N) {
         free(node->value.s);
@@ -128,6 +130,7 @@ void je_freenode(JE_NODE* node) {
     node->right = NULL;
     node->righter = NULL;
     node->value.s = NULL;
+    node->head = NULL;
 
     free(node);
 }

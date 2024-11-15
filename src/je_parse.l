@@ -21,6 +21,7 @@ EXP     ([eE][-+]?[0-9]+)
 #include "je_token.h"
 #include "je_error.h"
 #include "je_util.h"
+#include "je_node.h"
 
 #define JE_YYSTR_INITSIZE 8
 
@@ -172,6 +173,8 @@ JE_NODE* je_parse(const char* code) {
             je_yyparse();
         } while(!feof(je_yyin));
     }
+
+    je_ast->head = je_first;
 
     // printf("%s\n", je_astrtoken(je_first, NULL));
 

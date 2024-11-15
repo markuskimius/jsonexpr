@@ -124,7 +124,7 @@ $(BUILDDIR)/je_func.o: je_func.c je_error.h je_eval.h je_func.h je_symtbl.h je_v
 
 $(BUILDDIR)/je_map.o: je_map.c je_map.h je_util.h je_val.h
 
-$(BUILDDIR)/je_node.o: je_node.c je_node.h je_util.h
+$(BUILDDIR)/je_node.o: je_node.c je_node.h je_util.h je_token.h
 
 $(BUILDDIR)/je_token.o: je_token.c je_token.h je_util.h
 
@@ -140,7 +140,7 @@ $(BUILDDIR)/je_vec.o: je_vec.c je_error.h je_util.h je_val.h je_vec.h
 
 $(BUILDDIR)/je_parse.tab.o: je_parse.tab.c je_parse.tab.h je_node.h je_parse.h je_error.h je_val.h
 
-$(BUILDDIR)/lex.je_yy.o: lex.je_yy.c je_parse.h je_error.h je_util.h
+$(BUILDDIR)/lex.je_yy.o: lex.je_yy.c je_parse.h je_error.h je_util.h je_node.h
 
 je_parse.tab.c je_parse.tab.h: je_parse.y
 	bison -Dapi.prefix={je_yy} -t -v -d $<

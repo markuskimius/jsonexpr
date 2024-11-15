@@ -10,6 +10,7 @@
 */
 
 typedef struct JE_VAL JE_VAL;
+typedef struct JE_TOKEN JE_TOKEN;
 typedef struct JE_YYLTYPE JE_YYLTYPE;
 
 
@@ -77,7 +78,9 @@ typedef struct JE_NODE {
         double f;
         char* s;
     } value;
+
     JE_YYLTYPE loc;
+    JE_TOKEN* head;
 } JE_NODE;
 
 
