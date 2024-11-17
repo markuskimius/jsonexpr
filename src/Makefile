@@ -102,7 +102,7 @@ $(BUILDDIR)/je: $(BUILDDIR)/main.o $(BUILDDIR)/libje.a
 
 $(BUILDDIR)/libje.a: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o                            \
 		$(BUILDDIR)/je_map.o $(BUILDDIR)/je_node.o $(BUILDDIR)/je_oper.o $(BUILDDIR)/je_symtbl.o $(BUILDDIR)/je_util.o $(BUILDDIR)/je_val.o \
-		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.je_yy.o $(BUILDDIR)/je_token.o
+		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.je_yy.o $(BUILDDIR)/je_token.o $(BUILDDIR)/je.o
 	llvm-ar rcs $@ $^
 
 $(BUILDDIR)/je.wasm: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o $(BUILDDIR)/main-wasm.o    \
@@ -111,6 +111,8 @@ $(BUILDDIR)/je.wasm: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
 $(BUILDDIR)/main.o: main.c je.h
+
+$(BUILDDIR)/je.o: je.c je.h je_map.h je_error.h
 
 $(BUILDDIR)/main-wasm.o: main-wasm.c je_eval.h je_node.h je_parse.h je_val.h
 

@@ -4,11 +4,44 @@
 #include "je_eval.h"
 #include "je_node.h"
 #include "je_parse.h"
+#include "je_symtbl.h"
 #include "je_val.h"
+
+
+/* ***************************************************************************
+* CONSTANTS
+*/
 
 #define JE_VERSION       "${JE_VERSION}"
 #define JE_VERSION_MAJOR ${JE_VERSION%%.*}
 #define JE_VERSION_MINOR $(t=${JE_VERSION#*.}; printf "%s" "${t%.*}")
 #define JE_VERSION_PATCH ${JE_VERSION##*.}
 
+
+/* ***************************************************************************
+* TYPES
+*/
+
+typedef struct JE_COMPILED {
+    JE_NODE* ast;
+    JE_SYMTBL* symtbl0;
+    JE_SYMTBL* symtbl;
+} JE_COMPILED;
+
+
+/* ***************************************************************************
+* PUBLIC FUNCTIONS
+*/
+
+JE_COMPILED* je_compile(const char* code);
+JE_VAL* je_evalc(JE_COMPILED* compiled);
+void je_free(JE_COMPILED* compiled);
+
+int je_setSymbols(JE_COMPILED* compiled, const char* json);
+void je_clearSymbols(JE_COMPILED* compiled);
+
+
 #endif /* JSONEXPR_H_ */
+
+/* vim:ft=c:
+*/
