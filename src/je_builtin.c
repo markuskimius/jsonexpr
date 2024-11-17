@@ -85,6 +85,13 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
             }
             else if(left->type == JE_OBJECT_V && right->type == JE_STRING_V) {
                 result = je_mapget(left->value.m, right->value.s);
+
+                /* Create if it doesn't exist */
+                if(!result && create) {
+                    result = je_nullval();
+                    je_mapset(left->value.m, right->value.s, result);
+                }
+
                 if(!result) JeRuntimeError(&node->loc, "Invalid key, %s", je_valqstr(right));
 
                 /* See above */
@@ -107,6 +114,14 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
             if(left->type == JE_OBJECT_V && right->type == JE_IDENT_N) {
                 result = je_mapget(left->value.m, right->value.s);
+
+                /* Create if it doesn't exist */
+                if(!result && create) {
+                    result = je_nullval();
+                    je_mapset(left->value.m, right->value.s, result);
+                }
+
+                if(!result) JeRuntimeError(&node->loc, "Invalid key, %s", right->value.s);
 
                 /* See above */
                 if(result && left->value.m->count <= 1) {
