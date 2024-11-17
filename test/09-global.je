@@ -1,0 +1,5 @@
+FUNCTION("",
+    GLOBAL.a = [1,2,3];
+)()[1] = "x";
+
+PRINT(a);
