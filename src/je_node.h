@@ -26,7 +26,6 @@ enum {
     JE_STRING_N,
     JE_ARRAY_N,
     JE_OBJECT_N,
-    JE_SYMBOL_N,
     JE_CALL_N,
     JE_IDENT_N,
     JE_UPLUS_N,

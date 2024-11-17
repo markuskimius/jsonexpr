@@ -50,7 +50,7 @@ char* je_utf8str(uint32_t c) {
 char* je_astri64(int64_t src) {
     char* dest = calloc(1, IBUFSIZE);
 
-    snprintf(dest, IBUFSIZE, "%lld", (unsigned long long) src);
+    snprintf(dest, IBUFSIZE, "%lld", src);
 
     return dest;
 }

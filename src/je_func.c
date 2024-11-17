@@ -64,7 +64,7 @@ void je_freefunc(JE_FUNC* func) {
 }
 
 
-JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table) {
+JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VEC* args = je_newvec();
     const char* cp = sig;
     int isok = 1;
@@ -78,7 +78,7 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table) {
 
         /* check too many arguments */
         if(*cp == '\0') {
-            je_throwLater("Too many arguments, expected %ld, got %zu", (cp-sig), nodes->length);
+            JeRuntimeError(&node->loc, "Too many arguments, expected %ld, got %zu", (cp-sig), nodes->length);
             isok = 0;
         }
         /* evaluate */
@@ -96,7 +96,7 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table) {
                 v = sv;
             }
             else {
-                je_throwLater("Invalid argument type, expected %c, got %c", *cp, v->type);
+                JeRuntimeError(&node->loc, "%d-th argument is invalid type, expected %c, got %c", (int)i, *cp, v->type);
                 isok = 0;
             }
 
@@ -122,7 +122,7 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table) {
 
     /* check too few arguments */
     if(isok && !strchr("*", *cp)) {
-        je_throwLater("Too few arguments, expected > %ld, got %zu", (cp-sig), nodes->length);
+        JeRuntimeError(loc, "Too few arguments, expected > %ld, got %zu", (cp-sig), nodes->length);
         isok = 0;
     }
 
@@ -135,14 +135,15 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table) {
 }
 
 
-JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table) {
-    JE_VEC* args = je_funcargs(func->sig, nodes, table);
+JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+    JE_VEC* args = je_funcargs(func->sig, nodes, table, loc);
     JE_VAL* result = NULL;
 
     if(args) {
         switch(func->type) {
             case JE_BINARY_FT : {
-                result = func->handler.bin(args, table);
+                result = func->handler.bin(args, table, loc);
+
                 je_freevec(args);
                 break;
             }

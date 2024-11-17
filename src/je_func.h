@@ -30,7 +30,7 @@ typedef enum {
 * TYPES
 */
 
-typedef JE_VAL* (*JE_BINARY_FN)(JE_VEC* args, JE_SYMTBL* table);
+typedef JE_VAL* (*JE_BINARY_FN)(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc);
 
 typedef struct JE_FUNC {
     je_func_t type;
@@ -55,8 +55,8 @@ JE_FUNC* je_newcustfunc(JE_NODE* handler, const char* name, const char* sig, JE_
 JE_FUNC* je_dupfunc(JE_FUNC* func);
 void je_freefunc(JE_FUNC* func);
 
-JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table);
-JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table);
+JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc);
+JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc);
 char* je_funcastr(JE_FUNC* func);
 
 

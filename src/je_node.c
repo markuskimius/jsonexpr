@@ -29,7 +29,6 @@ static char* NODENAMEH[] = {
     "STRING_N",
     "ARRAY_N",
     "OBJECT_N",
-    "SYMBOL_N",
     "CALL_N",
     "IDENT_N",
     "UPLUS_N",

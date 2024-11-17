@@ -107,8 +107,10 @@ JE_VAL* je_eval(JE_NODE* node, JE_SYMTBL* table) {
             case JE_ARRAY_N    : result = je_arrval(newlist(node->left, table, NULL)); break;
             case JE_OBJECT_N   : result = je_objval(newpairlist(node->left, table, NULL)); break;
 
-            case JE_SYMBOL_N   : result = je_opexec("*x", table, node->left, NULL, NULL); break;
             case JE_CALL_N     : result = je_opexec("()", table, node->left, node->right, NULL); break;
+            case JE_IDENT_N    : result = je_opexec("*x", table, node, NULL, NULL); break;
+            case '['           : result = je_opexec("[]", table, node->left, node->right, NULL); break;
+            case '.'           : result = je_opexec(".", table, node->left, node->right, NULL); break;
 
             case '~'           : result = je_opexec("~", table, node->left, NULL, NULL); break;
             case '!'           : result = je_opexec("!", table, node->left, NULL, NULL); break;

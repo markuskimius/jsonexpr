@@ -74,7 +74,6 @@ typedef struct JE_YYLTYPE {
 %type<node> list
 %type<node> pair
 %type<node> members
-%type<node> symbol
 
 %%
 
@@ -95,12 +94,14 @@ expr        : NULL_T                    { $$ = je_newinode(JE_NULL_N, 0, &@$);  
             | '{' members '}'           { $$ = je_newnode( JE_OBJECT_N,   $2, NULL, NULL, &@$);   }
             | expr '(' ')'              { $$ = je_newnode(   JE_CALL_N,   $1, NULL, NULL, &@$);   }
             | expr '(' list ')'         { $$ = je_newnode(   JE_CALL_N,   $1,   $3, NULL, &@$);   }
-            | symbol                    { $$ = je_newnode( JE_SYMBOL_N,   $1, NULL, NULL, &@$);   }
-            | symbol '=' expr           { $$ = je_newnode(         '=',   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol INC_T              { $$ = je_newnode(JE_POSTINC_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$), NULL, NULL, &@$);   }
-            | symbol DEC_T              { $$ = je_newnode(JE_POSTDEC_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$), NULL, NULL, &@$);   }
-            | INC_T symbol %prec PRE_P  { $$ = je_newnode( JE_PREINC_N,   je_newnode(JE_SYMBOL_N,$2,NULL,NULL,&@$), NULL, NULL, &@$);   }
-            | DEC_T symbol %prec PRE_P  { $$ = je_newnode( JE_PREDEC_N,   je_newnode(JE_SYMBOL_N,$2,NULL,NULL,&@$), NULL, NULL, &@$);   }
+            | IDENT_T                   { $$ = je_newsnode(JE_IDENT_N, $1, &@$);                  }
+            | expr '.' IDENT_T          { $$ = je_newnode(         '.',   $1, je_newsnode(JE_IDENT_N,$3,&@$), NULL, &@$);   }
+            | expr '[' expr ']'         { $$ = je_newnode(         '[',   $1,   $3, NULL, &@$);   }
+            | expr '=' expr             { $$ = je_newnode(         '=',   $1,   $3, NULL, &@$);   }
+            | expr INC_T                { $$ = je_newnode(JE_POSTINC_N,   $1, NULL, NULL, &@$);   }
+            | expr DEC_T                { $$ = je_newnode(JE_POSTDEC_N,   $1, NULL, NULL, &@$);   }
+            | INC_T expr %prec PRE_P    { $$ = je_newnode( JE_PREINC_N,   $2, NULL, NULL, &@$);   }
+            | DEC_T expr %prec PRE_P    { $$ = je_newnode( JE_PREDEC_N,   $2, NULL, NULL, &@$);   }
             | '+' expr %prec UNI_P      { $$ = je_newnode(  JE_UPLUS_N,   $2, NULL, NULL, &@$);   }
             | '-' expr %prec UNI_P      { $$ = je_newnode( JE_UMINUS_N,   $2, NULL, NULL, &@$);   }
             | '!' expr                  { $$ = je_newnode(         '!',   $2, NULL, NULL, &@$);   }
@@ -125,18 +126,18 @@ expr        : NULL_T                    { $$ = je_newinode(JE_NULL_N, 0, &@$);  
             | expr SHL_T expr           { $$ = je_newnode(    JE_SHL_N,   $1,   $3, NULL, &@$);   }
             | expr ASR_T expr           { $$ = je_newnode(    JE_ASR_N,   $1,   $3, NULL, &@$);   }
             | expr SHR_T expr           { $$ = je_newnode(    JE_SHR_N,   $1,   $3, NULL, &@$);   }
-            | symbol PLEQ_T expr        { $$ = je_newnode(   JE_PLEQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol MIEQ_T expr        { $$ = je_newnode(   JE_MIEQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol TIEQ_T expr        { $$ = je_newnode(   JE_TIEQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol DIEQ_T expr        { $$ = je_newnode(   JE_DIEQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol MOEQ_T expr        { $$ = je_newnode(   JE_MOEQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol SHLEQ_T expr       { $$ = je_newnode(  JE_SHLEQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol ASREQ_T expr       { $$ = je_newnode(  JE_ASREQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol SHREQ_T expr       { $$ = je_newnode(  JE_SHREQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol ANDEQ_T expr       { $$ = je_newnode(  JE_ANDEQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol XOREQ_T expr       { $$ = je_newnode(  JE_XOREQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol OREQ_T expr        { $$ = je_newnode(   JE_OREQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
-            | symbol POWEQ_T expr       { $$ = je_newnode(  JE_POWEQ_N,   je_newnode(JE_SYMBOL_N,$1,NULL,NULL,&@$),   $3, NULL, &@$);   }
+            | expr PLEQ_T expr          { $$ = je_newnode(   JE_PLEQ_N,   $1,   $3, NULL, &@$);   }
+            | expr MIEQ_T expr          { $$ = je_newnode(   JE_MIEQ_N,   $1,   $3, NULL, &@$);   }
+            | expr TIEQ_T expr          { $$ = je_newnode(   JE_TIEQ_N,   $1,   $3, NULL, &@$);   }
+            | expr DIEQ_T expr          { $$ = je_newnode(   JE_DIEQ_N,   $1,   $3, NULL, &@$);   }
+            | expr MOEQ_T expr          { $$ = je_newnode(   JE_MOEQ_N,   $1,   $3, NULL, &@$);   }
+            | expr SHLEQ_T expr         { $$ = je_newnode(  JE_SHLEQ_N,   $1,   $3, NULL, &@$);   }
+            | expr ASREQ_T expr         { $$ = je_newnode(  JE_ASREQ_N,   $1,   $3, NULL, &@$);   }
+            | expr SHREQ_T expr         { $$ = je_newnode(  JE_SHREQ_N,   $1,   $3, NULL, &@$);   }
+            | expr ANDEQ_T expr         { $$ = je_newnode(  JE_ANDEQ_N,   $1,   $3, NULL, &@$);   }
+            | expr XOREQ_T expr         { $$ = je_newnode(  JE_XOREQ_N,   $1,   $3, NULL, &@$);   }
+            | expr OREQ_T expr          { $$ = je_newnode(   JE_OREQ_N,   $1,   $3, NULL, &@$);   }
+            | expr POWEQ_T expr         { $$ = je_newnode(  JE_POWEQ_N,   $1,   $3, NULL, &@$);   }
             | expr '?' expr ':' expr    { $$ = je_newnode(         '?',   $1,   $3,   $5, &@$);   }
             | expr ';' expr             { $$ = je_newnode(         ';',   $1,   $3, NULL, &@$);   }
             ;
@@ -152,11 +153,6 @@ pair        : expr ':' expr             { $$ = je_newnode(         ':',   $1,   
 members     : pair                      { $$ = je_newnode(         ',',   $1, NULL, NULL, &@$);   }
             | pair ','                  { $$ = je_newnode(         ',',   $1, NULL, NULL, &@$);   }
             | pair ',' members          { $$ = je_newnode(         ',',   $1,   $3, NULL, &@$);   }
-            ;
-
-symbol      : IDENT_T                   { $$ = je_newsnode(JE_IDENT_N, $1, &@$);                  }
-            | symbol '[' expr ']'       { $$ = je_newnode(         '[',   $1,   $3, NULL, &@$);   }
-            | symbol '.' symbol         { $$ = je_newnode(         '.',   $1,   $3, NULL, &@$);   }
             ;
 
 %%

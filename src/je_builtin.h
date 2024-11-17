@@ -21,7 +21,6 @@ typedef struct JE_VEC    JE_VEC;
 
 JE_MAP* je_binfns();
 JE_MAP* je_binops();
-JE_VAL* je_fnexec(const char* key, JE_SYMTBL* table, JE_VEC* args);
 JE_VAL* je_opexec(const char* key, JE_SYMTBL* table, JE_NODE* left, JE_NODE* right, JE_NODE* righter);
 
 

@@ -137,11 +137,11 @@ JE_VAL* je_dupval(JE_VAL* val) {
 
 
 void je_swapval(JE_VAL* val1, JE_VAL* val2) {
-    JE_VAL* tmp = malloc(sizeof(JE_VAL));
+    JE_VAL tmp;
 
-    memcpy(tmp, val1, sizeof(JE_VAL));
+    memcpy(&tmp, val1, sizeof(JE_VAL));
     memcpy(val1, val2, sizeof(JE_VAL));
-    memcpy(val2, tmp, sizeof(JE_VAL));
+    memcpy(val2, &tmp, sizeof(JE_VAL));
 }
 
 
@@ -156,7 +156,7 @@ void je_freeval(JE_VAL* val) {
         case JE_OBJECT_V   : je_freemap(val->value.m); break;
         case JE_FUNCTION_V : je_freefunc(val->value.fn); break;
         case JE_NODE_V     : break;
-        default         : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
+        default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
     }
 
     if(val->astrdecoded) free(val->astrdecoded);
