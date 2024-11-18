@@ -58,8 +58,7 @@ class Compiled:
         })
         self.iface.memory8 = self.instance.exports.memory.uint8_view()
         self.util = Util(self.instance)
-        self.wsymtbl0 = self.util.symnew()
-        self.wsymtbl = self.util.symnew(self.wsymtbl0)
+        self.wsymtbl = self.util.symnew()
 
         # Parse
         self.code = self.util.strdup(code)

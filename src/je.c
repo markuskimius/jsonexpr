@@ -12,8 +12,7 @@ JE_COMPILED* je_compile(const char* code) {
     JE_COMPILED* compiled = calloc(1, sizeof(JE_COMPILED));
 
     compiled->ast = je_parse(code);
-    compiled->symtbl0 = je_newtable(NULL);
-    compiled->symtbl = je_newtable(compiled->symtbl0);
+    compiled->symtbl = je_newtable(NULL);
 
     return compiled;
 }
@@ -21,11 +20,9 @@ JE_COMPILED* je_compile(const char* code) {
 void je_free(JE_COMPILED* compiled) {
     je_freenode(compiled->ast);
     je_freetable(compiled->symtbl);
-    je_freetable(compiled->symtbl0);
 
     compiled->ast = NULL;
     compiled->symtbl = NULL;
-    compiled->symtbl0 = NULL;
 
     free(compiled);
 }

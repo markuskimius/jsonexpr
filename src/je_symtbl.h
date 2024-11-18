@@ -18,6 +18,7 @@ typedef struct JE_SYMTBL {
     struct JE_MAP* symbols;
     struct JE_SYMTBL* parent;
     struct JE_SYMTBL* global;
+    struct JE_SYMTBL* builtin;
     size_t count;
 
     struct JE_VAL* symval;

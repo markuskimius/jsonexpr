@@ -50,7 +50,6 @@ class Compiled {
         this.symtbl = null;
         this.iface = null;
         this.wtree = null;
-        this.wsymtbl0 = null;
         this.wsymtbl = null;
         this.promise = JE_WASM
             .then((bytes) => WebAssembly.instantiate(bytes, {
@@ -65,13 +64,11 @@ class Compiled {
                 const iface = new Interface(instance);
                 const wcode = iface.strdup(code);
                 const wtree = iface.parse(wcode);
-                const wsymtbl0 = iface.symnew();
-                const wsymtbl = iface.symnew(wsymtbl0);
+                const wsymtbl = iface.symnew();
                 const wsymmap = iface.valmap(iface.symget(wsymtbl,0));
 
                 this.adapter.instance = instance;
                 this.instance = instance;
-                this.wsymtbl0 = wsymtbl0;
                 this.wsymtbl = wsymtbl;
                 this.wtree = wtree;
                 this.iface = iface;

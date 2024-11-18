@@ -11,24 +11,14 @@
 * PUBLIC FUNCTIONS
 */
 
-JE_SYMTBL* je_newtable(JE_SYMTBL* parent) {
+static JE_SYMTBL* _newtable(JE_SYMTBL* parent, int isbuiltin) {
     JE_SYMTBL* table = calloc(1, sizeof(JE_SYMTBL));
-    JE_SYMTBL* global = parent ? parent->global : table;
 
     table->symbols = je_newmap();
     table->symval = je_objval(je_dupmap(table->symbols));
-    table->parent = parent;
-    table->global = global;
-    table->count = 1;
 
-    /* Add UPSCOPE */
-    if(parent) {
-        je_duptable(table->parent);
-        je_mapset(table->symbols, "UPSCOPE", je_objval(je_dupmap(parent->symbols)));
-    }
-
-    /* Add built-in symbols */
-    if(!parent) {
+    /* Built-in */
+    if(!parent && isbuiltin) {
         JE_MAP* bi = je_binfns();
 
         while((bi = je_mapnext(bi))) {
@@ -36,7 +26,32 @@ JE_SYMTBL* je_newtable(JE_SYMTBL* parent) {
         }
     }
 
+    /* Global */
+    else if(!parent && !isbuiltin) {
+        table->builtin = _newtable(NULL, 1);
+        table->parent = table->builtin;
+        table->global = table;
+    }
+
+    /* Regular table */
+    else {
+        table->builtin = parent->builtin;
+        table->global = parent->global;
+        table->parent = parent;
+    }
+
+    /* Add UPSCOPE */
+    if(table->parent) {
+        je_duptable(table->parent);
+        je_mapset(table->symbols, "UPSCOPE", je_objval(je_dupmap(table->parent->symbols)));
+    }
+
     return je_duptable(table);
+}
+
+
+JE_SYMTBL* je_newtable(JE_SYMTBL* parent) {
+    return _newtable(parent, 0);
 }
 
 
@@ -117,6 +132,9 @@ JE_VAL* je_tableget(JE_SYMTBL* table, const char* name) {
     }
     else if(name && strcmp(name,"UPSCOPE")==0) {
         if(table && table->parent) val = je_tableget(table->parent, NULL);
+    }
+    else if(name && strcmp(name,"BUILTIN")==0) {
+        if(table && table->builtin) val = je_tableget(table->builtin, NULL);
     }
     else if(name) {
         if(table && !val) val = je_mapget(table->symbols, name);

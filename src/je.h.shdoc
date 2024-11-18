@@ -24,7 +24,6 @@
 
 typedef struct JE_COMPILED {
     JE_NODE* ast;
-    JE_SYMTBL* symtbl0;
     JE_SYMTBL* symtbl;
 } JE_COMPILED;
 
