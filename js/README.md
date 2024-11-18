@@ -22,13 +22,7 @@ For the language overview, see the [main page](https://github.com/markuskimius/j
         }
     });
 
-    try {
-        const result = await compiled.eval();
-    }
-    catch(exception) {
-        if(exception instanceof je.Exit) console.log(`Exited with code ${exception.code}`);
-        else throw exception;
-    };
+    const result = await compiled.eval();
 </script>
 ```
 
