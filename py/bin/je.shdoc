@@ -45,6 +45,7 @@ SCRIPTDIR = os.path.dirname(__file__)
 class opts:
     wasmfile = os.path.join(SCRIPTDIR, "..", "lib", "je.wasm")
     quiet = 0
+    tree = 0
     eval = []
     files = []
 
@@ -62,6 +63,7 @@ Options:
   FILE                  File(s) to run.
 
   -e,--eval EXPR        Evaluate EXPR.
+  -t,--tree             Display the syntax tree.
   -q,--quiet            Do not output the result.
   -v,--version          Display version and quit.
 """
@@ -82,6 +84,7 @@ def main():
     # Process options
     getopt = getopts.getopts(sys.argv, {
         "e" : 1, "eval"    : 1,
+        "t" : 0, "tree"    : 0,
         "q" : 0, "quiet"   : 0,
         "v" : 0, "version" : 0,
         "h" : 0, "help"    : 0,
@@ -90,6 +93,7 @@ def main():
     for c in getopt:
         if   c in ("-")            : opts.files.append(getopt.optarg)
         elif c in ("e", "eval")    : opts.eval.append(getopt.optarg)
+        elif c in ("t", "tree")    : opts.tree = 1
         elif c in ("q", "quiet")   : opts.quiet = 1
         elif c in ("v", "version") : version(); sys.exit(0)
         elif c in ("h", "help")    : usage(); sys.exit(0)
@@ -118,7 +122,13 @@ def doMyFdThing(fd):
 
 
 def doMyThing(code):
-    result = je.eval(code)
+    compiled = je.compile(code)
+    result = compiled.eval()
+
+    if(opts.tree):
+        tree = compiled.nodetree()
+
+        sys.stderr.write(f"{tree}\n")
 
     if(not opts.quiet):
         print(json.dumps(result))

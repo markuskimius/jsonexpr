@@ -30,6 +30,7 @@ void usage() {
 "  FILE                  File(s) to run.\n"
 "\n"
 "  -e,--eval EXPR        Evaluate EXPR.\n"
+"  -t,--tree             Display the syntax tree.\n"
 "  -q,--quiet            Do not output the result.\n"
 "  -v,--version          Display version and quit.\n"
     );
@@ -44,11 +45,13 @@ void version() {
 * GLOBALS
 */
 
-int doMyFdThing(int fd, int output);
-int doMyCodeThing(const char* code, int output);
+int doMyFdThing(int fd);
+int doMyCodeThing(const char* code);
 
-int evalc = 0;
 char* evalv[256];
+int evalc = 0;
+int quiet = 0;
+int tree = 0;
 
 
 /* ***************************************************************************
@@ -57,11 +60,11 @@ char* evalv[256];
 
 int main(int argc, char* argv[]) {
     int errcount = 0;
-    int quiet = 0;
 
     /* Process options */
     static struct option long_options[] = {
         {"eval"   , required_argument, 0, 'e'},
+        {"tree"   , no_argument      , 0, 't'},
         {"quiet"  , no_argument      , 0, 'q'},
         {"version", no_argument      , 0, 'v'},
         {"help"   , no_argument      , 0, 'h'},
@@ -72,11 +75,12 @@ int main(int argc, char* argv[]) {
         int option_index = 0;
         int c = 0;
 
-        c = getopt_long(argc, argv, "e:qvh", long_options, &option_index);
+        c = getopt_long(argc, argv, "e:tqvh", long_options, &option_index);
         if(c == -1) break;
 
         switch(c) {
             case 'e' : evalv[evalc++] = optarg; break;
+            case 't' : tree = 1; break;
             case 'q' : quiet = 1; break;
             case 'v' : version(); exit(0); break;
             case 'h' : usage(); exit(0); break;
@@ -97,11 +101,11 @@ int main(int argc, char* argv[]) {
     }
 
     for(int i=0; i<evalc; i++) {
-        doMyCodeThing(evalv[i], !quiet);
+        doMyCodeThing(evalv[i]);
     }
 
     if(argc <= optind && evalc == 0) {
-        doMyFdThing(0, !quiet);
+        doMyFdThing(0);
     }
 
     for(int i=optind; i<argc; i++) {
@@ -112,7 +116,7 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        doMyFdThing(fd, !quiet);
+        doMyFdThing(fd);
         close(fd);
     }
 
@@ -120,7 +124,7 @@ int main(int argc, char* argv[]) {
 }
 
 
-int doMyFdThing(int fd, int output) {
+int doMyFdThing(int fd) {
     char* code = calloc(1, PAGESIZE);
     size_t offset = 0;
     int result = 0;
@@ -133,24 +137,25 @@ int doMyFdThing(int fd, int output) {
         code = realloc(code, offset + PAGESIZE);
     }
 
-    result = doMyCodeThing(code, output);
+    result = doMyCodeThing(code);
     free(code);
 
     return result;
 }
 
 
-int doMyCodeThing(const char* code, int output) {
+int doMyCodeThing(const char* code) {
     JE_NODE* ast = je_parse(code);
     JE_VAL* result = je_eval(ast, NULL);
 
-    /*
-    char* tree = je_nodetree(ast);
-    printf("%s\n", tree);
-    free(tree);
-    */
+    if(tree) {
+        char* tree = je_nodetree(ast);
 
-    if(output) {
+        fprintf(stderr, "%s\n", tree);
+        free(tree);
+    }
+
+    if(!quiet) {
         printf("%s\n", je_valqstr(result));
     }
 

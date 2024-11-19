@@ -62,10 +62,10 @@ class Compiled:
 
         # Parse
         self.code = self.util.strdup(code)
-        self.tree = self.util.parse(self.code)
+        self.wtree = self.util.parse(self.code)
 
     def eval(self):
-        wresult = self.util.eval(self.tree, self.wsymtbl)
+        wresult = self.util.eval(self.wtree, self.wsymtbl)
         wquoted = self.util.valqstr(wresult)
         quoted = self.util.strat(wquoted)
         result = json_loads(quoted, self.instance, wresult)
@@ -131,6 +131,9 @@ class Compiled:
 
         return jstr
 
+    def nodetree(self):
+        return self.util.nodetree(self.wtree)
+
 class Interface:
     def read(self, fd:"i32", buf:"i32", count:"i32") -> "i32":
         data = os.read(fd, count)
@@ -192,6 +195,14 @@ class Util:
 
     def nodefree(self, wnode):
         self.instance.exports.je_freenode(wnode)
+
+    def nodetree(self, wnode):
+        wtree = self.instance.exports.je_nodetree(wnode)
+        tree = self.strat(wtree)
+
+        self.free(wtree)
+
+        return tree
 
     def strval(self, wstr):
         return self.instance.exports.je_strval(wstr)
