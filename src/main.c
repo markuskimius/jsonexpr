@@ -13,7 +13,6 @@
 * CONSTANTS
 */
 
-#define VERSION  "${JE_VERSION}"
 #define PAGESIZE 4096
 
 
@@ -37,7 +36,7 @@ void usage() {
 }
 
 void version() {
-    printf("jsonexpr %s\n", VERSION);
+    printf("jsonexpr %s\n", JE_VERSION);
 }
 
 
