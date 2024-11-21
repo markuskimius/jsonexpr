@@ -1,6 +1,10 @@
 #ifndef JE_OPS_H_
 #define JE_OPS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -41,5 +45,9 @@ JE_VAL* je_op_lor(JE_NODE* left, JE_NODE* right, JE_SYMTBL* table);
 JE_VAL* je_op_land(JE_NODE* left, JE_NODE* right, JE_SYMTBL* table);
 JE_VAL* je_op_cond(JE_NODE* test, JE_NODE* iftrue, JE_NODE* iffalse, JE_SYMTBL* table);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_OPS_H_ */

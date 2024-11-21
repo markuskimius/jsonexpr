@@ -1,6 +1,10 @@
 #ifndef JE_SYMTBL_H_
 #define JE_SYMTBL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -38,5 +42,9 @@ void je_tableunset(JE_SYMTBL* table, const char* name);
 void je_tableclear(JE_SYMTBL* table, int localonly);
 JE_VAL* je_tableget(JE_SYMTBL* table, const char* name);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_SYMTBL_H_ */

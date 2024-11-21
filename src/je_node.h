@@ -4,6 +4,10 @@
 #include <inttypes.h>
 #include "je_parse.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -97,5 +101,9 @@ char* je_nodetree(JE_NODE* node);
 const char* je_nodetype(JE_NODE* node);
 char* je_nodeastr(JE_NODE* node);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_NODE_H_ */

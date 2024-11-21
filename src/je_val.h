@@ -3,6 +3,10 @@
 
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -92,5 +96,9 @@ JE_VEC* je_getarray(JE_VAL* val);
 JE_MAP* je_getobject(JE_VAL* val);
 JE_FUNC* je_getfunc(JE_VAL* val);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_VAL_H_ */

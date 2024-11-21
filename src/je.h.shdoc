@@ -7,6 +7,10 @@
 #include "je_symtbl.h"
 #include "je_val.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * CONSTANTS
@@ -39,6 +43,10 @@ void je_free(JE_COMPILED* compiled);
 int je_setSymbols(JE_COMPILED* compiled, const char* json);
 void je_clearSymbols(JE_COMPILED* compiled);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JSONEXPR_H_ */
 

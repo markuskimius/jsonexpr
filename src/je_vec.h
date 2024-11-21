@@ -3,6 +3,10 @@
 
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -42,5 +46,9 @@ int je_veccmp(JE_VEC* vec1, JE_VEC* vec2);
 char* je_vecastr(JE_VEC* vec);
 size_t je_veclen(JE_VEC* vec);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_VEC_H_ */

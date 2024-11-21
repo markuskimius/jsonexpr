@@ -4,6 +4,10 @@
 #include <inttypes.h>
 #include "je_parse.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * TYPES
@@ -35,5 +39,9 @@ void je_freetoken(JE_TOKEN* token, int recursive);
 
 char* je_astrtoken(JE_TOKEN* begin, JE_TOKEN* end);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_TOKEN_H_ */

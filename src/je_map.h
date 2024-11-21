@@ -1,6 +1,10 @@
 #ifndef JE_MAP_H_
 #define JE_MAP_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -44,5 +48,9 @@ char* je_mapastr(JE_MAP* map);
 char* je_mapkey(JE_MAP* map);
 JE_VAL* je_mapval(JE_MAP* map);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_MAP_H_ */

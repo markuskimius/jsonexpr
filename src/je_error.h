@@ -1,6 +1,10 @@
 #ifndef JE_THROW_H_
 #define JE_THROW_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -35,5 +39,9 @@ void je_throw(const char* type, JE_YYLTYPE* loc, const char* format, ...);
 void je_throwx(const char* file, const char* func, size_t line, const char* type, JE_YYLTYPE* loc, const char* format, ...);
 void je_throwLater(const char* format, ...);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_THROW_H_ */

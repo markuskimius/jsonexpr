@@ -3,6 +3,10 @@
 
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -23,5 +27,9 @@ char* je_casprintf(char* dest, const char* format, ...);
 char* je_astrencode(const char* src);
 char* je_atextat(JE_YYLTYPE* loc);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_UTIL_H_ */

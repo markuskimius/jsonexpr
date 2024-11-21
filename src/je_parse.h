@@ -3,6 +3,10 @@
 
 #include "je_parse.tab.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* ***************************************************************************
 * FORWARD DECLARATIONS
@@ -19,5 +23,9 @@ extern JE_NODE* je_ast;
 
 JE_NODE* je_parse(const char* code);
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* JE_PARSE_H_ */
