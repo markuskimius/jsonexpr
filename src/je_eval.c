@@ -40,17 +40,18 @@ static JE_VEC* newlist(JE_NODE* node, JE_SYMTBL* table, JE_VEC* list) {
 static JE_MAP* newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
     switch(node->type) {
         case ':': {
-            JE_NODE* left = node->left;
+            JE_VAL* left = je_eval(node->left, table);
             JE_VAL* right = je_eval(node->right, table);
 
-            if(left->type == JE_STRING_N) je_mapset(list, left->value.s, right);
+            if(left->type == JE_STRING_V) je_mapset(list, je_valstr(left), right);
             else {
                 je_freeval(right);
-                JeRuntimeError(&left->loc, "STRING expected, got %s", je_nodetype(left));
+                JeRuntimeError(&node->left->loc, "STRING expected, got %s", je_valtype(left));
             }
 
-            /* Do not free left (it's in the parse tree) */
-            /* Do not free right (it's in the list) */
+            je_freeval(left);
+            /* Do not free right (it's in the map) */
+
             break;
         }
 
