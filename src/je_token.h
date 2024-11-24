@@ -14,8 +14,6 @@ extern "C" {
 */
 
 typedef struct JE_TOKEN {
-    int type;
-
     char* text;
     size_t first_pos;
     size_t first_line;

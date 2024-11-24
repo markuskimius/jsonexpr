@@ -41,7 +41,6 @@ void je_freetoken(JE_TOKEN* token, int recursive) {
     if(token->next && recursive) je_freetoken(token->next, recursive);
     if(token->text) free(token->text);
 
-    token->type = 0;
     token->text = NULL;
     token->prev = NULL;
     token->next = NULL;
