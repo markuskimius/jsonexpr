@@ -55,7 +55,7 @@ static void je_yynextline() {
 
 %%
 
-[ \r\t\xc2\xa0]         ; /* Ignore whitespaces */
+[ \r\t]+                ; /* Ignore whitespaces */
 [\n]                    { je_yynextline(); }
 "null"                  { return NULL_T; }
 "true"                  { je_yylval.i = 1; return BOOL_T; }
