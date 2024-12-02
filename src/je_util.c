@@ -17,6 +17,14 @@
 
 
 /* ***************************************************************************
+* MACROS
+*/
+
+#define JE_MAX(a,b) (a>b?a:b)
+#define JE_MIN(a,b) (a<b?a:b)
+
+
+/* ***************************************************************************
 * GLOBALS
 */
 
@@ -148,4 +156,111 @@ char* je_astrencode(const char* src) {
 
 char* je_atextat(JE_YYLTYPE* loc) {
     return je_astrtoken(loc->first, loc->last->next);
+}
+
+
+static void je_reprint(char* where, size_t howmany, const char* what) {
+    size_t len = strlen(what);
+
+    for(size_t i=0; i<howmany; i++) {
+        snprintf(where, len, "%s", what);
+        where += len;
+    }
+}
+
+
+char* je_amcat(const char* s1, const char* s2) {
+    JE_LINE_ITER* iter1 = je_newlineiter(s1);
+    JE_LINE_ITER* iter2 = je_newlineiter(s2);
+    size_t width1 = je_maxwidth(s1);
+    size_t width2 = je_maxwidth(s2);
+    size_t height1 = je_nlines(s1);
+    size_t height2 = je_nlines(s2);
+    char* result = calloc(1, (width1+width2+1)*(height1+height2)+1);
+    char* rend = result;
+
+    while(1) {
+        const char* line1 = je_nextline(iter1);
+        const char* line2 = je_nextline(iter2);
+
+        if(!line1 && !line2) break;
+        if(!line1) line1 = "";
+        if(!line2) line2 = "";
+
+        rend += snprintf(rend, width1+strlen(line2)+2, "%-*s%s\n", (int)width1, line1, line2);
+    }
+
+    /* Remove last newline */
+    rend[-1] = '\0';
+
+    return result;
+}
+
+
+size_t je_nlines(const char* s) {
+    JE_LINE_ITER* iter = je_newlineiter(s);
+    size_t nlines = 0;
+
+    while(je_nextline(iter)) nlines++;
+    je_freelineiter(iter);
+
+    return nlines;
+}
+
+
+size_t je_maxwidth(const char* s) {
+    JE_LINE_ITER* iter = je_newlineiter(s);
+    const char* line = NULL;
+    size_t maxwidth = 0;
+
+    while((line = je_nextline(iter))) {
+        maxwidth = JE_MAX(maxwidth, strlen(line));
+    }
+
+    je_freelineiter(iter);
+
+    return maxwidth;
+}
+
+
+JE_LINE_ITER* je_newlineiter(const char* s) {
+    JE_LINE_ITER* iter = calloc(1, sizeof(JE_LINE_ITER));
+
+    iter->next = s;
+    iter->line = NULL;
+
+    return iter;
+}
+
+
+const char* je_nextline(JE_LINE_ITER* iter) {
+    const char* line = NULL;
+
+    if(iter->next) {
+        const char* next1 = iter->next;
+        const char* next2 = strchr(next1, '\n') ? strchr(next1, '\n') : strchr(next1, '\0');
+        size_t len = next2-next1;
+
+        /* Copy text */
+        iter->line = realloc(iter->line, len+1);
+        snprintf(iter->line, len+1, "%s", next1);
+
+        /* Setup next */
+        if(strchr(next1, '\n')) iter->next = next2+1;
+        else iter->next = NULL;
+
+        line = iter->line;
+    }
+
+    return line;
+}
+
+
+void je_freelineiter(JE_LINE_ITER* iter) {
+    if(iter->line) free(iter->line);
+
+    iter->next = NULL;
+    iter->line = NULL;
+
+    free(iter);
 }

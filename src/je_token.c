@@ -44,6 +44,7 @@ void je_freetoken(JE_TOKEN* token, int recursive) {
     token->text = NULL;
     token->prev = NULL;
     token->next = NULL;
+    token->flag = 0;
 
     free(token);
 }

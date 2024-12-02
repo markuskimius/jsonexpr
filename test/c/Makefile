@@ -1,5 +1,5 @@
 CC:=clang
-BINARIES:=test
+BINARIES:=simple nav
 CFLAGS:=-I../../include
 LDFLAGS:=-L../../lib
 LDLIBS:=-lje -lm
@@ -10,7 +10,7 @@ LDLIBS:=-lje -lm
 
 .PHONY: all clean
 
-all: test
+all: $(BINARIES)
 
 clean:
 	$(RM) $(BINARIES) *.o
@@ -19,9 +19,13 @@ clean:
 ##############################################################################
 # FILES
 
-test: test.o
+simple: simple.o
 
-test.o: test.c
+simple.o: simple.c
+
+nav: nav.o
+
+nav.o: nav.c
 
 
 # vim:noet:

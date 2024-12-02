@@ -159,8 +159,8 @@ char* je_nodetree(JE_NODE* node) {
             *np = '\0';
 
             tree = je_casprintf(tree,
-                "%s %s\n",
-                (left || right) ? "| " : "  ", cp
+                "%s%s\n",
+                (left || right) ? "| " : "", cp
             );
         }
     }
