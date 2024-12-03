@@ -40,6 +40,9 @@ static JE_NAVNODE* je_newobjitemnavnode(JE_NODE* node);
 static JE_NAVNODE* je_newcallargnavnode(JE_NODE* node);
 static JE_NAVNODE* je_newcallargitemnavnode(JE_NODE* node);
 
+static void je_linknext(JE_NAVNODE* node, JE_NAVNODE* next);
+static void je_linkenter(JE_NAVNODE* node, JE_NAVNODE* enter);
+
 static JE_NAVNODE* je_newnavnode(JE_NODE* node) {
     JE_NAVNODE* navnode = NULL;
 
@@ -64,7 +67,7 @@ static JE_NAVNODE* je_newstmtnavnode(JE_NODE* node) {
                 first = last = je_newnavnode(node->left);
 
                 while(last->next) last = last->next;
-                last->next = node->right ? je_newnavnode(node->right) : NULL;
+                if(node->right) je_linknext(last, je_newnavnode(node->right));
 
                 break;
         }
@@ -77,7 +80,7 @@ static JE_NAVNODE* je_newarrnavnode(JE_NODE* node) {
     JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
 
     navnode->node = node;
-    navnode->enter = je_newarritemnavnode(node->left);
+    je_linkenter(navnode, je_newarritemnavnode(node->left));
 
     return navnode;
 }
@@ -86,7 +89,7 @@ static JE_NAVNODE* je_newobjnavnode(JE_NODE* node) {
     JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
 
     navnode->node = node;
-    navnode->enter = je_newobjitemnavnode(node->left);
+    je_linkenter(navnode, je_newobjitemnavnode(node->left));
 
     return navnode;
 }
@@ -95,8 +98,8 @@ static JE_NAVNODE* je_newcallnavnode(JE_NODE* node) {
     JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
 
     navnode->node = node;
-    if(node->left) navnode->enter = je_newnavnode(node->left);
-    if(node->right) navnode->enter->next = je_newcallargnavnode(node->right);
+    if(node->left) je_linkenter(navnode, je_newnavnode(node->left));
+    if(node->right) je_linknext(navnode->enter, je_newcallargnavnode(node->right));
 
     return navnode;
 }
@@ -105,9 +108,9 @@ static JE_NAVNODE* je_neweqnavnode(JE_NODE* node) {
     JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
 
     navnode->node = node;
-    if(node->left) navnode->enter = je_newnavnode(node->left);
-    if(node->right) navnode->enter->next = je_newnavnode(node->right);
-    if(node->righter) navnode->enter->next->next = je_newnavnode(node->righter);
+    if(node->left) je_linkenter(navnode, je_newnavnode(node->left));
+    if(node->right) je_linknext(navnode->enter, je_newnavnode(node->right));
+    if(node->righter) je_linknext(navnode->enter->next, je_newnavnode(node->righter));
 
     return navnode;
 }
@@ -119,7 +122,7 @@ static JE_NAVNODE* je_newarritemnavnode(JE_NODE* node) {
         switch(node->type) {
             case ',' :
                 navnode = je_newnavnode(node->left);
-                navnode->next = node->right ? je_newarritemnavnode(node->right) : NULL;
+                if(node->right) je_linknext(navnode, je_newarritemnavnode(node->right));
                 break;
         }
     }
@@ -128,15 +131,16 @@ static JE_NAVNODE* je_newarritemnavnode(JE_NODE* node) {
 }
 
 static JE_NAVNODE* je_newobjitemnavnode(JE_NODE* node) {
-    JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
+    JE_NAVNODE* navnode = NULL;
 
     if(node) {
         switch(node->type) {
             case ',' :
+                navnode = calloc(1, sizeof(JE_NAVNODE));
                 navnode->node = node->left;
-                navnode->next = node->right ? je_newobjitemnavnode(node->right) : NULL;
-                navnode->enter = je_newnavnode(node->left->left);
-                navnode->enter->next = je_newnavnode(node->left->right);
+                if(node->right) je_linknext(navnode, je_newobjitemnavnode(node->right));
+                je_linkenter(navnode, je_newnavnode(node->left->left));
+                je_linknext(navnode->enter, je_newnavnode(node->left->right));
                 break;
         }
     }
@@ -153,7 +157,7 @@ static JE_NAVNODE* je_newcallargnavnode(JE_NODE* node) {
             case ',' :
                 first = last = je_newcallargitemnavnode(node->left);
                 while(last->next) last = last->next;
-                last->next = node->right ? je_newcallargnavnode(node->right) : NULL;
+                if(node->right) je_linknext(last, je_newcallargnavnode(node->right));
                 break;
         }
     }
@@ -169,7 +173,7 @@ static JE_NAVNODE* je_newcallargitemnavnode(JE_NODE* node) {
             case ';' :
                 navnode = calloc(1, sizeof(JE_NAVNODE));
                 navnode->node = node;
-                navnode->enter = je_newnavnode(node);
+                je_linkenter(navnode, je_newnavnode(node));
                 break;
 
             default  :
@@ -178,6 +182,16 @@ static JE_NAVNODE* je_newcallargitemnavnode(JE_NODE* node) {
     }
 
     return navnode;
+}
+
+static void je_linknext(JE_NAVNODE* node, JE_NAVNODE* next) {
+    if(node) node->next = next;
+    if(next) next->prev = node;
+}
+
+static void je_linkenter(JE_NAVNODE* node, JE_NAVNODE* enter) {
+    if(node) node->enter = enter;
+    if(enter) enter->exit = node;
 }
 
 static void je_freenavnode(JE_NAVNODE* navnode, int recurse) {
