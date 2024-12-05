@@ -187,11 +187,27 @@ static JE_NAVNODE* je_newcallargitemnavnode(JE_NODE* node) {
 static void je_linknext(JE_NAVNODE* node, JE_NAVNODE* next) {
     if(node) node->next = next;
     if(next) next->prev = node;
+    if(next && node) next->exit = node->exit;
 }
 
 static void je_linkenter(JE_NAVNODE* node, JE_NAVNODE* enter) {
     if(node) node->enter = enter;
     if(enter) enter->exit = node;
+
+    if(enter && node) {
+        JE_NAVNODE* pi = enter;
+        JE_NAVNODE* ni = enter;
+
+        while(pi->prev) {
+            pi = pi->prev;
+            pi->exit = node;
+        }
+
+        while(ni->next)  {
+            ni = ni->next;
+            ni->exit = node;
+        }
+    }
 }
 
 static void je_freenavnode(JE_NAVNODE* navnode, int recurse) {
