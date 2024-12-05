@@ -397,7 +397,7 @@ char* je_navnodetree(JE_NAVNODE* navnode) {
     value = je_atextat(&navnode->node->loc);
 
     /* This navnode */
-    asprintf(&tree, "{%s}\n", je_nodetype(navnode->node));
+    asprintf(&tree, "{%s}{%s}{%s}\n", je_nodetype(navnode->node), je_navnodetextbefore(navnode), je_navnodetextafter(navnode));
 
     if(value) {
         value = je_astrcat(value, "\n");
