@@ -27,6 +27,14 @@
                 border          : 1px white solid;
                 overflow-y      : scroll;
             }
+
+            a {
+                color           : #00ffff;
+            }
+
+            a:visited {
+                color           : #ff00ff;
+            }
         </style>
     </html>
     <body>
@@ -54,6 +62,12 @@ PRINT(fib(20));
         <div class="section">Output:</div>
         <textarea id="console" rows="25" cols="125" readonly scroll></textarea>
         <div><button id="clearButton">Clear</button></div>
+
+        <div class="section">Links:</div>
+        <ul>
+            <li><a href="https://github.com/markuskimius/jsonexpr" target=_blank>Source</a></li>
+            <li><a href="https://github.com/markuskimius/jsonexpr#documentation" target=_blank>Documentation</a></li>
+        </ul>
 
         <script type="module">
             import je from "./lib/je.js";
