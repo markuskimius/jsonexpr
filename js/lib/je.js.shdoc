@@ -61,14 +61,19 @@ class Compiled {
             }))
             .then((result) => {
                 const instance = result.instance;
+
+                this.adapter.instance = instance;
+                this.instance = instance;
+
+                return instance;
+            })
+            .then((instance) => {
                 const iface = new Interface(instance);
                 const wcode = iface.strdup(code);
                 const wtree = iface.parse(wcode);
                 const wsymtbl = iface.symnew();
                 const wsymmap = iface.valmap(iface.symget(wsymtbl,0));
 
-                this.adapter.instance = instance;
-                this.instance = instance;
                 this.wsymtbl = wsymtbl;
                 this.wtree = wtree;
                 this.iface = iface;

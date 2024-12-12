@@ -8,13 +8,33 @@
                 color           : #ffffff;
                 font-family     : sans-serif;
             }
+
+            .section {
+                font-weight     : bold;
+                margin-top      : 1em;
+            }
+
+            #code {
+                background-color: #ffffff;
+                color           : #000000;
+                border          : 1px white solid;
+                overflow-y      : scroll;
+            }
+
+            #console {
+                background-color: #000000;
+                color           : #ffffff;
+                border          : 1px white solid;
+                overflow-y      : scroll;
+            }
         </style>
     </html>
     <body>
+        <div class="section">Code:</div>
         <textarea id="code" rows="25" cols="125">
 memo = [ 0, 1 ];
 
-fib = FUNCTION("?",
+fib = FUNCTION("I",
   x = ARG[0];
 
   IF(x &gt;= LEN(memo),
@@ -27,29 +47,42 @@ fib = FUNCTION("?",
   memo[x]
 );
 
-PRINT(fib(20));  # Outputs to console
+PRINT(fib(20));
         </textarea>
         <div><button id="runButton">Run</button></div>
+
+        <div class="section">Output:</div>
+        <textarea id="console" rows="25" cols="125" readonly scroll></textarea>
+        <div><button id="clearButton">Clear</button></div>
 
         <script type="module">
             import je from "./lib/je.js";
 
             function main() {
-                document.querySelector("#runButton").addEventListener("click", async () => {
-                    const code = document.querySelector("#code").value;
+                const code = document.querySelector("#code");
+                const stdout = document.querySelector("#console");
 
-                    try {
-                        const result = await je.eval(code);
-                    }
-                    catch(exception) {
-                        if(exception instanceof je.Exit) console.log(`Exited with code ${exception.code}`);
-                        else throw exception;
-                    };
+                document.querySelector("#runButton").addEventListener("click", async () => {
+                    const result = await je.eval(code.value);
                 });
+
+                document.querySelector("#clearButton").addEventListener("click", () => {
+                    stdout.value = "_";
+                });
+
+                /* Redirect the output to the page */
+                console.log = function(...args) {
+                    /* Output */
+                    stdout.value = stdout.value.slice(0,-1) + args.join(" ") + "\n_";
+
+                    /* Scroll to bottom */
+                    stdout.scrollTop = stdout.scrollHeight;
+                }
+
+                console.log(`jsonexpr ${je.version}`);
             }
 
             main();
-            // await je.main();
         </script>
     </body>
 </html>
