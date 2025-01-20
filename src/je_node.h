@@ -75,6 +75,7 @@ typedef struct JE_NODE {
     struct JE_NODE* left;
     struct JE_NODE* right;
     struct JE_NODE* righter;
+    struct JE_NODE* parent;
 
     union {
         int64_t i;
@@ -97,9 +98,15 @@ JE_NODE* je_newfnode(int type, double f, JE_YYLTYPE* loc);
 JE_NODE* je_newsnode(int type, char* s, JE_YYLTYPE* loc);
 void je_freenode(JE_NODE* node);
 
+JE_NODE* je_nodedetach(JE_NODE* node);
+JE_NODE* je_nodeattachto(JE_NODE* dest, JE_NODE* src, int where);
+
+void je_noderemove(JE_NODE* node, int free);
+JE_NODE* je_nodereplace(JE_NODE* node, JE_NODE* newnode, int free);
+
 char* je_nodetree(JE_NODE* node);
-const char* je_nodetype(JE_NODE* node);
 char* je_nodeastr(JE_NODE* node);
+const char* je_nodetype(JE_NODE* node);
 
 
 #ifdef __cplusplus

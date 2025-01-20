@@ -13,7 +13,10 @@ extern "C" {
 * CONSTANTS
 */
 
-#define JE_DECOR_TF 0x01
+#define JE_WHITESPACE_TF 0x01
+#define JE_NEWLINE_TF    0x02
+#define JE_COMMENT_TF    0x04
+#define JE_DECOR_TM      (JE_WHITESPACE_TF | JE_NEWLINE_TF | JE_COMMENT_TF)
 
 
 /* ***************************************************************************
@@ -40,8 +43,13 @@ typedef struct JE_TOKEN {
 */
 
 JE_TOKEN* je_newtoken(size_t first_pos, size_t first_line, size_t first_column, JE_TOKEN* prev);
-void je_unlinktoken(JE_TOKEN* token);
 void je_freetoken(JE_TOKEN* token, int recursive);
+
+JE_TOKEN* je_tokenhead(JE_TOKEN* token);
+JE_TOKEN* je_tokentail(JE_TOKEN* token);
+JE_TOKEN* je_tokendetach(JE_TOKEN* begin, JE_TOKEN* end);
+JE_TOKEN* je_tokenattachat(JE_TOKEN* dest, JE_TOKEN* src);
+JE_TOKEN* je_tokenattachto(JE_TOKEN* dest, JE_TOKEN* src);
 
 char* je_astrtoken(JE_TOKEN* begin, JE_TOKEN* end);
 

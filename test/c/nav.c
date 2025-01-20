@@ -9,6 +9,7 @@
 #include "je/je.h"
 #include "je/je_nav.h"
 #include "je/je_util.h"
+#include "je/je_token.h"
 
 
 /* ***************************************************************************
@@ -22,8 +23,7 @@
 * GLOBALS
 */
 
-int tree = 0;
-char* files[1024];
+char commands[1024];
 
 
 /* ***************************************************************************
@@ -44,7 +44,16 @@ int main(int argc, char* argv[]) {
 
     /* Process options */
     static struct option long_options[] = {
+        {"enter"  , no_argument      , 0, 'e'},
+        {"exit"   , no_argument      , 0, 'x'},
+        {"next"   , no_argument      , 0, 'n'},
+        {"prev"   , no_argument      , 0, 'p'},
+//        {"remove" , no_argument      , 0, 'r'},
+        {"output" , no_argument      , 0, 'o'},
         {"tree"   , no_argument      , 0, 't'},
+        {"navtree", no_argument      , 0, 'v'},
+        {"eval"   , no_argument      , 0, 'l'},
+        {"Eval"   , no_argument      , 0, 'L'},
         {0, 0, 0, 0}
     };
 
@@ -52,17 +61,26 @@ int main(int argc, char* argv[]) {
         int option_index = 0;
         int c = 0;
 
-        c = getopt_long(argc, argv, "t", long_options, &option_index);
+        c = getopt_long(argc, argv, "exnprotvlL", long_options, &option_index);
         if(c == -1) break;
 
         switch(c) {
-            case 't' : tree = 1;   break;
-            default  : errcount++; break;
+            case 'e' : strcat(commands, "e"); break;
+            case 'x' : strcat(commands, "x"); break;
+            case 'n' : strcat(commands, "n"); break;
+            case 'p' : strcat(commands, "p"); break;
+//            case 'r' : strcat(commands, "r"); break;
+            case 'o' : strcat(commands, "o"); break;
+            case 't' : strcat(commands, "t"); break;
+            case 'v' : strcat(commands, "v"); break;
+            case 'l' : strcat(commands, "l"); break;
+            case 'L' : strcat(commands, "L"); break;
+            default  : errcount++;            break;
         }
     }
 
     if(errcount) {
-        fprintf(stderr, "Usage: %s [-t] <file.json>\n", argv[0]);
+        fprintf(stderr, "Usage: %s [-exnprotvlL] <file.json>\n", argv[0]);
         exit(1);
     }
 
@@ -110,57 +128,68 @@ int doMyFdThing(int fd) {
 }
 
 
-int doMyCodeThing(const char* code) {
-    JE_NODE* ast = je_parse(code);
-    JE_NAV* nav = je_newnav(ast);
+void output(JE_NODE* ast) {
+    char* text = je_astrtoken(ast->head, NULL);
+
+    printf("%s", text);
+    free(text);
+}
+
+
+void tree(JE_NODE* ast) {
+    char* nodetree = je_nodetree(ast);
+
+    fprintf(stderr, "%s\n", nodetree);
+
+    free(nodetree);
+}
+
+
+void navtree(JE_NAV* nav) {
+    char* navtree = je_navnodetree(nav->root);
+
+    fprintf(stderr, "%s\n", navtree);
+
+    free(navtree);
+}
+
+
+void eval(JE_NODE* ast, int output) {
     JE_VAL* result = je_eval(ast, NULL);
 
-    if(tree) {
-        char* nodetree = je_nodetree(ast);
-        char* navtree = je_navnodetree(nav->root);
-
-        fprintf(stderr, "%s\n", nodetree);
-        fprintf(stderr, "%s\n", navtree);
-
-        free(nodetree);
-        free(navtree);
+    if(output) {
+        printf("%s\n", je_valqstr(result));
     }
 
     je_freeval(result);
-    je_freenav(nav);
-    je_freenode(ast);
-
-    return 0;
 }
 
 
-int doMyCodeThingMultiCatTest(const char* code) {
-    const char* s1 = "Hello\nworld!";
-    const char* s2 = "Bye,\ncruel world!";
+int doMyCodeThing(const char* code) {
+    JE_NODE* ast = je_parse(code);
+    JE_NAV* nav = je_newnav(ast);
+    char* cp = commands;
 
-    char* text1 = je_amcat(s1, " -> ");
-    char* text2 = je_amcat(text1, s2);
+    while(*cp) {
+        switch(*cp) {
+            case 'e' : je_naventer(nav); break;
+            case 'x' : je_navexit(nav); break;
+            case 'n' : je_navnext(nav); break;
+            case 'p' : je_navprev(nav); break;
+//            case 'r' : je_navremove(nav); break;
+            case 'o' : output(ast); break;
+            case 't' : tree(ast); break;
+            case 'v' : navtree(nav); break;
+            case 'l' : eval(ast, 0); break;
+            case 'L' : eval(ast, 1); break;
+            default  : fprintf(stderr, "Invalid command: %c\n", *cp);
+        }
 
-    printf("%s\n", text2);
-
-    free(text1);
-    free(text2);
-
-    return 0;
-}
-
-
-int doMyCodeThingIteratorTest(const char* code) {
-    JE_LINE_ITER* iter = je_newlineiter("Hello\nworld!\nBye!");
-    const char* line = NULL;
-
-    for(int i=0; i<5; i++) {
-        const char* line = je_nextline(iter);
-
-        printf("(%s)\n", line);
+        cp++;
     }
 
-    je_freelineiter(iter);
+    je_freenav(nav);
+    je_freenode(ast);
 
     return 0;
 }
