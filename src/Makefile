@@ -1,5 +1,5 @@
 CC:=clang
-CPPFLAGS:=-g -O3
+CPPFLAGS:=-g -O0
 
 ifeq ($(findstring wasm,$(HOST)),wasm)
 	PREFIX:=/opt/wasm

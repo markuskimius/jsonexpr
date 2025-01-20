@@ -1,7 +1,7 @@
 CC:=clang
 BINARIES:=simple nav
-CFLAGS:=-I../../include
-LDFLAGS:=-L../../lib
+CFLAGS:=-I../../include -g
+LDFLAGS:=-L../../lib -g
 LDLIBS:=-lje -lm
 
 
