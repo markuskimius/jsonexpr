@@ -16,7 +16,7 @@ static JE_SYMTBL* _newtable(JE_SYMTBL* parent, int isbuiltin) {
     JE_SYMTBL* table = JE_Calloc(1, sizeof(JE_SYMTBL));
 
     table->symbols = je_newmap();
-    table->symval = je_objval(je_dupmap(table->symbols));
+    table->symval = JE_ValNewFromMap(je_dupmap(table->symbols));
 
     /* Built-in */
     if(!parent && isbuiltin) {
@@ -44,7 +44,7 @@ static JE_SYMTBL* _newtable(JE_SYMTBL* parent, int isbuiltin) {
     /* Add UPSCOPE */
     if(table->parent) {
         je_duptable(table->parent);
-        je_mapset(table->symbols, "UPSCOPE", je_objval(je_dupmap(table->parent->symbols)));
+        je_mapset(table->symbols, "UPSCOPE", JE_ValNewFromMap(je_dupmap(table->parent->symbols)));
     }
 
     return je_duptable(table);
@@ -77,7 +77,7 @@ void je_freetable(JE_SYMTBL* table) {
 
     /* Free this table if it's no longer used */
     if(table->count == 0) {
-        je_freeval(table->symval);
+        JE_ValDelete(table->symval);
         je_freemap(table->symbols);
         JE_Free(table);
     }

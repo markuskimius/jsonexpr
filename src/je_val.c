@@ -29,7 +29,7 @@ static char VALNAME[128][NAMEMAX];
 * PUBLIC FUNCTIONS
 */
 
-JE_VAL* je_nullval() {
+JE_VAL* JE_ValNewFromNull() {
     JE_VAL* null = JE_Calloc(1, sizeof(JE_VAL));
 
     null->type = JE_NULL_V;
@@ -37,8 +37,7 @@ JE_VAL* je_nullval() {
     return null;
 }
 
-
-JE_VAL* je_boolval(int64_t i64) {
+JE_VAL* JE_ValNewFromBool(int64_t i64) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_BOOL_V;
@@ -47,8 +46,7 @@ JE_VAL* je_boolval(int64_t i64) {
     return val;
 }
 
-
-JE_VAL* je_intval(int64_t i64) {
+JE_VAL* JE_ValNewFromInt(int64_t i64) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_INT_V;
@@ -57,8 +55,7 @@ JE_VAL* je_intval(int64_t i64) {
     return val;
 }
 
-
-JE_VAL* je_dblval(double f64) {
+JE_VAL* JE_ValNewFromFloat(double f64) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_FLOAT_V;
@@ -67,8 +64,7 @@ JE_VAL* je_dblval(double f64) {
     return val;
 }
 
-
-JE_VAL* je_strval(char* str) {
+JE_VAL* JE_ValNewFromCstr(const char* str) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_STRING_V;
@@ -77,8 +73,7 @@ JE_VAL* je_strval(char* str) {
     return val;
 }
 
-
-JE_VAL* je_arrval(JE_VEC* vec) {
+JE_VAL* JE_ValNewFromVec(JE_VEC* vec) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_ARRAY_V;
@@ -87,8 +82,7 @@ JE_VAL* je_arrval(JE_VEC* vec) {
     return val;
 }
 
-
-JE_VAL* je_objval(JE_MAP* map) {
+JE_VAL* JE_ValNewFromMap(JE_MAP* map) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_OBJECT_V;
@@ -97,8 +91,7 @@ JE_VAL* je_objval(JE_MAP* map) {
     return val;
 }
 
-
-JE_VAL* je_funcval(JE_FUNC* func) {
+JE_VAL* JE_ValNewFromFunc(JE_FUNC* func) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_FUNCTION_V;
@@ -107,8 +100,7 @@ JE_VAL* je_funcval(JE_FUNC* func) {
     return val;
 }
 
-
-JE_VAL* je_nodeval(JE_NODE* node) {
+JE_VAL* JE_ValNewFromNode(JE_NODE* node) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_NODE_V;
@@ -117,26 +109,24 @@ JE_VAL* je_nodeval(JE_NODE* node) {
     return val;
 }
 
-
-JE_VAL* je_dupval(JE_VAL* val) {
+JE_VAL* JE_ValDup(JE_VAL* val) {
     switch(val->type) {
-        case JE_NULL_V     : return je_nullval();
-        case JE_BOOL_V     : return je_boolval(val->value.i);
-        case JE_INT_V      : return je_intval(val->value.i);
-        case JE_FLOAT_V    : return je_dblval(val->value.f);
-        case JE_STRING_V   : return je_strval(strdup(val->value.s));
-        case JE_ARRAY_V    : return je_arrval(je_dupvec(val->value.v));
-        case JE_OBJECT_V   : return je_objval(je_dupmap(val->value.m));
-        case JE_FUNCTION_V : return je_funcval(je_dupfunc(val->value.fn));
-        case JE_NODE_V     : return je_nodeval(val->value.n);
+        case JE_NULL_V     : return JE_ValNewFromNull();
+        case JE_BOOL_V     : return JE_ValNewFromBool(val->value.i);
+        case JE_INT_V      : return JE_ValNewFromInt(val->value.i);
+        case JE_FLOAT_V    : return JE_ValNewFromFloat(val->value.f);
+        case JE_STRING_V   : return JE_ValNewFromCstr(strdup(val->value.s));
+        case JE_ARRAY_V    : return JE_ValNewFromVec(je_dupvec(val->value.v));
+        case JE_OBJECT_V   : return JE_ValNewFromMap(je_dupmap(val->value.m));
+        case JE_FUNCTION_V : return JE_ValNewFromFunc(je_dupfunc(val->value.fn));
+        case JE_NODE_V     : return JE_ValNewFromNode(val->value.n);
         default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
     }
 
     return val;
 }
 
-
-void je_swapval(JE_VAL* val1, JE_VAL* val2) {
+void JE_ValSwap(JE_VAL* val1, JE_VAL* val2) {
     JE_VAL tmp;
 
     memcpy(&tmp, val1, sizeof(JE_VAL));
@@ -144,8 +134,7 @@ void je_swapval(JE_VAL* val1, JE_VAL* val2) {
     memcpy(val2, &tmp, sizeof(JE_VAL));
 }
 
-
-void je_freeval(JE_VAL* val) {
+void JE_ValDelete(JE_VAL* val) {
     switch(val->type) {
         case JE_NULL_V     : break;
         case JE_BOOL_V     : break;
@@ -168,8 +157,7 @@ void je_freeval(JE_VAL* val) {
     JE_Free(val);
 }
 
-
-int je_valtrue(JE_VAL* val) {
+int JE_ValIsTrue(JE_VAL* val) {
     int result = 0;
 
     if     (val->type == JE_NULL_V    ) result = 0;
@@ -185,8 +173,7 @@ int je_valtrue(JE_VAL* val) {
     return result;
 }
 
-
-int je_valcmp(JE_VAL* val1, JE_VAL* val2) {
+int JE_ValCmp(JE_VAL* val1, JE_VAL* val2) {
     int result = 0;
 
     if     (val1->type == JE_NULL_V     && val2->type == JE_NULL_V    ) result = 0;
@@ -205,8 +192,7 @@ int je_valcmp(JE_VAL* val1, JE_VAL* val2) {
     return result;
 }
 
-
-char* je_valstr(JE_VAL* val) {
+const char* JE_ValToCstr(JE_VAL* val) {
     if(val) {
         /* Reset the previous representation */
         if(val->astrdecoded && val->type != JE_NULL_V) {
@@ -239,8 +225,7 @@ char* je_valstr(JE_VAL* val) {
     return "null";
 }
 
-
-char* je_valqstr(JE_VAL* val) {
+const char* JE_ValToQstr(JE_VAL* val) {
     if(val) {
         /* Reset the previous representation */
         if(val->astrencoded && val->type != JE_NULL_V) {
@@ -257,8 +242,8 @@ char* je_valqstr(JE_VAL* val) {
             case JE_STRING_V   : val->astrencoded = je_astrencode(val->value.s); break;
             case JE_ARRAY_V    : val->astrencoded = je_vecastr(val->value.v); break;
             case JE_OBJECT_V   : val->astrencoded = je_mapastr(val->value.m); break;
-            case JE_FUNCTION_V : val->astrencoded = je_astrencode(je_valstr(val)); break;
-            case JE_NODE_V     : val->astrencoded = je_astrencode(je_valstr(val)); break;
+            case JE_FUNCTION_V : val->astrencoded = je_astrencode(JE_ValToCstr(val)); break;
+            case JE_NODE_V     : val->astrencoded = je_astrencode(JE_ValToCstr(val)); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }
 
@@ -273,8 +258,7 @@ char* je_valqstr(JE_VAL* val) {
     return "null";
 }
 
-
-const char* je_valtype(JE_VAL* val) {
+const char* JE_ValGetType(JE_VAL* val) {
     int type = val->type;
     char* name = NULL;
 
@@ -303,36 +287,36 @@ const char* je_valtype(JE_VAL* val) {
 * EXPORTED FUNCTIONS
 */
 
-int je_gettype(JE_VAL* val) {
-    return val ? val->type : JE_NULL_V;
-}
-
-
-int64_t je_getint64(JE_VAL* val) {
+int64_t JE_ValGetBool(JE_VAL* val) {
     return val->value.i;
 }
 
 
-double je_getdouble(JE_VAL* val) {
+int64_t JE_ValGetInt(JE_VAL* val) {
+    return val->value.i;
+}
+
+
+double JE_ValGetFloat(JE_VAL* val) {
     return val->value.f;
 }
 
 
-char* je_getstring(JE_VAL* val) {
+char* JE_ValGetString(JE_VAL* val) {
     return val->value.s;
 }
 
 
-JE_VEC* je_getarray(JE_VAL* val) {
+JE_VEC* JE_ValGetVec(JE_VAL* val) {
     return val->value.v;
 }
 
 
-JE_MAP* je_getobject(JE_VAL* val) {
+JE_MAP* JE_ValGetMap(JE_VAL* val) {
     return val->value.m;
 }
 
 
-JE_FUNC* je_getfunc(JE_VAL* val) {
+JE_FUNC* JE_ValGetFunc(JE_VAL* val) {
     return val->value.fn;
 }

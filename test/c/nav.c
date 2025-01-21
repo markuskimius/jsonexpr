@@ -158,10 +158,10 @@ void eval(JE_NODE* ast, int output) {
     JE_VAL* result = je_eval(ast, NULL);
 
     if(output) {
-        printf("%s\n", je_valqstr(result));
+        printf("%s\n", JE_ValToQstr(result));
     }
 
-    je_freeval(result);
+    JE_ValDelete(result);
 }
 
 

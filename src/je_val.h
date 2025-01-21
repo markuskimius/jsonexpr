@@ -63,38 +63,38 @@ typedef struct JE_VAL {
 * PUBLIC FUNCTIONS
 */
 
-JE_VAL* je_nullval();
-JE_VAL* je_boolval(int64_t i64);
-JE_VAL* je_intval(int64_t i64);
-JE_VAL* je_dblval(double f64);
-JE_VAL* je_strval(char* str);
-JE_VAL* je_arrval(JE_VEC* vec);
-JE_VAL* je_objval(JE_MAP* map);
-JE_VAL* je_funcval(JE_FUNC* func);
-JE_VAL* je_nodeval(JE_NODE* node);
-JE_VAL* je_dupval(JE_VAL* val);
-void je_swapval(JE_VAL* val1, JE_VAL* val2);
-void je_freeval(JE_VAL* val);
+JE_VAL* JE_ValNewFromNull();
+JE_VAL* JE_ValNewFromBool(int64_t i64);
+JE_VAL* JE_ValNewFromInt(int64_t i64);
+JE_VAL* JE_ValNewFromFloat(double f64);
+JE_VAL* JE_ValNewFromCstr(const char* str);
+JE_VAL* JE_ValNewFromVec(JE_VEC* vec);
+JE_VAL* JE_ValNewFromMap(JE_MAP* map);
+JE_VAL* JE_ValNewFromFunc(JE_FUNC* func);
+JE_VAL* JE_ValNewFromNode(JE_NODE* node);
+JE_VAL* JE_ValDup(JE_VAL* val);
+void JE_ValSwap(JE_VAL* val1, JE_VAL* val2);
+void JE_ValDelete(JE_VAL* val);
 
-int je_valtrue(JE_VAL* val);
-int je_valcmp(JE_VAL* val1, JE_VAL* val2);
+int JE_ValIsTrue(JE_VAL* val);
+int JE_ValCmp(JE_VAL* val1, JE_VAL* val2);
 
-char* je_valstr(JE_VAL* val);
-char* je_valqstr(JE_VAL* val);
-const char* je_valtype(JE_VAL* val);
+const char* JE_ValToCstr(JE_VAL* val);
+const char* JE_ValToQstr(JE_VAL* val);
+const char* JE_ValGetType(JE_VAL* val);
 
 
 /* ***************************************************************************
 * EXPORTED FUNCTIONS
 */
 
-int je_gettype(JE_VAL* val);
-int64_t je_getint64(JE_VAL* val);
-double je_getdouble(JE_VAL* val);
-char* je_getstring(JE_VAL* val);
-JE_VEC* je_getarray(JE_VAL* val);
-JE_MAP* je_getobject(JE_VAL* val);
-JE_FUNC* je_getfunc(JE_VAL* val);
+int64_t  JE_ValGetBool(JE_VAL* val);
+int64_t  JE_ValGetInt(JE_VAL* val);
+double   JE_ValGetFloat(JE_VAL* val);
+char*    JE_ValGetString(JE_VAL* val);
+JE_VEC*  JE_ValGetVec(JE_VAL* val);
+JE_MAP*  JE_ValGetMap(JE_VAL* val);
+JE_FUNC* JE_ValGetFunc(JE_VAL* val);
 
 
 #ifdef __cplusplus

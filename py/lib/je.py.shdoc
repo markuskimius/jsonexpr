@@ -205,7 +205,7 @@ class Util:
         return tree
 
     def strval(self, wstr):
-        return self.instance.exports.je_strval(wstr)
+        return self.instance.exports.JE_ValNewFromCstr(wstr)
 
     def symnew(self, wsymtbl=0):
         return self.instance.exports.je_newtable(wsymtbl)
@@ -247,30 +247,30 @@ class Util:
         return self.instance.exports.je_veclen(wvec)
 
     def valbool(self, wval):
-        return self.instance.exports.je_boolval(wval)
+        return self.instance.exports.JE_ValNewFromBool(wval)
 
     def valint(self, wval):
-        return self.instance.exports.je_intval(wval)
+        return self.instance.exports.JE_ValNewFromInt(wval)
 
     def valdbl(self, wval):
-        return self.instance.exports.je_dblval(wval)
+        return self.instance.exports.JE_ValNewFromFloat(wval)
 
     def valmap(self, wval):
-        if(wval): return self.instance.exports.je_getobject(wval)
-        else: return self.instance.exports.je_objval(0)
+        if(wval): return self.instance.exports.JE_ValGetMap(wval)
+        else: return self.instance.exports.JE_ValNewFromMap(0)
 
     def valvec(self, wval):
-        if(wval): return self.instance.exports.je_getarray(wval)
-        else: return self.instance.exports.je_arrval(0)
+        if(wval): return self.instance.exports.JE_ValGetVec(wval)
+        else: return self.instance.exports.JE_ValNewFromVec(0)
 
     def valstr(self, wval):
-        return self.instance.exports.je_valstr(wval)
+        return self.instance.exports.JE_ValToCstr(wval)
 
     def valqstr(self, wval):
-        return self.instance.exports.je_valqstr(wval)
+        return self.instance.exports.JE_ValToQstr(wval)
 
     def valfree(self, wresult):
-        self.instance.exports.je_freeval(wresult)
+        self.instance.exports.JE_ValDelete(wresult)
 
 def _wvalue(instance, value):
     with Util(instance) as util:

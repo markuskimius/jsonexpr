@@ -39,7 +39,7 @@ static size_t ncustfunc = 0;
 */
 
 static void addfn(JE_MAP* map, const char* key, const char* sig, JE_BINARY_FN fn) {
-    je_mapset(map, key, je_funcval(je_newfunc(fn, key, sig)));
+    je_mapset(map, key, JE_ValNewFromFunc(je_newfunc(fn, key, sig)));
 }
 
 
@@ -52,7 +52,7 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
             /* Create if it doesn't exist? */
             if(!result && create) {
-                result = je_nullval();
+                result = JE_ValNewFromNull();
                 je_tableset(table, node->value.s, result, 0);
             }
 
@@ -66,7 +66,7 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
             if(left->type == JE_ARRAY_V && right->type == JE_INT_V) {
                 /* Index to 1 element past last -> push a new element if "create" is requested */
                 if(create && left->value.v->length == right->value.i) {
-                    je_vecpush(left->value.v, je_nullval());
+                    je_vecpush(left->value.v, JE_ValNewFromNull());
                 }
 
                 result = je_vecget(left->value.v, right->value.i);
@@ -74,12 +74,12 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
                 /*
                 * `result` is an item in `left`, but `left` will disappear upon
-                * call to je_freeval(left) later if the # of references to it
+                * call to JE_ValDelete(left) later if the # of references to it
                 * will become zero.  So we duplicate `result` here if the
                 * number of rerences to left is 1 or less.
                 */
                 if(result && left->value.v->count <= 1) {
-                    result = je_dupval(result);
+                    result = JE_ValDup(result);
                 }
             }
             else if(left->type == JE_OBJECT_V && right->type == JE_STRING_V) {
@@ -87,23 +87,23 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
                 /* Create if it doesn't exist */
                 if(!result && create) {
-                    result = je_nullval();
+                    result = JE_ValNewFromNull();
                     je_mapset(left->value.m, right->value.s, result);
                 }
 
-                if(!result) JeRuntimeError(&node->loc, "Invalid key, %s", je_valqstr(right));
+                if(!result) JeRuntimeError(&node->loc, "Invalid key, %s", JE_ValToQstr(right));
 
                 /* See above */
                 if(result && left->value.m->count <= 1) {
-                    result = je_dupval(result);
+                    result = JE_ValDup(result);
                 }
             }
-            else if(left->type == JE_ARRAY_V ) JeRuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", je_valtype(right));
-            else if(left->type == JE_OBJECT_V) JeRuntimeError(&node->loc, "OBJECT key must be STRING but got %s", je_valtype(right));
-            else                               JeRuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", je_valtype(left));
+            else if(left->type == JE_ARRAY_V ) JeRuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", JE_ValGetType(right));
+            else if(left->type == JE_OBJECT_V) JeRuntimeError(&node->loc, "OBJECT key must be STRING but got %s", JE_ValGetType(right));
+            else                               JeRuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", JE_ValGetType(left));
 
-            je_freeval(left);
-            je_freeval(right);
+            JE_ValDelete(left);
+            JE_ValDelete(right);
             break;
         }
 
@@ -116,7 +116,7 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
                 /* Create if it doesn't exist */
                 if(!result && create) {
-                    result = je_nullval();
+                    result = JE_ValNewFromNull();
                     je_mapset(left->value.m, right->value.s, result);
                 }
 
@@ -124,13 +124,13 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
                 /* See above */
                 if(result && left->value.m->count <= 1) {
-                    result = je_dupval(result);
+                    result = JE_ValDup(result);
                 }
             }
             else if(left->type == JE_OBJECT_V) JeRuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", je_nodetype(right));
-            else                               JeRuntimeError(&node->loc, "OBJECT expected before '.' but got %s", je_valtype(left));
+            else                               JeRuntimeError(&node->loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
 
-            je_freeval(left);
+            JE_ValDelete(left);
             break;
         }
 
@@ -155,7 +155,7 @@ static void unfold(JE_VEC* vec, JE_NODE* node, JE_SYMTBL* table) {
             break;
 
         default:
-            je_vecpush(vec, je_nodeval(node));
+            je_vecpush(vec, JE_ValNewFromNode(node));
             break;
     }
 }
@@ -169,8 +169,8 @@ static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = je_vecget(args, 0);
     JE_VAL* result = NULL;
 
-    if(value->type == JE_FLOAT_V) result = je_intval(ceil(value->value.f));
-    else                          result = je_intval(value->value.i);
+    if(value->type == JE_FLOAT_V) result = JE_ValNewFromInt(ceil(value->value.f));
+    else                          result = JE_ValNewFromInt(value->value.i);
 
     return result;
 }
@@ -178,7 +178,7 @@ static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = je_vecget(args, 0);
-    JE_NODE* ast = je_parse(je_valstr(value));
+    JE_NODE* ast = je_parse(JE_ValToCstr(value));
     JE_VAL* result = je_eval(ast, table);
 
     je_freenode(ast);
@@ -191,8 +191,8 @@ static JE_VAL* FLOOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = je_vecget(args, 0);
     JE_VAL* result = NULL;
 
-    if(value->type == JE_FLOAT_V) result = je_intval(floor(value->value.f));
-    else                          result = je_intval(value->value.i);
+    if(value->type == JE_FLOAT_V) result = JE_ValNewFromInt(floor(value->value.f));
+    else                          result = JE_ValNewFromInt(value->value.i);
 
     return result;
 }
@@ -203,20 +203,20 @@ static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
 
     while(1) {
-        je_freeval(last);
+        JE_ValDelete(last);
         last = je_eval(args->item[1]->value.n, table);
-        if(!je_valtrue(last)) break;
+        if(!JE_ValIsTrue(last)) break;
 
-        if(result) je_freeval(result);
+        if(result) JE_ValDelete(result);
         result = je_eval(args->item[3]->value.n, table);
 
-        je_freeval(last);
+        JE_ValDelete(last);
         last = je_eval(args->item[2]->value.n, table);
     }
 
-    je_freeval(last);
+    JE_ValDelete(last);
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -237,9 +237,9 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
             for(size_t i=0; i<vec->length; i++) {
                 JE_VAL* item = je_vecget(vec, i);
 
-                je_tableset(table, name, je_dupval(item), 1);
+                je_tableset(table, name, JE_ValDup(item), 1);
 
-                if(result) je_freeval(result);
+                if(result) JE_ValDelete(result);
                 result = je_eval(expr, table);
             }
 
@@ -251,15 +251,15 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
             JE_MAP* map = iter->value.m;
 
             while((map = je_mapnext(map))) {
-                JE_VAL* key = je_strval(je_mapkey(map));
+                JE_VAL* key = JE_ValNewFromCstr(je_mapkey(map));
                 JE_VAL* value = je_mapval(map);
                 JE_VEC* pair = je_newvec();
 
                 je_vecpush(pair, key);
-                je_vecpush(pair, je_dupval(value));
-                je_tableset(table, name, je_arrval(pair), 1);
+                je_vecpush(pair, JE_ValDup(value));
+                je_tableset(table, name, JE_ValNewFromVec(pair), 1);
 
-                if(result) je_freeval(result);
+                if(result) JE_ValDelete(result);
                 result = je_eval(expr, table);
             }
 
@@ -267,10 +267,10 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         }
 
         default:
-            JeRuntimeError(&var->loc, "Array or object expected, got %s", je_valtype(iter));
+            JeRuntimeError(&var->loc, "Array or object expected, got %s", JE_ValGetType(iter));
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -278,8 +278,8 @@ static JE_VAL* ROUND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = je_vecget(args, 0);
     JE_VAL* result = NULL;
 
-    if(value->type == JE_FLOAT_V) result = je_intval(round(value->value.f));
-    else                          result = je_intval(value->value.i);
+    if(value->type == JE_FLOAT_V) result = JE_ValNewFromInt(round(value->value.f));
+    else                          result = JE_ValNewFromInt(value->value.i);
 
     return result;
 }
@@ -287,7 +287,7 @@ static JE_VAL* ROUND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* spec = args->item[0];
-    char* sig = je_valstr(spec);
+    const char* sig = JE_ValToCstr(spec);
     int isok = 1;
 
     if(spec->type == JE_STRING_V) {
@@ -329,7 +329,7 @@ static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
         snprintf(name, sizeof(name), "%zd", ++ncustfunc);
 
-        return je_funcval(je_newcustfunc(args->item[1]->value.n, name, sig, table));
+        return JE_ValNewFromFunc(je_newcustfunc(args->item[1]->value.n, name, sig, table));
     }
 
     return NULL;
@@ -342,7 +342,7 @@ static JE_VAL* IF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     for(size_t i=0; i<(args->length & ~1UL); i+=2) {
         JE_VAL* cond = je_eval(args->item[i]->value.n, table);
 
-        if(je_valtrue(cond)) {
+        if(JE_ValIsTrue(cond)) {
             result = je_eval(args->item[i+1]->value.n, table);
             break;
         }
@@ -352,7 +352,7 @@ static JE_VAL* IF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         result = je_eval(args->item[args->length-1]->value.n, table);
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -361,9 +361,9 @@ static JE_VAL* LEN(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* val = args->item[0];
 
     switch(val->type) {
-        case JE_STRING_V   : result = je_intval(strlen(je_valstr(val))); break;
-        case JE_ARRAY_V    : result = je_intval(val->value.v->length); break;
-        case JE_OBJECT_V   : result = je_intval(val->value.m->length); break;
+        case JE_STRING_V   : result = JE_ValNewFromInt(strlen(JE_ValToCstr(val))); break;
+        case JE_ARRAY_V    : result = JE_ValNewFromInt(val->value.v->length); break;
+        case JE_OBJECT_V   : result = JE_ValNewFromInt(val->value.m->length); break;
         default            : JeRuntimeError(loc, "Type has no length: '%c' (%d)", val->type, val->type); break;
     }
 
@@ -376,12 +376,12 @@ static JE_VAL* PRINT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     for(i=0; i<args->length; i++) {
         if(i > 0) printf(" ");
-        printf("%s", je_valstr(args->item[i]));
+        printf("%s", JE_ValToCstr(args->item[i]));
     }
 
     printf("\n");
 
-    return je_intval(i);
+    return JE_ValNewFromInt(i);
 }
 
 
@@ -390,12 +390,12 @@ static JE_VAL* SQRT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* val = args->item[0];
 
     switch(val->type) {
-        case JE_INT_V      : result = je_dblval(sqrt(val->value.i)); break;
-        case JE_FLOAT_V    : result = je_dblval(sqrt(val->value.f)); break;
+        case JE_INT_V      : result = JE_ValNewFromFloat(sqrt(val->value.i)); break;
+        case JE_FLOAT_V    : result = JE_ValNewFromFloat(sqrt(val->value.f)); break;
         default            : JeRuntimeError(loc, "Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -403,17 +403,17 @@ static JE_VAL* WHILE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* last = je_eval(args->item[0]->value.n, table);
     JE_VAL* result = NULL;
 
-    while(je_valtrue(last)) {
-        if(result) je_freeval(result);
+    while(JE_ValIsTrue(last)) {
+        if(result) JE_ValDelete(result);
         result = je_eval(args->item[1]->value.n, table);
 
-        je_freeval(last);
+        JE_ValDelete(last);
         last = je_eval(args->item[0]->value.n, table);
     }
 
-    je_freeval(last);
+    JE_ValDelete(last);
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -431,13 +431,13 @@ static JE_VAL* OP_INC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left) {
         switch(left->type) {
-            case JE_INT_V   : result = je_intval(left->value.i += 1); break;
-            case JE_FLOAT_V : result = je_dblval(left->value.f += 1.0); break;
+            case JE_INT_V   : result = JE_ValNewFromInt(left->value.i += 1); break;
+            case JE_FLOAT_V : result = JE_ValNewFromFloat(left->value.f += 1.0); break;
             default         : /* noop */ break;
         }
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -451,13 +451,13 @@ static JE_VAL* OP_DEC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left) {
         switch(left->type) {
-            case JE_INT_V   : result = je_intval(left->value.i -= 1); break;
-            case JE_FLOAT_V : result = je_dblval(left->value.f -= 1.0); break;
+            case JE_INT_V   : result = JE_ValNewFromInt(left->value.i -= 1); break;
+            case JE_FLOAT_V : result = JE_ValNewFromFloat(left->value.f -= 1.0); break;
             default         : /* noop */ break;
         }
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -471,13 +471,13 @@ static JE_VAL* OP_INCPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left) {
         switch(left->type) {
-            case JE_INT_V   : result = je_intval(left->value.i); left->value.i += 1; break;
-            case JE_FLOAT_V : result = je_dblval(left->value.f); left->value.f += 1.0; break;
+            case JE_INT_V   : result = JE_ValNewFromInt(left->value.i); left->value.i += 1; break;
+            case JE_FLOAT_V : result = JE_ValNewFromFloat(left->value.f); left->value.f += 1.0; break;
             default         : /* noop */ break;
         }
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -491,13 +491,13 @@ static JE_VAL* OP_DECPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left) {
         switch(left->type) {
-            case JE_INT_V   : result = je_intval(left->value.i); left->value.i -= 1; break;
-            case JE_FLOAT_V : result = je_dblval(left->value.f); left->value.f -= 1.0; break;
+            case JE_INT_V   : result = JE_ValNewFromInt(left->value.i); left->value.i -= 1; break;
+            case JE_FLOAT_V : result = JE_ValNewFromFloat(left->value.f); left->value.f -= 1.0; break;
             default         : /* noop */ break;
         }
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -509,9 +509,9 @@ static JE_VAL* OP_SET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(ref->type == JE_NODE_V);
 
     left = tablemod(table, ref->value.n, 1);
-    if(left) je_swapval(left, right);
+    if(left) JE_ValSwap(left, right);
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -525,21 +525,21 @@ static JE_VAL* OP_ADDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left) {
         if     (left->type == JE_INT_V    && right->type == JE_INT_V   ) left->value.i += right->value.i;
-        else if(left->type == JE_INT_V    && right->type == JE_FLOAT_V ) { right->value.f += left->value.i; je_swapval(left, right); }
+        else if(left->type == JE_INT_V    && right->type == JE_FLOAT_V ) { right->value.f += left->value.i; JE_ValSwap(left, right); }
         else if(left->type == JE_FLOAT_V  && right->type == JE_INT_V   ) left->value.f += right->value.i;
         else if(left->type == JE_FLOAT_V  && right->type == JE_FLOAT_V ) left->value.f += right->value.f;
-        else if(left->type == JE_STRING_V                              ) left->value.s = je_astrcat(left->value.s, je_valstr(right));
+        else if(left->type == JE_STRING_V                              ) left->value.s = je_astrcat(left->value.s, JE_ValToCstr(right));
         else if(                             right->type == JE_STRING_V) {
-            JE_VAL* tmp = je_strval("");
+            JE_VAL* tmp = JE_ValNewFromCstr("");
 
-            tmp->value.s = je_casprintf(tmp->value.s, "%s%s", je_valstr(left), right->value.s);
-            je_swapval(tmp, left);
-            je_freeval(tmp);
+            tmp->value.s = je_casprintf(tmp->value.s, "%s%s", JE_ValToCstr(left), right->value.s);
+            JE_ValSwap(tmp, left);
+            JE_ValDelete(tmp);
         }
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -554,13 +554,13 @@ static JE_VAL* OP_SUBSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left) {
         if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) left->value.i -= right->value.i;
-        else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) { right->value.f = left->value.i-right->value.f; je_swapval(left, right); }
+        else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) { right->value.f = left->value.i-right->value.f; JE_ValSwap(left, right); }
         else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) left->value.f -= right->value.i;
         else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) left->value.f -= right->value.f;
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -575,13 +575,13 @@ static JE_VAL* OP_MULSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left) {
         if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) left->value.i *= right->value.i;
-        else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) { right->value.f = left->value.i*right->value.f; je_swapval(left, right); }
+        else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) { right->value.f = left->value.i*right->value.f; JE_ValSwap(left, right); }
         else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) left->value.f *= right->value.i;
         else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) left->value.f *= right->value.f;
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -596,13 +596,13 @@ static JE_VAL* OP_DIVSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left) {
         if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) left->value.i /= right->value.i;
-        else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) { right->value.f = left->value.i/right->value.f; je_swapval(left, right); }
+        else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) { right->value.f = left->value.i/right->value.f; JE_ValSwap(left, right); }
         else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) left->value.f /= right->value.i;
         else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) left->value.f /= right->value.f;
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -620,15 +620,15 @@ static JE_VAL* OP_MODSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         else if(left->type == JE_INT_V || left->type == JE_FLOAT_V) {
             double a = left->type==JE_INT_V ? left->value.i : left->value.f;
             double b = right->type==JE_INT_V ? right->value.i : right->value.f;
-            JE_VAL* tmp = je_dblval(a - floor(a / b)*b);
+            JE_VAL* tmp = JE_ValNewFromFloat(a - floor(a / b)*b);
 
-            je_swapval(tmp, left);
-            je_freeval(tmp);
+            JE_ValSwap(tmp, left);
+            JE_ValDelete(tmp);
         }
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -645,15 +645,15 @@ static JE_VAL* OP_POWSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         if(left->type == JE_INT_V || left->type == JE_FLOAT_V) {
             double a = left->type==JE_INT_V ? left->value.i : left->value.f;
             double b = right->type==JE_INT_V ? right->value.i : right->value.f;
-            JE_VAL* tmp = je_dblval(pow(a, b));
+            JE_VAL* tmp = JE_ValNewFromFloat(pow(a, b));
 
-            je_swapval(tmp, left);
-            je_freeval(tmp);
+            JE_ValSwap(tmp, left);
+            JE_ValDelete(tmp);
         }
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 static JE_VAL* OP_ORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
@@ -670,7 +670,7 @@ static JE_VAL* OP_ORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -688,7 +688,7 @@ static JE_VAL* OP_ANDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -706,7 +706,7 @@ static JE_VAL* OP_XORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -735,7 +735,7 @@ static JE_VAL* OP_SHLSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -764,7 +764,7 @@ static JE_VAL* OP_ASRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -791,7 +791,7 @@ static JE_VAL* OP_SHRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         else left = NULL;
     }
 
-    return left ? je_dupval(left) : je_nullval();
+    return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
 
@@ -803,7 +803,7 @@ static JE_VAL* OP_DEREF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     result = tablemod(table, symnode->value.n, 0);
 
-    return result ? je_dupval(result) : je_nullval();
+    return result ? JE_ValDup(result) : JE_ValNewFromNull();
 }
 
 
@@ -818,13 +818,13 @@ static JE_VAL* OP_INDEX(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     }
     else if(left->type == JE_OBJECT_V && right->type == JE_STRING_V) {
         result = je_mapget(left->value.m, right->value.s);
-        if(!result) JeRuntimeError(loc, "Invalid key, %s", je_valqstr(right));
+        if(!result) JeRuntimeError(loc, "Invalid key, %s", JE_ValToQstr(right));
     }
-    else if(left->type == JE_ARRAY_V ) JeRuntimeError(loc, "ARRAY index must be INTEGER but got %s", je_valtype(right));
-    else if(left->type == JE_OBJECT_V) JeRuntimeError(loc, "OBJECT key must be STRING but got %s", je_valtype(right));
-    else                               JeRuntimeError(loc, "ARRAY or OBJECT expected before '[' but got %s", je_valtype(left));
+    else if(left->type == JE_ARRAY_V ) JeRuntimeError(loc, "ARRAY index must be INTEGER but got %s", JE_ValGetType(right));
+    else if(left->type == JE_OBJECT_V) JeRuntimeError(loc, "OBJECT key must be STRING but got %s", JE_ValGetType(right));
+    else                               JeRuntimeError(loc, "ARRAY or OBJECT expected before '[' but got %s", JE_ValGetType(left));
 
-    return result ? je_dupval(result) : je_nullval();
+    return result ? JE_ValDup(result) : JE_ValNewFromNull();
 }
 
 
@@ -835,14 +835,14 @@ static JE_VAL* OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if     (left->type == JE_OBJECT_V && right->type == JE_IDENT_N) result = je_mapget(left->value.m, right->value.s);
     else if(left->type == JE_OBJECT_V                             ) JeRuntimeError(loc, "IDENTIFIER expected after '.' but got %s", je_nodetype(right));
-    else                                                            JeRuntimeError(loc, "OBJECT expected before '.' but got %s", je_valtype(left));
+    else                                                            JeRuntimeError(loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
 
-    return result ? je_dupval(result) : je_nullval();
+    return result ? JE_ValDup(result) : JE_ValNewFromNull();
 }
 
 
 static JE_VAL* OP_TERM(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    return je_dupval(je_vecget(args, 1));
+    return JE_ValDup(je_vecget(args, 1));
 }
 
 
@@ -867,7 +867,7 @@ static JE_VAL* OP_CALL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 static JE_VAL* OP_NOT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = je_vecget(args, 0);
 
-    return je_boolval(!je_valtrue(left));
+    return JE_ValNewFromBool(!JE_ValIsTrue(left));
 }
 
 
@@ -878,12 +878,12 @@ static JE_VAL* OP_POS(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
 
     switch(left->type) {
-        case JE_INT_V   : result = je_intval(left->value.i); break;
-        case JE_FLOAT_V : result = je_dblval(left->value.f); break;
-        default         : result = je_nullval(); break;
+        case JE_INT_V   : result = JE_ValNewFromInt(left->value.i); break;
+        case JE_FLOAT_V : result = JE_ValNewFromFloat(left->value.f); break;
+        default         : result = JE_ValNewFromNull(); break;
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -894,12 +894,12 @@ static JE_VAL* OP_NEG(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
 
     switch(left->type) {
-        case JE_INT_V   : result = je_intval(-left->value.i); break;
-        case JE_FLOAT_V : result = je_dblval(-left->value.f); break;
-        default         : result = je_nullval(); break;
+        case JE_INT_V   : result = JE_ValNewFromInt(-left->value.i); break;
+        case JE_FLOAT_V : result = JE_ValNewFromFloat(-left->value.f); break;
+        default         : result = JE_ValNewFromNull(); break;
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -908,7 +908,7 @@ static JE_VAL* OP_INV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     assert(left->type == JE_INT_V);
 
-    return je_intval(~left->value.i);
+    return JE_ValNewFromInt(~left->value.i);
 }
 
 
@@ -920,12 +920,12 @@ static JE_VAL* OP_MUL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
 
-    if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) result = je_intval(left->value.i * right->value.i);
-    else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) result = je_dblval(left->value.i * right->value.f);
-    else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) result = je_dblval(left->value.f * right->value.i);
-    else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) result = je_dblval(left->value.f * right->value.f);
+    if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) result = JE_ValNewFromInt(left->value.i * right->value.i);
+    else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) result = JE_ValNewFromFloat(left->value.i * right->value.f);
+    else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) result = JE_ValNewFromFloat(left->value.f * right->value.i);
+    else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) result = JE_ValNewFromFloat(left->value.f * right->value.f);
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -937,12 +937,12 @@ static JE_VAL* OP_DIV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
 
-    if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) result = je_intval(left->value.i / right->value.i);
-    else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) result = je_dblval(left->value.i / right->value.f);
-    else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) result = je_dblval(left->value.f / right->value.i);
-    else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) result = je_dblval(left->value.f / right->value.f);
+    if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) result = JE_ValNewFromInt(left->value.i / right->value.i);
+    else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) result = JE_ValNewFromFloat(left->value.i / right->value.f);
+    else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) result = JE_ValNewFromFloat(left->value.f / right->value.i);
+    else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) result = JE_ValNewFromFloat(left->value.f / right->value.f);
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -954,15 +954,15 @@ static JE_VAL* OP_MOD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
 
-    if(left->type == JE_INT_V && right->type == JE_INT_V) result = je_intval(left->value.i % right->value.i);
+    if(left->type == JE_INT_V && right->type == JE_INT_V) result = JE_ValNewFromInt(left->value.i % right->value.i);
     else {
         double a = left->type == JE_INT_V ? left->value.i : left->value.f;
         double b = right->type == JE_INT_V ? right->value.i : right->value.f;
 
-        result = je_dblval(a - floor(a / b)*b);
+        result = JE_ValNewFromFloat(a - floor(a / b)*b);
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -971,19 +971,19 @@ static JE_VAL* OP_ADD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* right = je_vecget(args, 1);
     JE_VAL* result = NULL;
 
-    if     (left->type == JE_INT_V    && right->type == JE_INT_V   ) result = je_intval(left->value.i + right->value.i);
-    else if(left->type == JE_INT_V    && right->type == JE_FLOAT_V ) result = je_dblval(left->value.i + right->value.f);
-    else if(left->type == JE_FLOAT_V  && right->type == JE_INT_V   ) result = je_dblval(left->value.f + right->value.i);
-    else if(left->type == JE_FLOAT_V  && right->type == JE_FLOAT_V ) result = je_dblval(left->value.f + right->value.f);
+    if     (left->type == JE_INT_V    && right->type == JE_INT_V   ) result = JE_ValNewFromInt(left->value.i + right->value.i);
+    else if(left->type == JE_INT_V    && right->type == JE_FLOAT_V ) result = JE_ValNewFromFloat(left->value.i + right->value.f);
+    else if(left->type == JE_FLOAT_V  && right->type == JE_INT_V   ) result = JE_ValNewFromFloat(left->value.f + right->value.i);
+    else if(left->type == JE_FLOAT_V  && right->type == JE_FLOAT_V ) result = JE_ValNewFromFloat(left->value.f + right->value.f);
     else if(left->type == JE_STRING_V || right->type == JE_STRING_V) {
         char* buf = NULL;
 
-        asprintf(&buf, "%s%s", je_valstr(left), je_valstr(right));
-        result = je_strval(buf);
+        asprintf(&buf, "%s%s", JE_ValToCstr(left), JE_ValToCstr(right));
+        result = JE_ValNewFromCstr(buf);
         JE_Free(buf);
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -995,12 +995,12 @@ static JE_VAL* OP_SUB(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
 
-    if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) result = je_intval(left->value.i - right->value.i);
-    else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) result = je_dblval(left->value.i - right->value.f);
-    else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) result = je_dblval(left->value.f - right->value.i);
-    else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) result = je_dblval(left->value.f - right->value.f);
+    if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) result = JE_ValNewFromInt(left->value.i - right->value.i);
+    else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) result = JE_ValNewFromFloat(left->value.i - right->value.f);
+    else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) result = JE_ValNewFromFloat(left->value.f - right->value.i);
+    else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) result = JE_ValNewFromFloat(left->value.f - right->value.f);
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -1012,12 +1012,12 @@ static JE_VAL* OP_POW(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
 
-    if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) result = je_dblval(pow(left->value.i, right->value.i));
-    else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) result = je_dblval(pow(left->value.i, right->value.f));
-    else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) result = je_dblval(pow(left->value.f, right->value.i));
-    else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) result = je_dblval(pow(left->value.f, right->value.f));
+    if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) result = JE_ValNewFromFloat(pow(left->value.i, right->value.i));
+    else if(left->type == JE_INT_V   && right->type == JE_FLOAT_V) result = JE_ValNewFromFloat(pow(left->value.i, right->value.f));
+    else if(left->type == JE_FLOAT_V && right->type == JE_INT_V  ) result = JE_ValNewFromFloat(pow(left->value.f, right->value.i));
+    else if(left->type == JE_FLOAT_V && right->type == JE_FLOAT_V) result = JE_ValNewFromFloat(pow(left->value.f, right->value.f));
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -1028,7 +1028,7 @@ static JE_VAL* OP_OR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
 
-    return je_intval(left->value.i | right->value.i);
+    return JE_ValNewFromInt(left->value.i | right->value.i);
 }
 
 
@@ -1039,7 +1039,7 @@ static JE_VAL* OP_AND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
 
-    return je_intval(left->value.i & right->value.i);
+    return JE_ValNewFromInt(left->value.i & right->value.i);
 }
 
 
@@ -1050,7 +1050,7 @@ static JE_VAL* OP_XOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
 
-    return je_intval(left->value.i ^ right->value.i);
+    return JE_ValNewFromInt(left->value.i ^ right->value.i);
 }
 
 
@@ -1058,7 +1058,7 @@ static JE_VAL* OP_LT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = je_vecget(args, 0);
     JE_VAL* right = je_vecget(args, 1);
 
-    return je_boolval(je_valcmp(left, right) < 0);
+    return JE_ValNewFromBool(JE_ValCmp(left, right) < 0);
 }
 
 
@@ -1066,7 +1066,7 @@ static JE_VAL* OP_GT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = je_vecget(args, 0);
     JE_VAL* right = je_vecget(args, 1);
 
-    return je_boolval(je_valcmp(left, right) > 0);
+    return JE_ValNewFromBool(JE_ValCmp(left, right) > 0);
 }
 
 
@@ -1074,7 +1074,7 @@ static JE_VAL* OP_EQ(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = je_vecget(args, 0);
     JE_VAL* right = je_vecget(args, 1);
 
-    return je_boolval(je_valcmp(left, right) == 0);
+    return JE_ValNewFromBool(JE_ValCmp(left, right) == 0);
 }
 
 
@@ -1082,7 +1082,7 @@ static JE_VAL* OP_NE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = je_vecget(args, 0);
     JE_VAL* right = je_vecget(args, 1);
 
-    return je_boolval(je_valcmp(left, right) != 0);
+    return JE_ValNewFromBool(JE_ValCmp(left, right) != 0);
 }
 
 
@@ -1090,7 +1090,7 @@ static JE_VAL* OP_LE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = je_vecget(args, 0);
     JE_VAL* right = je_vecget(args, 1);
 
-    return je_boolval(je_valcmp(left, right) <= 0);
+    return JE_ValNewFromBool(JE_ValCmp(left, right) <= 0);
 }
 
 
@@ -1098,7 +1098,7 @@ static JE_VAL* OP_GE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = je_vecget(args, 0);
     JE_VAL* right = je_vecget(args, 1);
 
-    return je_boolval(je_valcmp(left, right) >= 0);
+    return JE_ValNewFromBool(JE_ValCmp(left, right) >= 0);
 }
 
 
@@ -1112,8 +1112,8 @@ static JE_VAL* OP_LOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     result = je_eval(left->value.n, table);
 
-    if(!je_valtrue(result)) {
-        je_freeval(result);
+    if(!JE_ValIsTrue(result)) {
+        JE_ValDelete(result);
         result = je_eval(right->value.n, table);
     }
 
@@ -1131,8 +1131,8 @@ static JE_VAL* OP_LAND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     result = je_eval(left->value.n, table);
 
-    if(je_valtrue(result)) {
-        je_freeval(result);
+    if(JE_ValIsTrue(result)) {
+        JE_ValDelete(result);
         result = je_eval(right->value.n, table);
     }
 
@@ -1150,15 +1150,15 @@ static JE_VAL* OP_SHL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
 
-    if     (b <-63 && a < 0) result = je_intval(-1);
-    else if(b <-63         ) result = je_intval(0);
-    else if(b <  0 && a < 0) result = je_intval(~(~a >> -b));
-    else if(b <  0         ) result = je_intval(a >> -b);
-    else if(b == 0         ) result = je_intval(a);
-    else if(b < 63         ) result = je_intval(a << b);
-    else                     result = je_intval(0);
+    if     (b <-63 && a < 0) result = JE_ValNewFromInt(-1);
+    else if(b <-63         ) result = JE_ValNewFromInt(0);
+    else if(b <  0 && a < 0) result = JE_ValNewFromInt(~(~a >> -b));
+    else if(b <  0         ) result = JE_ValNewFromInt(a >> -b);
+    else if(b == 0         ) result = JE_ValNewFromInt(a);
+    else if(b < 63         ) result = JE_ValNewFromInt(a << b);
+    else                     result = JE_ValNewFromInt(0);
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -1172,15 +1172,15 @@ static JE_VAL* OP_ASR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
 
-    if     (b <-63         ) result = je_intval(0);
-    else if(b <  0         ) result = je_intval(a << -b);
-    else if(b == 0         ) result = je_intval(a);
-    else if(b < 63 && a < 0) result = je_intval(~(~a >> b));
-    else if(b < 63         ) result = je_intval(a >> b);
-    else if(          a < 0) result = je_intval(-1);
-    else                     result = je_intval(0);
+    if     (b <-63         ) result = JE_ValNewFromInt(0);
+    else if(b <  0         ) result = JE_ValNewFromInt(a << -b);
+    else if(b == 0         ) result = JE_ValNewFromInt(a);
+    else if(b < 63 && a < 0) result = JE_ValNewFromInt(~(~a >> b));
+    else if(b < 63         ) result = JE_ValNewFromInt(a >> b);
+    else if(          a < 0) result = JE_ValNewFromInt(-1);
+    else                     result = JE_ValNewFromInt(0);
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -1194,13 +1194,13 @@ static JE_VAL* OP_SHR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
 
-    if     (b <-63) result = je_intval(0);
-    else if(b <  0) result = je_intval(a << -b);
-    else if(b == 0) result = je_intval(a);
-    else if(b < 63) result = je_intval(a >> b);
-    else            result = je_intval(0);
+    if     (b <-63) result = JE_ValNewFromInt(0);
+    else if(b <  0) result = JE_ValNewFromInt(a << -b);
+    else if(b == 0) result = JE_ValNewFromInt(a);
+    else if(b < 63) result = JE_ValNewFromInt(a >> b);
+    else            result = JE_ValNewFromInt(0);
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }
 
 
@@ -1216,12 +1216,12 @@ static JE_VAL* OP_COND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     result = je_eval(left->value.n, table);
 
-    if(je_valtrue(result)) {
-        je_freeval(result);
+    if(JE_ValIsTrue(result)) {
+        JE_ValDelete(result);
         result = je_eval(right->value.n, table);
     }
     else {
-        je_freeval(result);
+        JE_ValDelete(result);
         result = je_eval(righter->value.n, table);
     }
 
@@ -1237,10 +1237,10 @@ JE_MAP* je_binfns() {
     if(!BINFNS) {
         BINFNS = je_newmap();
 
-        je_mapset(BINFNS, "VERSION", je_strval(JE_VERSION));
-        je_mapset(BINFNS, "VERSION_MAJOR", je_intval(JE_VERSION_MAJOR));
-        je_mapset(BINFNS, "VERSION_MINOR", je_intval(JE_VERSION_MINOR));
-        je_mapset(BINFNS, "VERSION_PATCH", je_intval(JE_VERSION_PATCH));
+        je_mapset(BINFNS, "VERSION", JE_ValNewFromCstr(JE_VERSION));
+        je_mapset(BINFNS, "VERSION_MAJOR", JE_ValNewFromInt(JE_VERSION_MAJOR));
+        je_mapset(BINFNS, "VERSION_MINOR", JE_ValNewFromInt(JE_VERSION_MINOR));
+        je_mapset(BINFNS, "VERSION_PATCH", JE_ValNewFromInt(JE_VERSION_PATCH));
 
         addfn(BINFNS, "CEIL"    , "#"   , CEIL    );
         addfn(BINFNS, "EVAL"    , "S"   , EVAL    );
@@ -1331,13 +1331,13 @@ JE_VAL* je_opexec(const char* key, JE_SYMTBL* table, JE_NODE* left, JE_NODE* rig
         JE_FUNC* fn = fnval->value.fn;
         JE_VEC* args = je_newvec();
 
-        if(left) je_vecpush(args, je_nodeval(left));
-        if(right) je_vecpush(args, je_nodeval(right));
-        if(righter) je_vecpush(args, je_nodeval(righter));
+        if(left) je_vecpush(args, JE_ValNewFromNode(left));
+        if(right) je_vecpush(args, JE_ValNewFromNode(right));
+        if(righter) je_vecpush(args, JE_ValNewFromNode(righter));
 
         result = je_funcexec(fn, args, table, &left->loc);
         je_freevec(args);
     }
 
-    return result ? result : je_nullval();
+    return result ? result : JE_ValNewFromNull();
 }

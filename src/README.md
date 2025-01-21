@@ -36,7 +36,7 @@ int main() {
 
     result = je_evalc(compiled);
 
-    je_freeval(result);
+    JE_ValDelete(result);
     je_free(compiled);
 
     return 0;

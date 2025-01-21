@@ -49,7 +49,7 @@ void je_freevec(JE_VEC* vec) {
 
     if(vec->count == 0) {
         for(size_t i=0; i<vec->length; i++) {
-            je_freeval(vec->item[i]);
+            JE_ValDelete(vec->item[i]);
         }
 
         if(vec->item) JE_Free(vec->item);
@@ -69,7 +69,7 @@ int je_vecset(JE_VEC* vec, size_t index, JE_VAL* item) {
         je_vecpush(vec, item);
     }
     else if(index < vec->length) {
-        je_freeval(vec->item[index]);
+        JE_ValDelete(vec->item[index]);
         vec->item[index] = item;
     }
     else {
@@ -83,7 +83,7 @@ int je_vecset(JE_VEC* vec, size_t index, JE_VAL* item) {
 
 void je_vecpop(JE_VEC* vec) {
     if(vec->length) {
-        je_freeval(vec->item[vec->length-1]);
+        JE_ValDelete(vec->item[vec->length-1]);
         vec->length--;
     }
 }
@@ -104,7 +104,7 @@ void je_vecpush(JE_VEC* vec, JE_VAL* item) {
 
 void je_vecunset(JE_VEC* vec, size_t index) {
     if(index < vec->length) {
-        je_freeval(vec->item[index]);
+        JE_ValDelete(vec->item[index]);
 
         for(size_t i=index; i<vec->length-1; i++) {
             vec->item[i] = vec->item[i+1];
@@ -140,7 +140,7 @@ int je_veccmp(JE_VEC* vec1, JE_VEC* vec2) {
     int cmp = 0;
 
     for(size_t i=0; i<len; i++) {
-        if     (i<vec1->length && i<vec2->length) cmp = je_valcmp(vec1->item[i], vec2->item[i]);
+        if     (i<vec1->length && i<vec2->length) cmp = JE_ValCmp(vec1->item[i], vec2->item[i]);
         else if(i<vec1->length)                   cmp = 1;
         else                                      cmp = -1;
 
@@ -161,7 +161,7 @@ char* je_vecastr(JE_VEC* vec) {
     for(size_t i=0; i<vec->length; i++) {
         if(i > 0) str = je_astrcat(str, ",");
         str = je_astrcat(str, " ");
-        str = je_astrcat(str, je_valqstr(vec->item[i]));
+        str = je_astrcat(str, JE_ValToQstr(vec->item[i]));
     }
 
     /* Closing bracket */
@@ -183,8 +183,8 @@ size_t je_veclen(JE_VEC* vec) {
 void _je_testvec() {
     JE_VEC* vec = je_newvec();
 
-    je_vecpush(vec, je_strval("Hello, world!"));
-    je_vecpush(vec, je_strval("Bye, world!"));
+    je_vecpush(vec, JE_ValNewFromCstr("Hello, world!"));
+    je_vecpush(vec, JE_ValNewFromCstr("Bye, world!"));
 
     for(int i=0; i<vec->length; i++) {
         JE_VAL* val = vec->item[i];

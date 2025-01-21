@@ -43,13 +43,13 @@ static JE_MAP* newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
             JE_VAL* left = je_eval(node->left, table);
             JE_VAL* right = je_eval(node->right, table);
 
-            if(left->type == JE_STRING_V) je_mapset(list, je_valstr(left), right);
+            if(left->type == JE_STRING_V) je_mapset(list, JE_ValToCstr(left), right);
             else {
-                je_freeval(right);
-                JeRuntimeError(&node->left->loc, "STRING expected, got %s", je_valtype(left));
+                JE_ValDelete(right);
+                JeRuntimeError(&node->left->loc, "STRING expected, got %s", JE_ValGetType(left));
             }
 
-            je_freeval(left);
+            JE_ValDelete(left);
             /* Do not free right (it's in the map) */
 
             break;
@@ -100,13 +100,13 @@ JE_VAL* je_eval(JE_NODE* node, JE_SYMTBL* table) {
 
     if(node) {
         switch(node->type) {
-            case JE_NULL_N     : result = je_nullval(); break;
-            case JE_BOOL_N     : result = je_boolval(node->value.i); break;
-            case JE_INT_N      : result = je_intval(node->value.i); break;
-            case JE_FLOAT_N    : result = je_dblval(node->value.f); break;
-            case JE_STRING_N   : result = je_strval(node->value.s); break;
-            case JE_ARRAY_N    : result = je_arrval(newlist(node->left, table, NULL)); break;
-            case JE_OBJECT_N   : result = je_objval(newpairlist(node->left, table, NULL)); break;
+            case JE_NULL_N     : result = JE_ValNewFromNull(); break;
+            case JE_BOOL_N     : result = JE_ValNewFromBool(node->value.i); break;
+            case JE_INT_N      : result = JE_ValNewFromInt(node->value.i); break;
+            case JE_FLOAT_N    : result = JE_ValNewFromFloat(node->value.f); break;
+            case JE_STRING_N   : result = JE_ValNewFromCstr(node->value.s); break;
+            case JE_ARRAY_N    : result = JE_ValNewFromVec(newlist(node->left, table, NULL)); break;
+            case JE_OBJECT_N   : result = JE_ValNewFromMap(newpairlist(node->left, table, NULL)); break;
 
             case JE_CALL_N     : result = je_opexec("()", table, node->left, node->right, NULL); break;
             case JE_IDENT_N    : result = je_opexec("*x", table, node, NULL, NULL); break;

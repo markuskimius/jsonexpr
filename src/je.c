@@ -44,13 +44,13 @@ int je_setSymbols(JE_COMPILED* compiled, const char* json) {
             const char* key = je_mapkey(m);
             JE_VAL* value = je_mapval(m);
 
-            je_tableset(compiled->symtbl, key, je_dupval(value), 1);
+            je_tableset(compiled->symtbl, key, JE_ValDup(value), 1);
         }
 
         isok = 1;
     }
 
-    je_freeval(r);
+    JE_ValDelete(r);
     je_free(c);
 
     return isok;

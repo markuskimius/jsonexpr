@@ -259,23 +259,23 @@ class Interface {
     }
 
     valmap(wval) {
-        return this.instance.exports.je_getobject(wval);
+        return this.instance.exports.JE_ValGetMap(wval);
     }
 
     valvec(wval) {
-        return this.instance.exports.je_getarray(wval);
+        return this.instance.exports.JE_ValGetVec(wval);
     }
 
     valstr(wval) {
-        return this.instance.exports.je_valstr(wval);
+        return this.instance.exports.JE_ValToCstr(wval);
     }
 
     valqstr(wval) {
-        return this.instance.exports.je_valqstr(wval);
+        return this.instance.exports.JE_ValToQstr(wval);
     }
 
     valfree(wresult) {
-        this.instance.exports.je_freeval(wresult);
+        this.instance.exports.JE_ValDelete(wresult);
     }
 }
 

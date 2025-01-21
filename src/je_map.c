@@ -25,7 +25,7 @@ static int _mapset(JE_MAP* map, const char* key0, const char* keyi, JE_VAL* val)
     /* Terminal node -> assign the val to this node */
     if(ni == 0) {
         if(!map->key) map->key = strdup(key0);
-        if(map->value) je_freeval(map->value);
+        if(map->value) JE_ValDelete(map->value);
         if(!map->value) incr++;
         map->value = val;
 
@@ -51,7 +51,7 @@ static int _mapunset(JE_MAP* map, const char* key) {
     /* Terminal node -> remove the val at this node */
     if(ni == 0) {
         if(map->key) JE_Free(map->key);
-        if(map->value) je_freeval(map->value);
+        if(map->value) JE_ValDelete(map->value);
 
         map->key = NULL;
         map->value = NULL;
@@ -136,7 +136,7 @@ void je_freemap(JE_MAP* map) {
 
         /* Free this node */
         if(map->key) JE_Free((void*) map->key);
-        if(map->value) je_freeval(map->value);
+        if(map->value) JE_ValDelete(map->value);
 
         map->key = NULL;
         map->value = NULL;
@@ -190,7 +190,7 @@ int je_mapcmp(JE_MAP* map1, JE_MAP* map2) {
 
         if(map1 && map2) {
             cmp = strcmp(map1->key, map2->key);
-            if(cmp == 0) cmp = je_valcmp(map1->value, map2->value);
+            if(cmp == 0) cmp = JE_ValCmp(map1->value, map2->value);
         }
         else if(map1) cmp = 1;
         else if(map2) cmp = -1;
@@ -219,7 +219,7 @@ char* je_mapastr(JE_MAP* map) {
     /* Elements */
     while((map = je_mapnext(map))) {
         char* kstr = je_astrencode(map->key);
-        char* vstr = je_valqstr(map->value);
+        const char* vstr = JE_ValToQstr(map->value);
 
         if(i++ > 0) str = je_astrcat(str, ",");
         str = je_astrcat(str, " ");
@@ -251,7 +251,7 @@ JE_VAL* je_mapval(JE_MAP* map) {
 
 void _je_printmap(const JE_MAP* map, char c, int depth) {
     for(int i=0; i<depth; i++) printf("  ");
-    printf("[%c] => addr=%p, prev=%p, key=%s, val=%s\n", c, map, map->prev, map->key, je_valstr(map->value));
+    printf("[%c] => addr=%p, prev=%p, key=%s, val=%s\n", c, map, map->prev, map->key, JE_ValToCstr(map->value));
 
     for(int i=0; i<NDEGREE; i++) {
         const JE_MAP* next = map->next[i];
@@ -266,13 +266,13 @@ void _je_testmap() {
     JE_MAP* mapi = map;
 
     /* Set test */
-    je_mapset(map, "Hello", je_strval("world!"));
-    je_mapset(map, "Bye", je_strval("cruel world!"));
+    je_mapset(map, "Hello", JE_ValNewFromCstr("world!"));
+    je_mapset(map, "Bye", JE_ValNewFromCstr("cruel world!"));
 
     /* Get test */
-    printf("Bye, %s\n", je_valqstr(je_mapget(map, "Bye")));
-    printf("Hello, %s\n", je_valqstr(je_mapget(map, "Hello")));
-    printf("Nosuchkey: %s\n", je_valqstr(je_mapget(map, "Nosuchkey")));
+    printf("Bye, %s\n", JE_ValToQstr(je_mapget(map, "Bye")));
+    printf("Hello, %s\n", JE_ValToQstr(je_mapget(map, "Hello")));
+    printf("Nosuchkey: %s\n", JE_ValToQstr(je_mapget(map, "Nosuchkey")));
     printf("\n");
 
     /* Print the map */
@@ -280,7 +280,7 @@ void _je_testmap() {
 
     /* Iterator test */
     while((mapi = je_mapnext(mapi))) {
-        printf("%s, %s\n", mapi->key, je_valqstr(mapi->value));
+        printf("%s, %s\n", mapi->key, JE_ValToQstr(mapi->value));
     }
     printf("\n");
 

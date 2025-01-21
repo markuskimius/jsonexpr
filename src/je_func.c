@@ -89,9 +89,9 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE
             }
             else if(*cp=='S' && v->type==JE_NODE_V) {
                 /* Node type where string is expected -- convert node to string */
-                JE_VAL* sv = je_strval(je_valstr(v));
+                JE_VAL* sv = JE_ValNewFromCstr(JE_ValToCstr(v));
 
-                je_freeval(v);
+                JE_ValDelete(v);
                 v = sv;
             }
             else {
@@ -105,12 +105,12 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE
         /* no evaluate */
         else if(*cp == '.') {
             /* No validation */
-            je_vecpush(args, je_dupval(val));
+            je_vecpush(args, JE_ValDup(val));
             cp++;
         }
         /* many arguments */
         else if(*cp == '*') {
-            if(*(cp+1) == '*') je_vecpush(args, je_dupval(nodes->item[i]));
+            if(*(cp+1) == '*') je_vecpush(args, JE_ValDup(nodes->item[i]));
             else je_vecpush(args, je_eval(node, table));
 
             /* do not advance cp */
@@ -150,7 +150,7 @@ JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* 
             case JE_CUSTOM_FT : {
                 JE_SYMTBL* ctx = je_newtable(func->ctx);
 
-                je_tableset(ctx, "ARG", je_arrval(args), 1);
+                je_tableset(ctx, "ARG", JE_ValNewFromVec(args), 1);
                 result = je_eval(func->handler.cust, ctx);
 
                 je_freetable(ctx);  /* also frees ARG */

@@ -156,10 +156,10 @@ int doMyCodeThing(const char* code) {
     }
 
     if(!quiet) {
-        printf("%s\n", je_valqstr(result));
+        printf("%s\n", JE_ValToQstr(result));
     }
 
-    je_freeval(result);
+    JE_ValDelete(result);
     je_freenode(ast);
 
     return 0;
