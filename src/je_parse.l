@@ -47,10 +47,6 @@ JE_TOKEN* je_first = NULL;
     je_yylloc.last->last_line = je_yylineno;                                \
     je_yylloc.last->last_column = je_yycolumn;                              \
 
-static void je_flag(int flag) {
-    je_last->flag = flag;
-}
-
 static void je_yynextline() {
     je_yycolumn = 1;
 }
@@ -59,8 +55,8 @@ static void je_yynextline() {
 
 %%
 
-[ \r\t]+                { je_flag(JE_WHITESPACE_TF); }
-[\n]                    { je_flag(JE_WHITESPACE_TF | JE_NEWLINE_TF); je_yynextline(); }
+[ \r\t]+                ;
+[\n]                    { je_yynextline(); }
 "null"                  { return NULL_T; }
 "true"                  { je_yylval.i = 1; return BOOL_T; }
 "false"                 { je_yylval.i = 0; return BOOL_T; }
@@ -138,10 +134,10 @@ static void je_yynextline() {
 <STRING>\\              { JeParseError(&je_yylloc, "String with a bad backslash sequence"); return BAD_T; }
 <STRING><<EOF>>         { JeParseError(&je_yylloc, "String with a missing terminating quote"); return BAD_T; }
 <STRING>\"              { BEGIN(INITIAL); je_yylval.s = je_yystrvalue; return STRING_T; }
-"#"                     { BEGIN(COMMENT); je_flag(JE_COMMENT_TF | JE_NEWLINE_TF); }
+"#"                     { BEGIN(COMMENT); }
 <COMMENT>.              ;
 <COMMENT>\n             { BEGIN(INITIAL); je_yynextline(); }
-"/*"                    { BEGIN(COMMENT2); je_flag(JE_COMMENT_TF); }
+"/*"                    { BEGIN(COMMENT2); }
 <COMMENT2>.             ;
 <COMMENT2>\n            { je_yynextline(); }
 <COMMENT2>"*/"          { BEGIN(INITIAL); }

@@ -1,5 +1,5 @@
 CC:=clang
-BINARIES:=simple nav
+BINARIES:=simple
 CFLAGS:=-I../../include -g
 LDFLAGS:=-L../../lib -g
 LDLIBS:=-lje -lm

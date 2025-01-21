@@ -10,16 +10,6 @@ extern "C" {
 
 
 /* ***************************************************************************
-* CONSTANTS
-*/
-
-#define JE_WHITESPACE_TF 0x01
-#define JE_NEWLINE_TF    0x02
-#define JE_COMMENT_TF    0x04
-#define JE_DECOR_TM      (JE_WHITESPACE_TF | JE_NEWLINE_TF | JE_COMMENT_TF)
-
-
-/* ***************************************************************************
 * TYPES
 */
 
@@ -34,7 +24,6 @@ typedef struct JE_TOKEN {
 
     struct JE_TOKEN* prev;
     struct JE_TOKEN* next;
-    int flag;
 } JE_TOKEN;
 
 
