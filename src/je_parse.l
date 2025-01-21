@@ -119,7 +119,7 @@ static void je_yynextline() {
 "^="                    { return XOREQ_T; }
 "|="                    { return OREQ_T; }
 "**="                   { return POWEQ_T; }
-["]                     { BEGIN(STRING); je_yystrvalue = calloc(1, JE_YYSTR_INITSIZE); }
+["]                     { BEGIN(STRING); je_yystrvalue = JE_Calloc(1, JE_YYSTR_INITSIZE); }
 <STRING>[^"\\\n]+       { je_yystrvalue = je_astrcat(je_yystrvalue, je_yytext); }
 <STRING>\n              { je_yystrvalue = je_astrcat(je_yystrvalue, je_yytext); je_yynextline(); }
 <STRING>\\U{HEX8}       { je_yystrvalue = je_astrcat(je_yystrvalue, je_utf8str(strtoll(je_yytext+2, NULL, 16))); }

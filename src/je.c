@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include "je.h"
-#include "je_map.h"
 #include "je_error.h"
+#include "je_map.h"
+#include "je_util.h"
 
 
 /* ***************************************************************************
@@ -9,7 +10,7 @@
 */
 
 JE_COMPILED* je_compile(const char* code) {
-    JE_COMPILED* compiled = calloc(1, sizeof(JE_COMPILED));
+    JE_COMPILED* compiled = JE_Calloc(1, sizeof(JE_COMPILED));
 
     compiled->ast = je_parse(code);
     compiled->symtbl = je_newtable(NULL);
@@ -24,7 +25,7 @@ void je_free(JE_COMPILED* compiled) {
     compiled->ast = NULL;
     compiled->symtbl = NULL;
 
-    free(compiled);
+    JE_Free(compiled);
 }
 
 JE_VAL* je_evalc(JE_COMPILED* compiled) {

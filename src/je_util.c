@@ -20,8 +20,10 @@
 * MACROS
 */
 
-#define JE_MAX(a,b) (a>b?a:b)
-#define JE_MIN(a,b) (a<b?a:b)
+#define JE_MAX(a,b)     (a>b?a:b)
+#define JE_MIN(a,b)     (a<b?a:b)
+#define JE_WORDSIZE     (sizeof(long))
+#define JE_ROUNDUP(x)   ((x + (JE_WORDSIZE-1)) & -JE_WORDSIZE)
 
 
 /* ***************************************************************************
@@ -29,6 +31,37 @@
 */
 
 char utf8buf[8];
+
+
+/* ***************************************************************************
+* PUBLIC FUNCTIONS
+*/
+
+void* JE_Calloc(size_t nmemb, size_t size) {
+    void* mem = calloc(nmemb, size);
+
+    if(mem == NULL) {
+        perror(__FUNCTION__);
+        exit(1);
+    }
+
+    return mem;
+}
+
+void* JE_Realloc(void *ptr, size_t nmemb, size_t size) {
+    void* mem = realloc(ptr, nmemb * JE_ROUNDUP(size));
+
+    if(mem == NULL) {
+        perror(__FUNCTION__);
+        exit(1);
+    }
+
+    return mem;
+}
+
+void JE_Free(void *ptr) {
+    free(ptr);
+}
 
 
 /* ***************************************************************************
@@ -56,7 +89,7 @@ char* je_utf8str(uint32_t c) {
 
 
 char* je_astri64(int64_t src) {
-    char* dest = calloc(1, IBUFSIZE);
+    char* dest = JE_Calloc(1, IBUFSIZE);
 
     snprintf(dest, IBUFSIZE, "%lld", src);
 
@@ -65,7 +98,7 @@ char* je_astri64(int64_t src) {
 
 
 char* je_astrf64(double src) {
-    char* dest = calloc(1, DBUFSIZE);
+    char* dest = JE_Calloc(1, DBUFSIZE);
 
     snprintf(dest, DBUFSIZE, "%lf", src);
 
@@ -81,7 +114,7 @@ char* je_astrcat(char* dest, const char* src) {
         size_t dlen = strlen(dest);
         size_t slen = strlen(src);
 
-        dest = realloc(dest, dlen+slen+1);
+        dest = JE_Realloc(dest, 1, dlen+slen+1);
         snprintf(dest+dlen, slen+1, "%s", src);
     }
     else {
@@ -108,18 +141,18 @@ char* je_casprintf(char* dest, const char* format, ...) {
 
     /* append */
     slen = strlen(src);
-    dest = realloc(dest, dlen+slen+1);
+    dest = JE_Realloc(dest, 1, dlen+slen+1);
     snprintf(dest+dlen, slen+1, "%s", src);
 
     /* free */
-    free(src);
+    JE_Free(src);
 
     return dest;
 }
 
 
 char* je_astrencode(const char* src) {
-    char* dest = calloc(1, strlen(src) + 3);
+    char* dest = JE_Calloc(1, strlen(src) + 3);
     const char* cp = src;
 
     /* Opening quote */
@@ -176,7 +209,7 @@ char* je_amcat(const char* s1, const char* s2) {
     size_t width2 = je_maxwidth(s2);
     size_t height1 = je_nlines(s1);
     size_t height2 = je_nlines(s2);
-    char* result = calloc(1, (width1+width2+1)*(height1+height2)+1);
+    char* result = JE_Calloc(1, (width1+width2+1)*(height1+height2)+1);
     char* rend = result;
 
     while(1) {
@@ -224,7 +257,7 @@ size_t je_maxwidth(const char* s) {
 
 
 JE_LINE_ITER* je_newlineiter(const char* s) {
-    JE_LINE_ITER* iter = calloc(1, sizeof(JE_LINE_ITER));
+    JE_LINE_ITER* iter = JE_Calloc(1, sizeof(JE_LINE_ITER));
 
     iter->next = s;
     iter->line = NULL;
@@ -242,7 +275,7 @@ const char* je_nextline(JE_LINE_ITER* iter) {
         size_t len = next2-next1;
 
         /* Copy text */
-        iter->line = realloc(iter->line, len+1);
+        iter->line = JE_Realloc(iter->line, 1, len+1);
         snprintf(iter->line, len+1, "%s", next1);
 
         /* Setup next */
@@ -257,10 +290,10 @@ const char* je_nextline(JE_LINE_ITER* iter) {
 
 
 void je_freelineiter(JE_LINE_ITER* iter) {
-    if(iter->line) free(iter->line);
+    if(iter->line) JE_Free(iter->line);
 
     iter->next = NULL;
     iter->line = NULL;
 
-    free(iter);
+    JE_Free(iter);
 }

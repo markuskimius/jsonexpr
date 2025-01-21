@@ -80,7 +80,7 @@ static JE_NAVNODE* je_newstmtnavnode(JE_NODE* node) {
 }
 
 static JE_NAVNODE* je_newarrnavnode(JE_NODE* node) {
-    JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
+    JE_NAVNODE* navnode = JE_Calloc(1, sizeof(JE_NAVNODE));
 
     navnode->node = node;
 
@@ -90,7 +90,7 @@ static JE_NAVNODE* je_newarrnavnode(JE_NODE* node) {
 }
 
 static JE_NAVNODE* je_newobjnavnode(JE_NODE* node) {
-    JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
+    JE_NAVNODE* navnode = JE_Calloc(1, sizeof(JE_NAVNODE));
 
     navnode->node = node;
 
@@ -100,7 +100,7 @@ static JE_NAVNODE* je_newobjnavnode(JE_NODE* node) {
 }
 
 static JE_NAVNODE* je_newcallnavnode(JE_NODE* node) {
-    JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
+    JE_NAVNODE* navnode = JE_Calloc(1, sizeof(JE_NAVNODE));
 
     navnode->node = node;
 
@@ -111,7 +111,7 @@ static JE_NAVNODE* je_newcallnavnode(JE_NODE* node) {
 }
 
 static JE_NAVNODE* je_neweqnavnode(JE_NODE* node) {
-    JE_NAVNODE* navnode = calloc(1, sizeof(JE_NAVNODE));
+    JE_NAVNODE* navnode = JE_Calloc(1, sizeof(JE_NAVNODE));
 
     navnode->node = node;
 
@@ -144,7 +144,7 @@ static JE_NAVNODE* je_newobjitemnavnode(JE_NODE* node) {
     if(node) {
         switch(node->type) {
             case ',' :
-                navnode = calloc(1, sizeof(JE_NAVNODE));
+                navnode = JE_Calloc(1, sizeof(JE_NAVNODE));
                 navnode->node = node->left;
 
                 if(node->right) je_linknext(navnode, je_newobjitemnavnode(node->right));
@@ -181,7 +181,7 @@ static JE_NAVNODE* je_newcallargitemnavnode(JE_NODE* node) {
     if(node) {
         switch(node->type) {
             case ';' :
-                navnode = calloc(1, sizeof(JE_NAVNODE));
+                navnode = JE_Calloc(1, sizeof(JE_NAVNODE));
                 navnode->node = node;
 
                 je_linkenter(navnode, je_newnavnode(node));
@@ -268,9 +268,9 @@ static JE_TOKEN* je_navnodetoklast(JE_NAVNODE* navnode) {
 static void je_freenavnode(JE_NAVNODE* navnode, int recurse) {
     if(recurse && navnode->enter) je_freenavnode(navnode->enter, recurse);
     if(recurse && navnode->next) je_freenavnode(navnode->next, recurse);
-    if(navnode->textat) free(navnode->textat);
-    if(navnode->textafter) free(navnode->textafter);
-    if(navnode->textbefore) free(navnode->textbefore);
+    if(navnode->textat) JE_Free(navnode->textat);
+    if(navnode->textafter) JE_Free(navnode->textafter);
+    if(navnode->textbefore) JE_Free(navnode->textbefore);
 
     navnode->enter = NULL;
     navnode->exit = NULL;
@@ -281,14 +281,14 @@ static void je_freenavnode(JE_NAVNODE* navnode, int recurse) {
     navnode->textafter = NULL;
     navnode->textbefore = NULL;
 
-    free(navnode);
+    JE_Free(navnode);
 }
 
 static const char* je_navnodetextat(JE_NAVNODE* navnode) {
     JE_TOKEN* first = navnode->node->loc.first;
     JE_TOKEN* last = navnode->node->loc.last;
 
-    if(navnode->textat) free(navnode->textat);
+    if(navnode->textat) JE_Free(navnode->textat);
 
     navnode->textat = je_astrtoken(first, last);
 
@@ -301,7 +301,7 @@ static const char* je_navnodetextafter(JE_NAVNODE* navnode) {
 
     /* Reset */
     if(navnode->textafter) {
-        free(navnode->textafter);
+        JE_Free(navnode->textafter);
         navnode->textafter = NULL;
     }
 
@@ -320,7 +320,7 @@ static const char* je_navnodetextbefore(JE_NAVNODE* navnode) {
 
     /* Reset */
     if(navnode->textbefore) {
-        free(navnode->textbefore);
+        JE_Free(navnode->textbefore);
         navnode->textbefore = NULL;
     }
 
@@ -339,7 +339,7 @@ static const char* je_navnodetextbefore(JE_NAVNODE* navnode) {
 */
 
 JE_NAV* je_newnav(JE_NODE* node) {
-    JE_NAV* nav = calloc(1, sizeof(JE_NAV));
+    JE_NAV* nav = JE_Calloc(1, sizeof(JE_NAV));
 
     nav->root = je_newnavnode(node);
     nav->curr = nav->root;
@@ -354,7 +354,7 @@ void je_freenav(JE_NAV* nav) {
     nav->root = NULL;
     nav->curr = NULL;
 
-    free(nav);
+    JE_Free(nav);
 }
 
 
@@ -590,14 +590,14 @@ char* je_navnodetree(JE_NAVNODE* navnode) {
 
         tree = je_amcat(tmp2, next);
 
-        free(tmp1);
-        free(tmp2);
+        JE_Free(tmp1);
+        JE_Free(tmp2);
     }
 
     /* Cleanup */
-    if(next) free(next);
-    if(enter) free(enter);
-    if(value) free(value);
+    if(next) JE_Free(next);
+    if(enter) JE_Free(enter);
+    if(value) JE_Free(value);
 
     return tree;
 }

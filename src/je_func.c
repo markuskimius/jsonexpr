@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "je_error.h"
 #include "je_eval.h"
@@ -19,7 +18,7 @@
 */
 
 JE_FUNC* je_newfunc(JE_BINARY_FN handler, const char* name, const char* sig) {
-    JE_FUNC* func = calloc(1, sizeof(JE_FUNC));
+    JE_FUNC* func = JE_Calloc(1, sizeof(JE_FUNC));
 
     func->type = JE_BINARY_FT;
     func->handler.bin = handler;
@@ -32,7 +31,7 @@ JE_FUNC* je_newfunc(JE_BINARY_FN handler, const char* name, const char* sig) {
 
 
 JE_FUNC* je_newcustfunc(JE_NODE* handler, const char* name, const char* sig, JE_SYMTBL* ctx) {
-    JE_FUNC* func = calloc(1, sizeof(JE_FUNC));
+    JE_FUNC* func = JE_Calloc(1, sizeof(JE_FUNC));
 
     func->type = JE_CUSTOM_FT;
     func->handler.cust = handler;
@@ -57,9 +56,9 @@ void je_freefunc(JE_FUNC* func) {
 
     if(func->count == 0) {
         if(func->ctx) je_freetable(func->ctx);
-        if(func->name) free(func->name);
-        if(func->sig) free(func->sig);
-        free(func);
+        if(func->name) JE_Free(func->name);
+        if(func->sig) JE_Free(func->sig);
+        JE_Free(func);
     }
 }
 

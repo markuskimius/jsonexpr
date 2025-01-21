@@ -50,7 +50,7 @@ static int _mapunset(JE_MAP* map, const char* key) {
 
     /* Terminal node -> remove the val at this node */
     if(ni == 0) {
-        if(map->key) free(map->key);
+        if(map->key) JE_Free(map->key);
         if(map->value) je_freeval(map->value);
 
         map->key = NULL;
@@ -68,7 +68,7 @@ static int _mapunset(JE_MAP* map, const char* key) {
 
     /* Free this node if it has no children (if it's not the root node) */
     if(map->nchildren == 0 && map->prev) {
-        free(map);
+        JE_Free(map);
         freed = 1;
     }
 
@@ -105,7 +105,7 @@ static JE_MAP* _mapnext(JE_MAP* map, const char* lastkey, int i) {
 */
 
 JE_MAP* je_newmap() {
-    JE_MAP* map = calloc(1, sizeof(JE_MAP));
+    JE_MAP* map = JE_Calloc(1, sizeof(JE_MAP));
 
     map->count = 1;
 
@@ -135,7 +135,7 @@ void je_freemap(JE_MAP* map) {
         }
 
         /* Free this node */
-        if(map->key) free((void*) map->key);
+        if(map->key) JE_Free((void*) map->key);
         if(map->value) je_freeval(map->value);
 
         map->key = NULL;
@@ -144,7 +144,7 @@ void je_freemap(JE_MAP* map) {
         map->nchildren = 0;
         map->length = 0;
         map->count = 0;
-        free(map);
+        JE_Free(map);
     }
 }
 
@@ -210,7 +210,7 @@ JE_MAP* je_mapnext(JE_MAP* map) {
 
 
 char* je_mapastr(JE_MAP* map) {
-    char* str = calloc(1, strlen("{  }")+1);
+    char* str = JE_Calloc(1, strlen("{  }")+1);
     size_t i = 0;
 
     /* Opening brace */
@@ -227,7 +227,7 @@ char* je_mapastr(JE_MAP* map) {
         str = je_astrcat(str, ": ");
         str = je_astrcat(str, vstr);
 
-        free(kstr);
+        JE_Free(kstr);
     }
 
     /* Closing bracket */

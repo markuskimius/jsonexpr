@@ -5,6 +5,7 @@
 #include <string.h>
 #include "je_eval.h"
 #include "je_oper.h"
+#include "je_util.h"
 #include "je_val.h"
 
 #define IBUFSIZE 32
@@ -72,7 +73,7 @@ JE_VAL* je_op_plus(JE_VAL* lval, JE_VAL* rval) {
         asprintf(&buf, "%s%s", je_valstr(lval), je_valstr(rval));
         result = je_strval(buf);
 
-        free(buf);
+        JE_Free(buf);
     }
 
     je_freeval(lval);

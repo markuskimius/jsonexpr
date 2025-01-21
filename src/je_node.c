@@ -1,7 +1,6 @@
 #define _GNU_SOURCE
 #include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "je_node.h"
@@ -73,7 +72,7 @@ static char* NODENAMEH[] = {
 static JE_TOKEN* je_blanktoken() {
     JE_TOKEN* token = je_newtoken(0, 0, 0, NULL);
 
-    token->text = calloc(1, sizeof(int64_t));
+    token->text = JE_Calloc(1, sizeof(int64_t));
 
     return token;
 }
@@ -131,7 +130,7 @@ static void je_nodereloc(JE_NODE* node, JE_TOKEN* head) {
 */
 
 JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, JE_YYLTYPE* loc) {
-    JE_NODE* node = calloc(1, sizeof(JE_NODE));
+    JE_NODE* node = JE_Calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->left = left;
@@ -149,7 +148,7 @@ JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, J
 
 
 JE_NODE* je_newinode(int type, int64_t i, JE_YYLTYPE* loc) {
-    JE_NODE* node = calloc(1, sizeof(JE_NODE));
+    JE_NODE* node = JE_Calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.i = i;
@@ -161,7 +160,7 @@ JE_NODE* je_newinode(int type, int64_t i, JE_YYLTYPE* loc) {
 
 
 JE_NODE* je_newfnode(int type, double f, JE_YYLTYPE* loc) {
-    JE_NODE* node = calloc(1, sizeof(JE_NODE));
+    JE_NODE* node = JE_Calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.f = f;
@@ -173,7 +172,7 @@ JE_NODE* je_newfnode(int type, double f, JE_YYLTYPE* loc) {
 
 
 JE_NODE* je_newsnode(int type, char* s, JE_YYLTYPE* loc) {
-    JE_NODE* node = calloc(1, sizeof(JE_NODE));
+    JE_NODE* node = JE_Calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.s = s;
@@ -192,7 +191,7 @@ void je_freenode(JE_NODE* node) {
     if(node->head) je_freetoken(node->head, 1);    /* Free the tokens if this node is the token owner (root node) */
 
     if(node->type == JE_IDENT_N || node->type == JE_STRING_N) {
-        free(node->value.s);
+        JE_Free(node->value.s);
     }
 
     node->left = NULL;
@@ -202,7 +201,7 @@ void je_freenode(JE_NODE* node) {
     node->value.s = NULL;
     node->head = NULL;
 
-    free(node);
+    JE_Free(node);
 }
 
 
@@ -385,9 +384,9 @@ char* je_nodetree(JE_NODE* node) {
     }
 
     /* Cleanup */
-    if(left) free(left);
-    if(right) free(right);
-    if(value) free(value);
+    if(left) JE_Free(left);
+    if(right) JE_Free(right);
+    if(value) JE_Free(value);
 
     return tree;
 }

@@ -29,6 +29,10 @@ typedef struct JE_LINE_ITER {
 * PUBLIC FUNCTIONS
 */
 
+void* JE_Calloc(size_t nmemb, size_t size);
+void* JE_Realloc(void *ptr, size_t nmemb, size_t size);
+void JE_Free(void *ptr);
+
 char* je_utf8str(uint32_t c);
 char* je_astri64(int64_t src);
 char* je_astrf64(double src);

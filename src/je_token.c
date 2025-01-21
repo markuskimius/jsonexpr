@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "je_token.h"
@@ -41,7 +40,7 @@ static void je_tokenrepos(JE_TOKEN* token, size_t first_pos, size_t first_line, 
 */
 
 JE_TOKEN* je_newtoken(size_t pos, size_t line, size_t column, JE_TOKEN* prev) {
-    JE_TOKEN* token = calloc(1, sizeof(JE_TOKEN));
+    JE_TOKEN* token = JE_Calloc(1, sizeof(JE_TOKEN));
 
     token->first_pos = pos;
     token->first_line = line;
@@ -62,14 +61,14 @@ JE_TOKEN* je_newtoken(size_t pos, size_t line, size_t column, JE_TOKEN* prev) {
 void je_freetoken(JE_TOKEN* token, int recursive) {
     if(token) {
         if(token->next && recursive) je_freetoken(token->next, recursive);
-        if(token->text) free(token->text);
+        if(token->text) JE_Free(token->text);
 
         token->text = NULL;
         token->prev = NULL;
         token->next = NULL;
         token->flag = 0;
 
-        free(token);
+        JE_Free(token);
     }
 }
 

@@ -30,7 +30,7 @@ static char VALNAME[128][NAMEMAX];
 */
 
 JE_VAL* je_nullval() {
-    JE_VAL* null = calloc(1, sizeof(JE_VAL));
+    JE_VAL* null = JE_Calloc(1, sizeof(JE_VAL));
 
     null->type = JE_NULL_V;
 
@@ -39,7 +39,7 @@ JE_VAL* je_nullval() {
 
 
 JE_VAL* je_boolval(int64_t i64) {
-    JE_VAL* val = calloc(1, sizeof(JE_VAL));
+    JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_BOOL_V;
     val->value.i = i64 ? 1 : 0;
@@ -49,7 +49,7 @@ JE_VAL* je_boolval(int64_t i64) {
 
 
 JE_VAL* je_intval(int64_t i64) {
-    JE_VAL* val = calloc(1, sizeof(JE_VAL));
+    JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_INT_V;
     val->value.i = i64;
@@ -59,7 +59,7 @@ JE_VAL* je_intval(int64_t i64) {
 
 
 JE_VAL* je_dblval(double f64) {
-    JE_VAL* val = calloc(1, sizeof(JE_VAL));
+    JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_FLOAT_V;
     val->value.f = f64;
@@ -69,7 +69,7 @@ JE_VAL* je_dblval(double f64) {
 
 
 JE_VAL* je_strval(char* str) {
-    JE_VAL* val = calloc(1, sizeof(JE_VAL));
+    JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_STRING_V;
     val->value.s = strdup(str);
@@ -79,7 +79,7 @@ JE_VAL* je_strval(char* str) {
 
 
 JE_VAL* je_arrval(JE_VEC* vec) {
-    JE_VAL* val = calloc(1, sizeof(JE_VAL));
+    JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_ARRAY_V;
     val->value.v = vec ? vec : je_newvec();
@@ -89,7 +89,7 @@ JE_VAL* je_arrval(JE_VEC* vec) {
 
 
 JE_VAL* je_objval(JE_MAP* map) {
-    JE_VAL* val = calloc(1, sizeof(JE_VAL));
+    JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_OBJECT_V;
     val->value.m = map ? map : je_newmap();
@@ -99,7 +99,7 @@ JE_VAL* je_objval(JE_MAP* map) {
 
 
 JE_VAL* je_funcval(JE_FUNC* func) {
-    JE_VAL* val = calloc(1, sizeof(JE_VAL));
+    JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_FUNCTION_V;
     val->value.fn = func;
@@ -109,7 +109,7 @@ JE_VAL* je_funcval(JE_FUNC* func) {
 
 
 JE_VAL* je_nodeval(JE_NODE* node) {
-    JE_VAL* val = calloc(1, sizeof(JE_VAL));
+    JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_NODE_V;
     val->value.n = node;
@@ -151,7 +151,7 @@ void je_freeval(JE_VAL* val) {
         case JE_BOOL_V     : break;
         case JE_INT_V      : break;
         case JE_FLOAT_V    : break;
-        case JE_STRING_V   : free(val->value.s); break;
+        case JE_STRING_V   : JE_Free(val->value.s); break;
         case JE_ARRAY_V    : je_freevec(val->value.v); break;
         case JE_OBJECT_V   : je_freemap(val->value.m); break;
         case JE_FUNCTION_V : je_freefunc(val->value.fn); break;
@@ -159,13 +159,13 @@ void je_freeval(JE_VAL* val) {
         default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
     }
 
-    if(val->astrdecoded) free(val->astrdecoded);
-    if(val->astrencoded) free(val->astrencoded);
+    if(val->astrdecoded) JE_Free(val->astrdecoded);
+    if(val->astrencoded) JE_Free(val->astrencoded);
 
     val->astrencoded = NULL;
     val->astrdecoded = NULL;
     val->value.s = NULL;
-    free(val);
+    JE_Free(val);
 }
 
 
@@ -210,7 +210,7 @@ char* je_valstr(JE_VAL* val) {
     if(val) {
         /* Reset the previous representation */
         if(val->astrdecoded && val->type != JE_NULL_V) {
-            free(val->astrdecoded);
+            JE_Free(val->astrdecoded);
             val->astrdecoded = NULL;
         }
 
@@ -244,7 +244,7 @@ char* je_valqstr(JE_VAL* val) {
     if(val) {
         /* Reset the previous representation */
         if(val->astrencoded && val->type != JE_NULL_V) {
-            free(val->astrencoded);
+            JE_Free(val->astrencoded);
             val->astrencoded = NULL;
         }
 

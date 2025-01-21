@@ -22,7 +22,7 @@ char* je_throwText = NULL;
 void _je_die(const char* file, const char* func, size_t line, const char* format, ...) {
     va_list ap;
 
-    if(je_throwText) free(je_throwText);
+    if(je_throwText) JE_Free(je_throwText);
 
     va_start(ap, format);
     vasprintf(&je_throwText, format, ap);
@@ -43,8 +43,8 @@ void je_throw(const char* type, JE_YYLTYPE* loc, const char* format, ...) {
     va_end(ap);
 
     fprintf(stderr, "%s at line %zu col %zu near `%s`: %s\n", type, loc->first->first_line, loc->first->first_column, text, buf);
-    free(text);
-    free(buf);
+    JE_Free(text);
+    JE_Free(buf);
     exit(1);
 }
 
@@ -59,8 +59,8 @@ void je_throwx(const char* file, const char* func, size_t line, const char* type
     va_end(ap);
 
     fprintf(stderr, "[%s:%zu@%s()] %s at line %zu col %zu near `%s`: %s\n", file, line, func, type, loc->first->first_line, loc->first->first_column, text, buf);
-    free(text);
-    free(buf);
+    JE_Free(text);
+    JE_Free(buf);
     exit(1);
 }
 
@@ -68,7 +68,7 @@ void je_throwx(const char* file, const char* func, size_t line, const char* type
 void je_throwLater(const char* format, ...) {
     va_list ap;
 
-    if(je_throwText) free(je_throwText);
+    if(je_throwText) JE_Free(je_throwText);
 
     va_start(ap, format);
     vasprintf(&je_throwText, format, ap);

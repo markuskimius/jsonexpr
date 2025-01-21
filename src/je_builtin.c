@@ -1,7 +1,6 @@
 #define _GNU_SOURCE
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "je_builtin.h"
@@ -981,7 +980,7 @@ static JE_VAL* OP_ADD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
         asprintf(&buf, "%s%s", je_valstr(left), je_valstr(right));
         result = je_strval(buf);
-        free(buf);
+        JE_Free(buf);
     }
 
     return result ? result : je_nullval();

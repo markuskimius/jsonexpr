@@ -5,6 +5,7 @@
 #include "je_map.h"
 #include "je_symtbl.h"
 #include "je_val.h"
+#include "je_util.h"
 
 
 /* ***************************************************************************
@@ -12,7 +13,7 @@
 */
 
 static JE_SYMTBL* _newtable(JE_SYMTBL* parent, int isbuiltin) {
-    JE_SYMTBL* table = calloc(1, sizeof(JE_SYMTBL));
+    JE_SYMTBL* table = JE_Calloc(1, sizeof(JE_SYMTBL));
 
     table->symbols = je_newmap();
     table->symval = je_objval(je_dupmap(table->symbols));
@@ -78,7 +79,7 @@ void je_freetable(JE_SYMTBL* table) {
     if(table->count == 0) {
         je_freeval(table->symval);
         je_freemap(table->symbols);
-        free(table);
+        JE_Free(table);
     }
 }
 

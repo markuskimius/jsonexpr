@@ -26,9 +26,9 @@
 */
 
 JE_VEC* je_newvec() {
-    JE_VEC* vec = calloc(1, sizeof(JE_VEC));
+    JE_VEC* vec = JE_Calloc(1, sizeof(JE_VEC));
 
-    vec->item = calloc(INITSIZE, sizeof(JE_VAL*));
+    vec->item = JE_Calloc(INITSIZE, sizeof(JE_VAL*));
     vec->count = 1;
     vec->length = 0;
     vec->capacity = INITSIZE;
@@ -52,12 +52,12 @@ void je_freevec(JE_VEC* vec) {
             je_freeval(vec->item[i]);
         }
 
-        if(vec->item) free(vec->item);
+        if(vec->item) JE_Free(vec->item);
         vec->item = NULL;
         vec->capacity = 0;
         vec->length = 0;
         vec->count = 0;
-        free(vec);
+        JE_Free(vec);
     }
 }
 
@@ -92,7 +92,7 @@ void je_vecpop(JE_VEC* vec) {
 void je_vecpush(JE_VEC* vec, JE_VAL* item) {
     /* Allocate more memory if needed */
     if(vec->length >= vec->capacity) {
-        vec->item = realloc(vec->item, vec->capacity*2 * sizeof(JE_VAL*));
+        vec->item = JE_Realloc(vec->item, vec->capacity*2, sizeof(JE_VAL*));
         vec->capacity *= 2;
     }
 
@@ -152,7 +152,7 @@ int je_veccmp(JE_VEC* vec1, JE_VEC* vec2) {
 
 
 char* je_vecastr(JE_VEC* vec) {
-    char* str = calloc(1, strlen("[  ]")+1);
+    char* str = JE_Calloc(1, strlen("[  ]")+1);
 
     /* Opening bracket */
     snprintf(str, 2, "[");
