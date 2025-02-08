@@ -60,8 +60,8 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
         }
 
         case '[': {
-            JE_VAL* left = je_eval(node->left, table);
-            JE_VAL* right = je_eval(node->right, table);
+            JE_VAL* left = JE_EvalByNode(node->left, table);
+            JE_VAL* right = JE_EvalByNode(node->right, table);
 
             if(left->type == JE_ARRAY_V && right->type == JE_INT_V) {
                 /* Index to 1 element past last -> push a new element if "create" is requested */
@@ -108,7 +108,7 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
         }
 
         case '.': {
-            JE_VAL* left = je_eval(node->left, table);
+            JE_VAL* left = JE_EvalByNode(node->left, table);
             JE_NODE* right = node->right;
 
             if(left->type == JE_OBJECT_V && right->type == JE_IDENT_N) {
@@ -179,7 +179,7 @@ static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = JE_VecGet(args, 0);
     JE_NODE* ast = je_parse(JE_ValToCstr(value));
-    JE_VAL* result = je_eval(ast, table);
+    JE_VAL* result = JE_EvalByNode(ast, table);
 
     je_freenode(ast);
 
@@ -199,19 +199,19 @@ static JE_VAL* FLOOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* last = je_eval(args->item[0]->value.n, table);
+    JE_VAL* last = JE_EvalByNode(args->item[0]->value.n, table);
     JE_VAL* result = NULL;
 
     while(1) {
         JE_ValDelete(last);
-        last = je_eval(args->item[1]->value.n, table);
+        last = JE_EvalByNode(args->item[1]->value.n, table);
         if(!JE_ValIsTrue(last)) break;
 
         if(result) JE_ValDelete(result);
-        result = je_eval(args->item[3]->value.n, table);
+        result = JE_EvalByNode(args->item[3]->value.n, table);
 
         JE_ValDelete(last);
-        last = je_eval(args->item[2]->value.n, table);
+        last = JE_EvalByNode(args->item[2]->value.n, table);
     }
 
     JE_ValDelete(last);
@@ -240,7 +240,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
                 je_tableset(table, name, JE_ValDup(item), 1);
 
                 if(result) JE_ValDelete(result);
-                result = je_eval(expr, table);
+                result = JE_EvalByNode(expr, table);
             }
 
             break;
@@ -260,7 +260,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
                 je_tableset(table, name, JE_ValNewFromVec(pair), 1);
 
                 if(result) JE_ValDelete(result);
-                result = je_eval(expr, table);
+                result = JE_EvalByNode(expr, table);
             }
 
             break;
@@ -340,16 +340,16 @@ static JE_VAL* IF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
 
     for(size_t i=0; i<(args->length & ~1UL); i+=2) {
-        JE_VAL* cond = je_eval(args->item[i]->value.n, table);
+        JE_VAL* cond = JE_EvalByNode(args->item[i]->value.n, table);
 
         if(JE_ValIsTrue(cond)) {
-            result = je_eval(args->item[i+1]->value.n, table);
+            result = JE_EvalByNode(args->item[i+1]->value.n, table);
             break;
         }
     }
 
     if(!result && (args->length % 2)) {
-        result = je_eval(args->item[args->length-1]->value.n, table);
+        result = JE_EvalByNode(args->item[args->length-1]->value.n, table);
     }
 
     return result ? result : JE_ValNewFromNull();
@@ -400,15 +400,15 @@ static JE_VAL* SQRT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* WHILE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* last = je_eval(args->item[0]->value.n, table);
+    JE_VAL* last = JE_EvalByNode(args->item[0]->value.n, table);
     JE_VAL* result = NULL;
 
     while(JE_ValIsTrue(last)) {
         if(result) JE_ValDelete(result);
-        result = je_eval(args->item[1]->value.n, table);
+        result = JE_EvalByNode(args->item[1]->value.n, table);
 
         JE_ValDelete(last);
-        last = je_eval(args->item[0]->value.n, table);
+        last = JE_EvalByNode(args->item[0]->value.n, table);
     }
 
     JE_ValDelete(last);
@@ -1110,11 +1110,11 @@ static JE_VAL* OP_LOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_NODE_V);
     assert(right->type == JE_NODE_V);
 
-    result = je_eval(left->value.n, table);
+    result = JE_EvalByNode(left->value.n, table);
 
     if(!JE_ValIsTrue(result)) {
         JE_ValDelete(result);
-        result = je_eval(right->value.n, table);
+        result = JE_EvalByNode(right->value.n, table);
     }
 
     return result;
@@ -1129,11 +1129,11 @@ static JE_VAL* OP_LAND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_NODE_V);
     assert(right->type == JE_NODE_V);
 
-    result = je_eval(left->value.n, table);
+    result = JE_EvalByNode(left->value.n, table);
 
     if(JE_ValIsTrue(result)) {
         JE_ValDelete(result);
-        result = je_eval(right->value.n, table);
+        result = JE_EvalByNode(right->value.n, table);
     }
 
     return result;
@@ -1214,15 +1214,15 @@ static JE_VAL* OP_COND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(right->type == JE_NODE_V);
     assert(righter->type == JE_NODE_V);
 
-    result = je_eval(left->value.n, table);
+    result = JE_EvalByNode(left->value.n, table);
 
     if(JE_ValIsTrue(result)) {
         JE_ValDelete(result);
-        result = je_eval(right->value.n, table);
+        result = JE_EvalByNode(right->value.n, table);
     }
     else {
         JE_ValDelete(result);
-        result = je_eval(righter->value.n, table);
+        result = JE_EvalByNode(righter->value.n, table);
     }
 
     return result;

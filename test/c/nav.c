@@ -155,7 +155,7 @@ void navtree(JE_NAV* nav) {
 
 
 void eval(JE_NODE* ast, int output) {
-    JE_VAL* result = je_eval(ast, NULL);
+    JE_VAL* result = JE_EvalByNode(ast, NULL);
 
     if(output) {
         printf("%s\n", JE_ValToQstr(result));

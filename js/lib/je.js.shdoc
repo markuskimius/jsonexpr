@@ -211,7 +211,7 @@ class Interface {
     }
 
     eval(wtree, wsymtbl) {
-        return this.instance.exports.je_eval(wtree, wsymtbl);
+        return this.instance.exports.JE_EvalByNode(wtree, wsymtbl);
     }
 
     nodefree(wnode) {

@@ -17,18 +17,18 @@
 * PRIVATE FUNCTIONS
 */
 
-static JE_VEC* newlist(JE_NODE* node, JE_SYMTBL* table, JE_VEC* list) {
+static JE_VEC* _newlist(JE_NODE* node, JE_SYMTBL* table, JE_VEC* list) {
     if(!list) list = JE_VecNew();
 
     if(node) {
         switch(node->type) {
             case ',':
-                if(node->left) newlist(node->left, table, list);
-                if(node->right) newlist(node->right, table, list);
+                if(node->left) _newlist(node->left, table, list);
+                if(node->right) _newlist(node->right, table, list);
                 break;
 
             default:
-                JE_VecPush(list, je_eval(node, table));
+                JE_VecPush(list, JE_EvalByNode(node, table));
                 break;
         }
     }
@@ -36,12 +36,11 @@ static JE_VEC* newlist(JE_NODE* node, JE_SYMTBL* table, JE_VEC* list) {
     return list;
 }
 
-
-static JE_MAP* newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
+static JE_MAP* _newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
     switch(node->type) {
         case ':': {
-            JE_VAL* left = je_eval(node->left, table);
-            JE_VAL* right = je_eval(node->right, table);
+            JE_VAL* left = JE_EvalByNode(node->left, table);
+            JE_VAL* right = JE_EvalByNode(node->right, table);
 
             if(left->type == JE_STRING_V) JE_MapSet(list, JE_ValToCstr(left), right);
             else {
@@ -63,15 +62,14 @@ static JE_MAP* newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
     return list;
 }
 
-
-static JE_MAP* newpairlist(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
+static JE_MAP* _newpairlist(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
     if(!list) list = JE_MapNew();
 
     if(node) {
         switch(node->type) {
             case ',':
-                if(node->left) newpair(node->left, table, list);
-                if(node->right) newpairlist(node->right, table, list);
+                if(node->left) _newpair(node->left, table, list);
+                if(node->right) _newpairlist(node->right, table, list);
                 break;
 
             default:
@@ -88,7 +86,7 @@ static JE_MAP* newpairlist(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
 * PUBLIC FUNCTIONS
 */
 
-JE_VAL* je_eval(JE_NODE* node, JE_SYMTBL* table) {
+JE_VAL* JE_EvalByNode(JE_NODE* node, JE_SYMTBL* table) {
     JE_VAL* result = NULL;
     int mytable = 0;
 
@@ -105,8 +103,8 @@ JE_VAL* je_eval(JE_NODE* node, JE_SYMTBL* table) {
             case JE_INT_N      : result = JE_ValNewFromInt(node->value.i); break;
             case JE_FLOAT_N    : result = JE_ValNewFromFloat(node->value.f); break;
             case JE_STRING_N   : result = JE_ValNewFromCstr(node->value.s); break;
-            case JE_ARRAY_N    : result = JE_ValNewFromVec(newlist(node->left, table, NULL)); break;
-            case JE_OBJECT_N   : result = JE_ValNewFromMap(newpairlist(node->left, table, NULL)); break;
+            case JE_ARRAY_N    : result = JE_ValNewFromVec(_newlist(node->left, table, NULL)); break;
+            case JE_OBJECT_N   : result = JE_ValNewFromMap(_newpairlist(node->left, table, NULL)); break;
 
             case JE_CALL_N     : result = je_opexec("()", table, node->left, node->right, NULL); break;
             case JE_IDENT_N    : result = je_opexec("*x", table, node, NULL, NULL); break;

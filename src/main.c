@@ -146,7 +146,7 @@ int doMyFdThing(int fd) {
 
 int doMyCodeThing(const char* code) {
     JE_NODE* ast = je_parse(code);
-    JE_VAL* result = je_eval(ast, NULL);
+    JE_VAL* result = JE_EvalByNode(ast, NULL);
 
     if(tree) {
         char* tree = je_nodetree(ast);

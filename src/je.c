@@ -29,7 +29,7 @@ void je_free(JE_COMPILED* compiled) {
 }
 
 JE_VAL* je_evalc(JE_COMPILED* compiled) {
-    return je_eval(compiled->ast, compiled->symtbl);
+    return JE_EvalByNode(compiled->ast, compiled->symtbl);
 }
 
 int je_setSymbols(JE_COMPILED* compiled, const char* json) {

@@ -82,7 +82,7 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE
         }
         /* evaluate */
         else if(strchr("BIDSAOF#@?", *cp)) {
-            JE_VAL* v = je_eval(node, table);
+            JE_VAL* v = JE_EvalByNode(node, table);
 
             if(*cp=='?' || *cp==v->type || (*cp=='#'&&strchr("ID",v->type)) || (*cp=='@'&&strchr("AO",v->type))) {
                 /* Same type -- ok */
@@ -111,7 +111,7 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE
         /* many arguments */
         else if(*cp == '*') {
             if(*(cp+1) == '*') JE_VecPush(args, JE_ValDup(nodes->item[i]));
-            else JE_VecPush(args, je_eval(node, table));
+            else JE_VecPush(args, JE_EvalByNode(node, table));
 
             /* do not advance cp */
         }
@@ -151,7 +151,7 @@ JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* 
                 JE_SYMTBL* ctx = je_newtable(func->ctx);
 
                 je_tableset(ctx, "ARG", JE_ValNewFromVec(args), 1);
-                result = je_eval(func->handler.cust, ctx);
+                result = JE_EvalByNode(func->handler.cust, ctx);
 
                 je_freetable(ctx);  /* also frees ARG */
                 break;

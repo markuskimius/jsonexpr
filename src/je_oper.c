@@ -368,11 +368,11 @@ JE_VAL* je_op_pow(JE_VAL* lval, JE_VAL* rval) {
 
 
 JE_VAL* je_op_lor(JE_NODE* left, JE_NODE* right, JE_SYMTBL* table) {
-    JE_VAL* result = je_eval(left, table);
+    JE_VAL* result = JE_EvalByNode(left, table);
 
     if(!JE_ValIsTrue(result)) {
         JE_ValDelete(result);
-        result = je_eval(right, table);
+        result = JE_EvalByNode(right, table);
     }
 
     return result;
@@ -380,11 +380,11 @@ JE_VAL* je_op_lor(JE_NODE* left, JE_NODE* right, JE_SYMTBL* table) {
 
 
 JE_VAL* je_op_land(JE_NODE* left, JE_NODE* right, JE_SYMTBL* table) {
-    JE_VAL* result = je_eval(left, table);
+    JE_VAL* result = JE_EvalByNode(left, table);
 
     if(JE_ValIsTrue(result)) {
         JE_ValDelete(result);
-        result = je_eval(right, table);
+        result = JE_EvalByNode(right, table);
     }
 
     return result;
@@ -392,11 +392,11 @@ JE_VAL* je_op_land(JE_NODE* left, JE_NODE* right, JE_SYMTBL* table) {
 
 
 JE_VAL* je_op_cond(JE_NODE* test, JE_NODE* iftrue, JE_NODE* iffalse, JE_SYMTBL* table) {
-    JE_VAL* val = je_eval(test, table);
+    JE_VAL* val = JE_EvalByNode(test, table);
     JE_VAL* result = NULL;
 
-    if(JE_ValIsTrue(val)) result = je_eval(iftrue, table);
-    else result = je_eval(iffalse, table);
+    if(JE_ValIsTrue(val)) result = JE_EvalByNode(iftrue, table);
+    else result = JE_EvalByNode(iffalse, table);
 
     JE_ValDelete(val);
 
