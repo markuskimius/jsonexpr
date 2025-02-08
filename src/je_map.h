@@ -32,21 +32,21 @@ typedef struct JE_MAP {
 * PUBLIC FUNCTIONS
 */
 
-JE_MAP* je_newmap();
-JE_MAP* je_dupmap(JE_MAP* map);
-void je_freemap(JE_MAP* map);
+JE_MAP* JE_MapNew();
+JE_MAP* JE_MapDup(JE_MAP* map);
+void JE_MapDelete(JE_MAP* map);
 
-void je_mapset(JE_MAP* map, const char* key, JE_VAL* value);
-void je_mapunset(JE_MAP* map, const char* key);
-void je_mapclear(JE_MAP* map);
-JE_VAL* je_mapget(JE_MAP* map, const char* key);
+void JE_MapSet(JE_MAP* map, const char* key, JE_VAL* value);
+void JE_MapUnset(JE_MAP* map, const char* key);
+void JE_MapClear(JE_MAP* map);
+JE_VAL* JE_MapGet(JE_MAP* map, const char* key);
 
-int je_mapcmp(JE_MAP* map1, JE_MAP* map2);
-JE_MAP* je_mapnext(JE_MAP* map);
-char* je_mapastr(JE_MAP* map);
+int JE_MapCmp(JE_MAP* map1, JE_MAP* map2);
+JE_MAP* JE_MapNext(JE_MAP* map);
+char* JE_MapToAstr(JE_MAP* map);
 
-char* je_mapkey(JE_MAP* map);
-JE_VAL* je_mapval(JE_MAP* map);
+char* JE_MapKey(JE_MAP* map);
+JE_VAL* JE_MapVal(JE_MAP* map);
 
 
 #ifdef __cplusplus

@@ -43,7 +43,7 @@ static JE_MAP* newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
             JE_VAL* left = je_eval(node->left, table);
             JE_VAL* right = je_eval(node->right, table);
 
-            if(left->type == JE_STRING_V) je_mapset(list, JE_ValToCstr(left), right);
+            if(left->type == JE_STRING_V) JE_MapSet(list, JE_ValToCstr(left), right);
             else {
                 JE_ValDelete(right);
                 JeRuntimeError(&node->left->loc, "STRING expected, got %s", JE_ValGetType(left));
@@ -65,7 +65,7 @@ static JE_MAP* newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
 
 
 static JE_MAP* newpairlist(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
-    if(!list) list = je_newmap();
+    if(!list) list = JE_MapNew();
 
     if(node) {
         switch(node->type) {

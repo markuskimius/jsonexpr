@@ -15,15 +15,15 @@
 static JE_SYMTBL* _newtable(JE_SYMTBL* parent, int isbuiltin) {
     JE_SYMTBL* table = JE_Calloc(1, sizeof(JE_SYMTBL));
 
-    table->symbols = je_newmap();
-    table->symval = JE_ValNewFromMap(je_dupmap(table->symbols));
+    table->symbols = JE_MapNew();
+    table->symval = JE_ValNewFromMap(JE_MapDup(table->symbols));
 
     /* Built-in */
     if(!parent && isbuiltin) {
         JE_MAP* bi = je_binfns();
 
-        while((bi = je_mapnext(bi))) {
-            je_mapset(table->symbols, bi->key, bi->value);
+        while((bi = JE_MapNext(bi))) {
+            JE_MapSet(table->symbols, bi->key, bi->value);
         }
     }
 
@@ -44,7 +44,7 @@ static JE_SYMTBL* _newtable(JE_SYMTBL* parent, int isbuiltin) {
     /* Add UPSCOPE */
     if(table->parent) {
         je_duptable(table->parent);
-        je_mapset(table->symbols, "UPSCOPE", JE_ValNewFromMap(je_dupmap(table->parent->symbols)));
+        JE_MapSet(table->symbols, "UPSCOPE", JE_ValNewFromMap(JE_MapDup(table->parent->symbols)));
     }
 
     return je_duptable(table);
@@ -78,7 +78,7 @@ void je_freetable(JE_SYMTBL* table) {
     /* Free this table if it's no longer used */
     if(table->count == 0) {
         JE_ValDelete(table->symval);
-        je_freemap(table->symbols);
+        JE_MapDelete(table->symbols);
         JE_Free(table);
     }
 }
@@ -86,8 +86,8 @@ void je_freetable(JE_SYMTBL* table) {
 
 void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* val, int localonly) {
     /* Set at this level if the symbol exists at this level */
-    if(je_mapget(table->symbols, name)) {
-        je_mapset(table->symbols, name, val);
+    if(JE_MapGet(table->symbols, name)) {
+        JE_MapSet(table->symbols, name, val);
     }
     /* Set in parent if the symbol exists at the higher level */
     else if(!localonly && table->parent && je_tableget(table->parent, name)) {
@@ -95,15 +95,15 @@ void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* val, int localonly)
     }
     /* Otherwise set at this level */
     else {
-        je_mapset(table->symbols, name, val);
+        JE_MapSet(table->symbols, name, val);
     }
 }
 
 
 void je_tableunset(JE_SYMTBL* table, const char* name) {
     /* Unset at this level if the symbol exists at this level */
-    if(je_mapget(table->symbols, name)) {
-        je_mapunset(table->symbols, name);
+    if(JE_MapGet(table->symbols, name)) {
+        JE_MapUnset(table->symbols, name);
     }
     /* Unset in parent if the symbol exists at the higher level */
     else if(table->parent && je_tableget(table->parent, name)) {
@@ -113,7 +113,7 @@ void je_tableunset(JE_SYMTBL* table, const char* name) {
 
 
 void je_tableclear(JE_SYMTBL* table, int localonly) {
-    je_mapclear(table->symbols);
+    JE_MapClear(table->symbols);
 
     /* clear parent */
     if(!localonly && table->parent) {
@@ -138,7 +138,7 @@ JE_VAL* je_tableget(JE_SYMTBL* table, const char* name) {
         if(table && table->builtin) val = je_tableget(table->builtin, NULL);
     }
     else if(name) {
-        if(table && !val) val = je_mapget(table->symbols, name);
+        if(table && !val) val = JE_MapGet(table->symbols, name);
         if(table && !val) val = je_tableget(table->parent, name);
     }
     else {

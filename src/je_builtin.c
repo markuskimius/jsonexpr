@@ -39,7 +39,7 @@ static size_t ncustfunc = 0;
 */
 
 static void addfn(JE_MAP* map, const char* key, const char* sig, JE_BINARY_FN fn) {
-    je_mapset(map, key, JE_ValNewFromFunc(je_newfunc(fn, key, sig)));
+    JE_MapSet(map, key, JE_ValNewFromFunc(je_newfunc(fn, key, sig)));
 }
 
 
@@ -83,12 +83,12 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
                 }
             }
             else if(left->type == JE_OBJECT_V && right->type == JE_STRING_V) {
-                result = je_mapget(left->value.m, right->value.s);
+                result = JE_MapGet(left->value.m, right->value.s);
 
                 /* Create if it doesn't exist */
                 if(!result && create) {
                     result = JE_ValNewFromNull();
-                    je_mapset(left->value.m, right->value.s, result);
+                    JE_MapSet(left->value.m, right->value.s, result);
                 }
 
                 if(!result) JeRuntimeError(&node->loc, "Invalid key, %s", JE_ValToQstr(right));
@@ -112,12 +112,12 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
             JE_NODE* right = node->right;
 
             if(left->type == JE_OBJECT_V && right->type == JE_IDENT_N) {
-                result = je_mapget(left->value.m, right->value.s);
+                result = JE_MapGet(left->value.m, right->value.s);
 
                 /* Create if it doesn't exist */
                 if(!result && create) {
                     result = JE_ValNewFromNull();
-                    je_mapset(left->value.m, right->value.s, result);
+                    JE_MapSet(left->value.m, right->value.s, result);
                 }
 
                 if(!result) JeRuntimeError(&node->loc, "Invalid key, %s", right->value.s);
@@ -250,9 +250,9 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
             const char* name = var->value.s;
             JE_MAP* map = iter->value.m;
 
-            while((map = je_mapnext(map))) {
-                JE_VAL* key = JE_ValNewFromCstr(je_mapkey(map));
-                JE_VAL* value = je_mapval(map);
+            while((map = JE_MapNext(map))) {
+                JE_VAL* key = JE_ValNewFromCstr(JE_MapKey(map));
+                JE_VAL* value = JE_MapVal(map);
                 JE_VEC* pair = je_newvec();
 
                 je_vecpush(pair, key);
@@ -817,7 +817,7 @@ static JE_VAL* OP_INDEX(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         if(!result) JeRuntimeError(loc, "Invalid index, max %zd, got %lld", left->value.v->length-1, right->value.i);
     }
     else if(left->type == JE_OBJECT_V && right->type == JE_STRING_V) {
-        result = je_mapget(left->value.m, right->value.s);
+        result = JE_MapGet(left->value.m, right->value.s);
         if(!result) JeRuntimeError(loc, "Invalid key, %s", JE_ValToQstr(right));
     }
     else if(left->type == JE_ARRAY_V ) JeRuntimeError(loc, "ARRAY index must be INTEGER but got %s", JE_ValGetType(right));
@@ -833,7 +833,7 @@ static JE_VAL* OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_NODE* right = je_vecget(args, 1)->value.n;
     JE_VAL* result = NULL;
 
-    if     (left->type == JE_OBJECT_V && right->type == JE_IDENT_N) result = je_mapget(left->value.m, right->value.s);
+    if     (left->type == JE_OBJECT_V && right->type == JE_IDENT_N) result = JE_MapGet(left->value.m, right->value.s);
     else if(left->type == JE_OBJECT_V                             ) JeRuntimeError(loc, "IDENTIFIER expected after '.' but got %s", je_nodetype(right));
     else                                                            JeRuntimeError(loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
 
@@ -1235,12 +1235,12 @@ static JE_VAL* OP_COND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 JE_MAP* je_binfns() {
     if(!BINFNS) {
-        BINFNS = je_newmap();
+        BINFNS = JE_MapNew();
 
-        je_mapset(BINFNS, "VERSION", JE_ValNewFromCstr(JE_VERSION));
-        je_mapset(BINFNS, "VERSION_MAJOR", JE_ValNewFromInt(JE_VERSION_MAJOR));
-        je_mapset(BINFNS, "VERSION_MINOR", JE_ValNewFromInt(JE_VERSION_MINOR));
-        je_mapset(BINFNS, "VERSION_PATCH", JE_ValNewFromInt(JE_VERSION_PATCH));
+        JE_MapSet(BINFNS, "VERSION", JE_ValNewFromCstr(JE_VERSION));
+        JE_MapSet(BINFNS, "VERSION_MAJOR", JE_ValNewFromInt(JE_VERSION_MAJOR));
+        JE_MapSet(BINFNS, "VERSION_MINOR", JE_ValNewFromInt(JE_VERSION_MINOR));
+        JE_MapSet(BINFNS, "VERSION_PATCH", JE_ValNewFromInt(JE_VERSION_PATCH));
 
         addfn(BINFNS, "CEIL"    , "#"   , CEIL    );
         addfn(BINFNS, "EVAL"    , "S"   , EVAL    );
@@ -1262,7 +1262,7 @@ JE_MAP* je_binfns() {
 
 JE_MAP* je_binops() {
     if(!BINOPS) {
-        BINOPS = je_newmap();
+        BINOPS = JE_MapNew();
 
         addfn(BINOPS, "++x" , "."  , OP_INC     );
         addfn(BINOPS, "--x" , "."  , OP_DEC     );
@@ -1324,7 +1324,7 @@ JE_MAP* je_binops() {
 
 
 JE_VAL* je_opexec(const char* key, JE_SYMTBL* table, JE_NODE* left, JE_NODE* right, JE_NODE* righter) {
-    JE_VAL* fnval = je_mapget(je_binops(), key);
+    JE_VAL* fnval = JE_MapGet(je_binops(), key);
     JE_VAL* result = NULL;
 
     if(fnval && fnval->type == JE_FUNCTION_V) {

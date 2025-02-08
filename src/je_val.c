@@ -86,7 +86,7 @@ JE_VAL* JE_ValNewFromMap(JE_MAP* map) {
     JE_VAL* val = JE_Calloc(1, sizeof(JE_VAL));
 
     val->type = JE_OBJECT_V;
-    val->value.m = map ? map : je_newmap();
+    val->value.m = map ? map : JE_MapNew();
 
     return val;
 }
@@ -117,7 +117,7 @@ JE_VAL* JE_ValDup(JE_VAL* val) {
         case JE_FLOAT_V    : return JE_ValNewFromFloat(val->value.f);
         case JE_STRING_V   : return JE_ValNewFromCstr(strdup(val->value.s));
         case JE_ARRAY_V    : return JE_ValNewFromVec(je_dupvec(val->value.v));
-        case JE_OBJECT_V   : return JE_ValNewFromMap(je_dupmap(val->value.m));
+        case JE_OBJECT_V   : return JE_ValNewFromMap(JE_MapDup(val->value.m));
         case JE_FUNCTION_V : return JE_ValNewFromFunc(je_dupfunc(val->value.fn));
         case JE_NODE_V     : return JE_ValNewFromNode(val->value.n);
         default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
@@ -142,7 +142,7 @@ void JE_ValDelete(JE_VAL* val) {
         case JE_FLOAT_V    : break;
         case JE_STRING_V   : JE_Free(val->value.s); break;
         case JE_ARRAY_V    : je_freevec(val->value.v); break;
-        case JE_OBJECT_V   : je_freemap(val->value.m); break;
+        case JE_OBJECT_V   : JE_MapDelete(val->value.m); break;
         case JE_FUNCTION_V : je_freefunc(val->value.fn); break;
         case JE_NODE_V     : break;
         default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
@@ -184,7 +184,7 @@ int JE_ValCmp(JE_VAL* val1, JE_VAL* val2) {
     else if(val1->type == JE_FLOAT_V    && val2->type == JE_FLOAT_V   ) result = val1->value.f < val2->value.f ? -1 : val1->value.f == val2->value.f ? 0 : 1;
     else if(val1->type == JE_STRING_V   && val2->type == JE_STRING_V  ) result = strcmp(val1->value.s, val2->value.s);
     else if(val1->type == JE_ARRAY_V    && val2->type == JE_ARRAY_V   ) result = je_veccmp(val1->value.v, val2->value.v);
-    else if(val1->type == JE_OBJECT_V   && val2->type == JE_OBJECT_V  ) result = je_mapcmp(val1->value.m, val2->value.m);
+    else if(val1->type == JE_OBJECT_V   && val2->type == JE_OBJECT_V  ) result = JE_MapCmp(val1->value.m, val2->value.m);
     else if(val1->type == JE_FUNCTION_V && val2->type == JE_FUNCTION_V) result = val1->value.fn < val2->value.fn ? -1 : val1->value.fn == val2->value.fn ? 0 : 1;
     else if(val1->type == JE_NODE_V     && val2->type == JE_NODE_V    ) result = val1->value.n < val2->value.n ? -1 : val1->value.n == val2->value.n ? 0 : 1;
     else                                                                result = val2->type - val1->type;
@@ -208,7 +208,7 @@ const char* JE_ValToCstr(JE_VAL* val) {
             case JE_FLOAT_V    : val->astrdecoded = je_astrf64(val->value.f); break;
             case JE_STRING_V   : val->astrdecoded = strdup(val->value.s); break;
             case JE_ARRAY_V    : val->astrdecoded = je_vecastr(val->value.v); break;
-            case JE_OBJECT_V   : val->astrdecoded = je_mapastr(val->value.m); break;
+            case JE_OBJECT_V   : val->astrdecoded = JE_MapToAstr(val->value.m); break;
             case JE_FUNCTION_V : val->astrdecoded = je_funcastr(val->value.fn); break;
             case JE_NODE_V     : val->astrdecoded = je_nodeastr(val->value.n); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
@@ -241,7 +241,7 @@ const char* JE_ValToQstr(JE_VAL* val) {
             case JE_FLOAT_V    : val->astrencoded = je_astrf64(val->value.f); break;
             case JE_STRING_V   : val->astrencoded = je_astrencode(val->value.s); break;
             case JE_ARRAY_V    : val->astrencoded = je_vecastr(val->value.v); break;
-            case JE_OBJECT_V   : val->astrencoded = je_mapastr(val->value.m); break;
+            case JE_OBJECT_V   : val->astrencoded = JE_MapToAstr(val->value.m); break;
             case JE_FUNCTION_V : val->astrencoded = je_astrencode(JE_ValToCstr(val)); break;
             case JE_NODE_V     : val->astrencoded = je_astrencode(JE_ValToCstr(val)); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;

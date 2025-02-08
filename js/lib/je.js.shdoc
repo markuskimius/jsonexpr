@@ -231,19 +231,19 @@ class Interface {
     }
 
     mapset(wmap, wkey, wval) {
-        return this.instance.exports.je_mapset(wmap, wkey, wval);
+        return this.instance.exports.JE_MapSet(wmap, wkey, wval);
     }
 
     mapget(wmap, wkey) {
-        return this.instance.exports.je_mapget(wmap, wkey);
+        return this.instance.exports.JE_MapGet(wmap, wkey);
     }
 
     mapkey(wmap) {
-        return this.instance.exports.je_mapkey(wmap);
+        return this.instance.exports.JE_MapKey(wmap);
     }
 
     mapnext(wmap) {
-        return this.instance.exports.je_mapnext(wmap);
+        return this.instance.exports.JE_MapNext(wmap);
     }
 
     vecset(wvec, index, wval) {

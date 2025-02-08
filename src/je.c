@@ -40,9 +40,9 @@ int je_setSymbols(JE_COMPILED* compiled, const char* json) {
     if(r->type == JE_OBJECT_V) {
         JE_MAP* m = r->value.m;
 
-        while((m = je_mapnext(m))) {
-            const char* key = je_mapkey(m);
-            JE_VAL* value = je_mapval(m);
+        while((m = JE_MapNext(m))) {
+            const char* key = JE_MapKey(m);
+            JE_VAL* value = JE_MapVal(m);
 
             je_tableset(compiled->symtbl, key, JE_ValDup(value), 1);
         }

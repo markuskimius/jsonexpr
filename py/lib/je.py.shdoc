@@ -217,19 +217,19 @@ class Util:
         return self.instance.exports.je_tableclear(wsymtbl, localonly)
 
     def mapset(self, wmap, wkey, wval):
-        return self.instance.exports.je_mapset(wmap, wkey, wval)
+        return self.instance.exports.JE_MapSet(wmap, wkey, wval)
 
     def mapunset(self, wmap, wkey):
-        self.instance.exports.je_mapunset(wmap, wkey)
+        self.instance.exports.JE_MapUnset(wmap, wkey)
 
     def mapget(self, wmap, wkey):
-        return self.instance.exports.je_mapget(wmap, wkey)
+        return self.instance.exports.JE_MapGet(wmap, wkey)
 
     def mapkey(self, wmap):
-        return self.instance.exports.je_mapkey(wmap)
+        return self.instance.exports.JE_MapKey(wmap)
 
     def mapnext(self, wmap):
-        return self.instance.exports.je_mapnext(wmap)
+        return self.instance.exports.JE_MapNext(wmap)
 
     def vecset(self, wvec, index, wval):
         return self.instance.exports.je_vecset(wvec, index, wval)
