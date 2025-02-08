@@ -39,7 +39,7 @@ static size_t ncustfunc = 0;
 */
 
 static void addfn(JE_MAP* map, const char* key, const char* sig, JE_BINARY_FN fn) {
-    JE_MapSet(map, key, JE_ValNewFromFunc(je_newfunc(fn, key, sig)));
+    JE_MapSet(map, key, JE_ValNewFromFunc(JE_FuncNew(fn, key, sig)));
 }
 
 
@@ -329,7 +329,7 @@ static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
         snprintf(name, sizeof(name), "%zd", ++ncustfunc);
 
-        return JE_ValNewFromFunc(je_newcustfunc(args->item[1]->value.n, name, sig, table));
+        return JE_ValNewFromFunc(JE_FuncNewUser(args->item[1]->value.n, name, sig, table));
     }
 
     return NULL;
@@ -856,7 +856,7 @@ static JE_VAL* OP_CALL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(right == NULL || right->type == JE_NODE_V);
 
     if(right) unfold(args2, right->value.n, table);
-    result = je_funcexec(left->value.fn, args2, table, loc);
+    result = JE_FuncExec(left->value.fn, args2, table, loc);
 
     JE_VecDelete(args2);
 
@@ -1335,7 +1335,7 @@ JE_VAL* je_opexec(const char* key, JE_SYMTBL* table, JE_NODE* left, JE_NODE* rig
         if(right) JE_VecPush(args, JE_ValNewFromNode(right));
         if(righter) JE_VecPush(args, JE_ValNewFromNode(righter));
 
-        result = je_funcexec(fn, args, table, &left->loc);
+        result = JE_FuncExec(fn, args, table, &left->loc);
         JE_VecDelete(args);
     }
 

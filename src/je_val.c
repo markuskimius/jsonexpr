@@ -118,7 +118,7 @@ JE_VAL* JE_ValDup(JE_VAL* val) {
         case JE_STRING_V   : return JE_ValNewFromCstr(strdup(val->value.s));
         case JE_ARRAY_V    : return JE_ValNewFromVec(JE_VecDup(val->value.v));
         case JE_OBJECT_V   : return JE_ValNewFromMap(JE_MapDup(val->value.m));
-        case JE_FUNCTION_V : return JE_ValNewFromFunc(je_dupfunc(val->value.fn));
+        case JE_FUNCTION_V : return JE_ValNewFromFunc(JE_FuncDup(val->value.fn));
         case JE_NODE_V     : return JE_ValNewFromNode(val->value.n);
         default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
     }
@@ -143,7 +143,7 @@ void JE_ValDelete(JE_VAL* val) {
         case JE_STRING_V   : JE_Free(val->value.s); break;
         case JE_ARRAY_V    : JE_VecDelete(val->value.v); break;
         case JE_OBJECT_V   : JE_MapDelete(val->value.m); break;
-        case JE_FUNCTION_V : je_freefunc(val->value.fn); break;
+        case JE_FUNCTION_V : JE_FuncDelete(val->value.fn); break;
         case JE_NODE_V     : break;
         default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
     }
@@ -209,7 +209,7 @@ const char* JE_ValToCstr(JE_VAL* val) {
             case JE_STRING_V   : val->astrdecoded = strdup(val->value.s); break;
             case JE_ARRAY_V    : val->astrdecoded = JE_VecToAstr(val->value.v); break;
             case JE_OBJECT_V   : val->astrdecoded = JE_MapToAstr(val->value.m); break;
-            case JE_FUNCTION_V : val->astrdecoded = je_funcastr(val->value.fn); break;
+            case JE_FUNCTION_V : val->astrdecoded = JE_FuncToAstr(val->value.fn); break;
             case JE_NODE_V     : val->astrdecoded = je_nodeastr(val->value.n); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }

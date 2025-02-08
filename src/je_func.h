@@ -54,14 +54,14 @@ typedef struct JE_FUNC {
 * PUBLIC FUNCTIONS
 */
 
-JE_FUNC* je_newfunc(JE_BINARY_FN handler, const char* name, const char* spec);
-JE_FUNC* je_newcustfunc(JE_NODE* handler, const char* name, const char* sig, JE_SYMTBL* ctx);
-JE_FUNC* je_dupfunc(JE_FUNC* func);
-void je_freefunc(JE_FUNC* func);
+JE_FUNC* JE_FuncNew(JE_BINARY_FN handler, const char* name, const char* spec);
+JE_FUNC* JE_FuncNewUser(JE_NODE* handler, const char* name, const char* sig, JE_SYMTBL* ctx);
+JE_FUNC* JE_FuncDup(JE_FUNC* func);
+void JE_FuncDelete(JE_FUNC* func);
 
-JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc);
-JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc);
-char* je_funcastr(JE_FUNC* func);
+JE_VEC* JE_FuncParseArgs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc);
+JE_VAL* JE_FuncExec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc);
+char* JE_FuncToAstr(JE_FUNC* func);
 
 
 #ifdef __cplusplus

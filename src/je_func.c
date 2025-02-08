@@ -17,7 +17,7 @@
 * PUBLIC FUNCTIONS
 */
 
-JE_FUNC* je_newfunc(JE_BINARY_FN handler, const char* name, const char* sig) {
+JE_FUNC* JE_FuncNew(JE_BINARY_FN handler, const char* name, const char* sig) {
     JE_FUNC* func = JE_Calloc(1, sizeof(JE_FUNC));
 
     func->type = JE_BINARY_FT;
@@ -29,8 +29,7 @@ JE_FUNC* je_newfunc(JE_BINARY_FN handler, const char* name, const char* sig) {
     return func;
 }
 
-
-JE_FUNC* je_newcustfunc(JE_NODE* handler, const char* name, const char* sig, JE_SYMTBL* ctx) {
+JE_FUNC* JE_FuncNewUser(JE_NODE* handler, const char* name, const char* sig, JE_SYMTBL* ctx) {
     JE_FUNC* func = JE_Calloc(1, sizeof(JE_FUNC));
 
     func->type = JE_CUSTOM_FT;
@@ -43,15 +42,13 @@ JE_FUNC* je_newcustfunc(JE_NODE* handler, const char* name, const char* sig, JE_
     return func;
 }
 
-
-JE_FUNC* je_dupfunc(JE_FUNC* func) {
+JE_FUNC* JE_FuncDup(JE_FUNC* func) {
     func->count++;
 
     return func;
 }
 
-
-void je_freefunc(JE_FUNC* func) {
+void JE_FuncDelete(JE_FUNC* func) {
     func->count--;
 
     if(func->count == 0) {
@@ -62,8 +59,7 @@ void je_freefunc(JE_FUNC* func) {
     }
 }
 
-
-JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+JE_VEC* JE_FuncParseArgs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VEC* args = JE_VecNew();
     const char* cp = sig;
     int isok = 1;
@@ -133,9 +129,8 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE
     return args;
 }
 
-
-JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VEC* args = je_funcargs(func->sig, nodes, table, loc);
+JE_VAL* JE_FuncExec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+    JE_VEC* args = JE_FuncParseArgs(func->sig, nodes, table, loc);
     JE_VAL* result = NULL;
 
     if(args) {
@@ -166,8 +161,7 @@ JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* 
     return result;
 }
 
-
-char* je_funcastr(JE_FUNC* func) {
+char* JE_FuncToAstr(JE_FUNC* func) {
     char buf[64];
 
     snprintf(buf, sizeof(buf), "FUNCTION##%s()", func->name);
