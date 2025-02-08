@@ -204,8 +204,8 @@ const char* JE_ValToCstr(JE_VAL* val) {
         switch(val->type) {
             case JE_NULL_V     : val->astrdecoded = strdup("null"); break;
             case JE_BOOL_V     : val->astrdecoded = val->value.i ? strdup("true") : strdup("false"); break;
-            case JE_INT_V      : val->astrdecoded = je_astri64(val->value.i); break;
-            case JE_FLOAT_V    : val->astrdecoded = je_astrf64(val->value.f); break;
+            case JE_INT_V      : val->astrdecoded = JE_IntToAstr(val->value.i); break;
+            case JE_FLOAT_V    : val->astrdecoded = JE_FloatToAstr(val->value.f); break;
             case JE_STRING_V   : val->astrdecoded = strdup(val->value.s); break;
             case JE_ARRAY_V    : val->astrdecoded = JE_VecToAstr(val->value.v); break;
             case JE_OBJECT_V   : val->astrdecoded = JE_MapToAstr(val->value.m); break;
@@ -237,13 +237,13 @@ const char* JE_ValToQstr(JE_VAL* val) {
         switch(val->type) {
             case JE_NULL_V     : val->astrencoded = strdup("null"); break;
             case JE_BOOL_V     : val->astrencoded = val->value.i ? strdup("true") : strdup("false"); break;
-            case JE_INT_V      : val->astrencoded = je_astri64(val->value.i); break;
-            case JE_FLOAT_V    : val->astrencoded = je_astrf64(val->value.f); break;
-            case JE_STRING_V   : val->astrencoded = je_astrencode(val->value.s); break;
+            case JE_INT_V      : val->astrencoded = JE_IntToAstr(val->value.i); break;
+            case JE_FLOAT_V    : val->astrencoded = JE_FloatToAstr(val->value.f); break;
+            case JE_STRING_V   : val->astrencoded = JE_CstrToQstr(val->value.s); break;
             case JE_ARRAY_V    : val->astrencoded = JE_VecToAstr(val->value.v); break;
             case JE_OBJECT_V   : val->astrencoded = JE_MapToAstr(val->value.m); break;
-            case JE_FUNCTION_V : val->astrencoded = je_astrencode(JE_ValToCstr(val)); break;
-            case JE_NODE_V     : val->astrencoded = je_astrencode(JE_ValToCstr(val)); break;
+            case JE_FUNCTION_V : val->astrencoded = JE_CstrToQstr(JE_ValToCstr(val)); break;
+            case JE_NODE_V     : val->astrencoded = JE_CstrToQstr(JE_ValToCstr(val)); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }
 

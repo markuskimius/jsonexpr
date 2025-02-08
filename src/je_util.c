@@ -73,7 +73,7 @@ void JE_Free(void *ptr) {
 * sequence is allocated globally and overwritten on subsequent calls to the
 * function.
 */
-char* je_utf8str(uint32_t c) {
+char* JE_UcharToCstr(uint32_t c) {
     char* cp = utf8buf;
 
     if     (c <   0x0080) { *cp++ = c; }
@@ -87,8 +87,7 @@ char* je_utf8str(uint32_t c) {
     return utf8buf;
 }
 
-
-char* je_astri64(int64_t src) {
+char* JE_IntToAstr(int64_t src) {
     char* dest = JE_Calloc(1, IBUFSIZE);
 
     snprintf(dest, IBUFSIZE, "%lld", src);
@@ -96,8 +95,7 @@ char* je_astri64(int64_t src) {
     return dest;
 }
 
-
-char* je_astrf64(double src) {
+char* JE_FloatToAstr(double src) {
     char* dest = JE_Calloc(1, DBUFSIZE);
 
     snprintf(dest, DBUFSIZE, "%lf", src);
@@ -105,11 +103,10 @@ char* je_astrf64(double src) {
     return dest;
 }
 
-
 /**
 * Like strcat, but dest is assumed to be reallocatable.
 */
-char* je_astrcat(char* dest, const char* src) {
+char* JE_AstrCat(char* dest, const char* src) {
     if(dest) {
         size_t dlen = strlen(dest);
         size_t slen = strlen(src);
@@ -124,11 +121,10 @@ char* je_astrcat(char* dest, const char* src) {
     return dest;
 }
 
-
 /**
 * Like asprintf, but append to dest and return new memory.
 */
-char* je_casprintf(char* dest, const char* format, ...) {
+char* JE_AstrCatFormat(char* dest, const char* format, ...) {
     size_t dlen = strlen(dest);
     size_t slen = 0;
     va_list ap;
@@ -150,13 +146,12 @@ char* je_casprintf(char* dest, const char* format, ...) {
     return dest;
 }
 
-
-char* je_astrencode(const char* src) {
+char* JE_CstrToQstr(const char* src) {
     char* dest = JE_Calloc(1, strlen(src) + 3);
     const char* cp = src;
 
     /* Opening quote */
-    dest = je_astrcat(dest, "\"");
+    dest = JE_AstrCat(dest, "\"");
 
     /* Decode each character */
     while(*cp) {
@@ -165,56 +160,44 @@ char* je_astrencode(const char* src) {
         switch(*cp) {
             case '"':
             case '\\':
-                dest = je_astrcat(dest, "\\");
-                dest = je_astrcat(dest, buf);
+                dest = JE_AstrCat(dest, "\\");
+                dest = JE_AstrCat(dest, buf);
                 break;
 
-            case '\b' : buf[0] = 'b'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
-            case '\f' : buf[0] = 'f'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
-            case '\n' : buf[0] = 'n'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
-            case '\r' : buf[0] = 'r'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
-            case '\t' : buf[0] = 't'; dest = je_astrcat(dest, "\\"); dest = je_astrcat(dest, buf); break;
-            default   : dest = je_astrcat(dest, buf); break;
+            case '\b' : buf[0] = 'b'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
+            case '\f' : buf[0] = 'f'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
+            case '\n' : buf[0] = 'n'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
+            case '\r' : buf[0] = 'r'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
+            case '\t' : buf[0] = 't'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
+            default   : dest = JE_AstrCat(dest, buf); break;
         }
 
         cp++;
     }
 
     /* Closing quote */
-    dest = je_astrcat(dest, "\"");
+    dest = JE_AstrCat(dest, "\"");
 
     return dest;
 }
 
-
-char* je_atextat(JE_YYLTYPE* loc) {
+char* JE_LocToAstr(JE_YYLTYPE* loc) {
     return je_astrtoken(loc->first, loc->last->next);
 }
 
-
-static void je_reprint(char* where, size_t howmany, const char* what) {
-    size_t len = strlen(what);
-
-    for(size_t i=0; i<howmany; i++) {
-        snprintf(where, len, "%s", what);
-        where += len;
-    }
-}
-
-
-char* je_amcat(const char* s1, const char* s2) {
-    JE_LINE_ITER* iter1 = je_newlineiter(s1);
-    JE_LINE_ITER* iter2 = je_newlineiter(s2);
-    size_t width1 = je_maxwidth(s1);
-    size_t width2 = je_maxwidth(s2);
-    size_t height1 = je_nlines(s1);
-    size_t height2 = je_nlines(s2);
+char* JE_CstrAcat(const char* s1, const char* s2) {
+    JE_LINE_ITER* iter1 = JE_LineIterNew(s1);
+    JE_LINE_ITER* iter2 = JE_LineIterNew(s2);
+    size_t width1 = JE_CstrGetColumns(s1);
+    size_t width2 = JE_CstrGetColumns(s2);
+    size_t height1 = JE_CstrGetLines(s1);
+    size_t height2 = JE_CstrGetLines(s2);
     char* result = JE_Calloc(1, (width1+width2+1)*(height1+height2)+1);
     char* rend = result;
 
     while(1) {
-        const char* line1 = je_nextline(iter1);
-        const char* line2 = je_nextline(iter2);
+        const char* line1 = JE_LineIterNext(iter1);
+        const char* line2 = JE_LineIterNext(iter2);
 
         if(!line1 && !line2) break;
         if(!line1) line1 = "";
@@ -229,34 +212,31 @@ char* je_amcat(const char* s1, const char* s2) {
     return result;
 }
 
-
-size_t je_nlines(const char* s) {
-    JE_LINE_ITER* iter = je_newlineiter(s);
+size_t JE_CstrGetLines(const char* s) {
+    JE_LINE_ITER* iter = JE_LineIterNew(s);
     size_t nlines = 0;
 
-    while(je_nextline(iter)) nlines++;
-    je_freelineiter(iter);
+    while(JE_LineIterNext(iter)) nlines++;
+    JE_LineIterDelete(iter);
 
     return nlines;
 }
 
-
-size_t je_maxwidth(const char* s) {
-    JE_LINE_ITER* iter = je_newlineiter(s);
+size_t JE_CstrGetColumns(const char* s) {
+    JE_LINE_ITER* iter = JE_LineIterNew(s);
     const char* line = NULL;
     size_t maxwidth = 0;
 
-    while((line = je_nextline(iter))) {
+    while((line = JE_LineIterNext(iter))) {
         maxwidth = JE_MAX(maxwidth, strlen(line));
     }
 
-    je_freelineiter(iter);
+    JE_LineIterDelete(iter);
 
     return maxwidth;
 }
 
-
-JE_LINE_ITER* je_newlineiter(const char* s) {
+JE_LINE_ITER* JE_LineIterNew(const char* s) {
     JE_LINE_ITER* iter = JE_Calloc(1, sizeof(JE_LINE_ITER));
 
     iter->next = s;
@@ -265,8 +245,7 @@ JE_LINE_ITER* je_newlineiter(const char* s) {
     return iter;
 }
 
-
-const char* je_nextline(JE_LINE_ITER* iter) {
+const char* JE_LineIterNext(JE_LINE_ITER* iter) {
     const char* line = NULL;
 
     if(iter->next) {
@@ -288,8 +267,7 @@ const char* je_nextline(JE_LINE_ITER* iter) {
     return line;
 }
 
-
-void je_freelineiter(JE_LINE_ITER* iter) {
+void JE_LineIterDelete(JE_LINE_ITER* iter) {
     if(iter->line) JE_Free(iter->line);
 
     iter->next = NULL;

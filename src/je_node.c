@@ -334,8 +334,8 @@ char* je_nodetree(JE_NODE* node) {
     /* Get the values */
     if(node->left) left = je_nodetree(node->left);
     if(node->right) right = je_nodetree(node->right);
-    // if(!left && !right) value = je_atextat(&node->loc);
-    value = je_atextat(&node->loc);
+    // if(!left && !right) value = JE_LocToAstr(&node->loc);
+    value = JE_LocToAstr(&node->loc);
 
     /* This node */
     asprintf(&tree, "%s at %p w/ p=%p (%zd,%zd,%zd)-(%zd,%zd,%zd)\n", je_nodetype(node), node, node->parent,
@@ -348,12 +348,12 @@ char* je_nodetree(JE_NODE* node) {
     );
 
     if(value) {
-        value = je_astrcat(value, "\n");
+        value = JE_AstrCat(value, "\n");
 
         for(cp=value, np=strchr(cp,'\n'); np; cp=np+1, np=strchr(cp,'\n')) {
             *np = '\0';
 
-            tree = je_casprintf(tree,
+            tree = JE_AstrCatFormat(tree,
                 "%s%s\n",
                 (left || right) ? "| " : "", cp
             );
@@ -365,7 +365,7 @@ char* je_nodetree(JE_NODE* node) {
         for(cp=left, np=strchr(cp,'\n'); np; cp=np+1, np=strchr(cp,'\n')) {
             *np = '\0';
 
-            tree = je_casprintf(tree,
+            tree = JE_AstrCatFormat(tree,
                 "%s %s\n",
                 (cp == left ? "+-" : right ? "| " : "  "), cp
             );
@@ -376,7 +376,7 @@ char* je_nodetree(JE_NODE* node) {
         for(cp=right, np=strchr(cp,'\n'); np; cp=np+1, np=strchr(cp,'\n')) {
             *np = '\0';
 
-            tree = je_casprintf(tree,
+            tree = JE_AstrCatFormat(tree,
                 "%s %s\n",
                 (cp == right ? "+-" : "  "), cp
             );
@@ -393,7 +393,7 @@ char* je_nodetree(JE_NODE* node) {
 
 
 char* je_nodeastr(JE_NODE* node) {
-    return je_atextat(&node->loc);
+    return JE_LocToAstr(&node->loc);
 }
 
 

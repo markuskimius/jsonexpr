@@ -155,7 +155,7 @@ char* je_astrtoken(JE_TOKEN* begin, JE_TOKEN* end) {
     char* buf = NULL;
 
     while(next && next != end) {
-        buf = je_astrcat(buf, next->text);
+        buf = JE_AstrCat(buf, next->text);
         next = next->next;
     }
 

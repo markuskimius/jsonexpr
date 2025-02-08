@@ -204,24 +204,24 @@ char* JE_MapToAstr(JE_MAP* map) {
     size_t i = 0;
 
     /* Opening brace */
-    str = je_astrcat(str, "{");
+    str = JE_AstrCat(str, "{");
 
     /* Elements */
     while((map = JE_MapNext(map))) {
-        char* kstr = je_astrencode(map->key);
+        char* kstr = JE_CstrToQstr(map->key);
         const char* vstr = JE_ValToQstr(map->value);
 
-        if(i++ > 0) str = je_astrcat(str, ",");
-        str = je_astrcat(str, " ");
-        str = je_astrcat(str, kstr);
-        str = je_astrcat(str, ": ");
-        str = je_astrcat(str, vstr);
+        if(i++ > 0) str = JE_AstrCat(str, ",");
+        str = JE_AstrCat(str, " ");
+        str = JE_AstrCat(str, kstr);
+        str = JE_AstrCat(str, ": ");
+        str = JE_AstrCat(str, vstr);
 
         JE_Free(kstr);
     }
 
     /* Closing bracket */
-    str = je_astrcat(str, " }");
+    str = JE_AstrCat(str, " }");
 
     return str;
 }

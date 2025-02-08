@@ -33,20 +33,20 @@ void* JE_Calloc(size_t nmemb, size_t size);
 void* JE_Realloc(void *ptr, size_t nmemb, size_t size);
 void JE_Free(void *ptr);
 
-char* je_utf8str(uint32_t c);
-char* je_astri64(int64_t src);
-char* je_astrf64(double src);
-char* je_astrcat(char* dest, const char* src);
-char* je_casprintf(char* dest, const char* format, ...);
-char* je_astrencode(const char* src);
-char* je_atextat(JE_YYLTYPE* loc);
-char* je_amcat(const char* s1, const char* s2);
-size_t je_nlines(const char* s);
-size_t je_maxwidth(const char* s);
+char* JE_UcharToCstr(uint32_t c);
+char* JE_IntToAstr(int64_t src);
+char* JE_FloatToAstr(double src);
+char* JE_AstrCat(char* dest, const char* src);
+char* JE_AstrCatFormat(char* dest, const char* format, ...);
+char* JE_CstrToQstr(const char* src);
+char* JE_LocToAstr(JE_YYLTYPE* loc);
+char* JE_CstrAcat(const char* s1, const char* s2);
+size_t JE_CstrGetLines(const char* s);
+size_t JE_CstrGetColumns(const char* s);
 
-JE_LINE_ITER* je_newlineiter(const char* s);
-const char* je_nextline(JE_LINE_ITER* iter);
-void je_freelineiter(JE_LINE_ITER* iter);
+JE_LINE_ITER* JE_LineIterNew(const char* s);
+const char* JE_LineIterNext(JE_LINE_ITER* iter);
+void JE_LineIterDelete(JE_LINE_ITER* iter);
 
 
 #ifdef __cplusplus

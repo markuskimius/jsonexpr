@@ -149,13 +149,13 @@ char* JE_VecToAstr(JE_VEC* vec) {
 
     /* Items */
     for(size_t i=0; i<vec->length; i++) {
-        if(i > 0) str = je_astrcat(str, ",");
-        str = je_astrcat(str, " ");
-        str = je_astrcat(str, JE_ValToQstr(vec->item[i]));
+        if(i > 0) str = JE_AstrCat(str, ",");
+        str = JE_AstrCat(str, " ");
+        str = JE_AstrCat(str, JE_ValToQstr(vec->item[i]));
     }
 
     /* Closing bracket */
-    str = je_astrcat(str, " ]");
+    str = JE_AstrCat(str, " ]");
 
     return str;
 }

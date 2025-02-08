@@ -528,11 +528,11 @@ static JE_VAL* OP_ADDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         else if(left->type == JE_INT_V    && right->type == JE_FLOAT_V ) { right->value.f += left->value.i; JE_ValSwap(left, right); }
         else if(left->type == JE_FLOAT_V  && right->type == JE_INT_V   ) left->value.f += right->value.i;
         else if(left->type == JE_FLOAT_V  && right->type == JE_FLOAT_V ) left->value.f += right->value.f;
-        else if(left->type == JE_STRING_V                              ) left->value.s = je_astrcat(left->value.s, JE_ValToCstr(right));
+        else if(left->type == JE_STRING_V                              ) left->value.s = JE_AstrCat(left->value.s, JE_ValToCstr(right));
         else if(                             right->type == JE_STRING_V) {
             JE_VAL* tmp = JE_ValNewFromCstr("");
 
-            tmp->value.s = je_casprintf(tmp->value.s, "%s%s", JE_ValToCstr(left), right->value.s);
+            tmp->value.s = JE_AstrCatFormat(tmp->value.s, "%s%s", JE_ValToCstr(left), right->value.s);
             JE_ValSwap(tmp, left);
             JE_ValDelete(tmp);
         }

@@ -42,7 +42,7 @@ JE_TOKEN* je_first = NULL;
     }                                                                       \
     je_yypos += je_yyleng;                                                  \
     je_yycolumn += je_yyleng;                                               \
-    je_yylloc.last->text = je_astrcat(je_last->text, je_yytext);            \
+    je_yylloc.last->text = JE_AstrCat(je_last->text, je_yytext);            \
     je_yylloc.last->last_pos = je_yypos;                                    \
     je_yylloc.last->last_line = je_yylineno;                                \
     je_yylloc.last->last_column = je_yycolumn;                              \
@@ -116,20 +116,20 @@ static void je_yynextline() {
 "|="                    { return OREQ_T; }
 "**="                   { return POWEQ_T; }
 ["]                     { BEGIN(STRING); je_yystrvalue = JE_Calloc(1, JE_YYSTR_INITSIZE); }
-<STRING>[^"\\\n]+       { je_yystrvalue = je_astrcat(je_yystrvalue, je_yytext); }
-<STRING>\n              { je_yystrvalue = je_astrcat(je_yystrvalue, je_yytext); je_yynextline(); }
-<STRING>\\U{HEX8}       { je_yystrvalue = je_astrcat(je_yystrvalue, je_utf8str(strtoll(je_yytext+2, NULL, 16))); }
-<STRING>\\u{HEX4}       { je_yystrvalue = je_astrcat(je_yystrvalue, je_utf8str(strtoll(je_yytext+2, NULL, 16))); }
-<STRING>\\x{HEX2}       { je_yystrvalue = je_astrcat(je_yystrvalue, je_utf8str(strtoll(je_yytext+2, NULL, 16))); }
-<STRING>\\X{HEX2}       { je_yystrvalue = je_astrcat(je_yystrvalue, je_utf8str(strtoll(je_yytext+2, NULL, 16))); }
-<STRING>\\[\"]          { je_yystrvalue = je_astrcat(je_yystrvalue, "\""); }
-<STRING>\\\\            { je_yystrvalue = je_astrcat(je_yystrvalue, "\\"); }
-<STRING>\\[/]           { je_yystrvalue = je_astrcat(je_yystrvalue, "/");  }
-<STRING>\\b             { je_yystrvalue = je_astrcat(je_yystrvalue, "\b"); }
-<STRING>\\f             { je_yystrvalue = je_astrcat(je_yystrvalue, "\f"); }
-<STRING>\\n             { je_yystrvalue = je_astrcat(je_yystrvalue, "\n"); }
-<STRING>\\r             { je_yystrvalue = je_astrcat(je_yystrvalue, "\r"); }
-<STRING>\\t             { je_yystrvalue = je_astrcat(je_yystrvalue, "\t"); }
+<STRING>[^"\\\n]+       { je_yystrvalue = JE_AstrCat(je_yystrvalue, je_yytext); }
+<STRING>\n              { je_yystrvalue = JE_AstrCat(je_yystrvalue, je_yytext); je_yynextline(); }
+<STRING>\\U{HEX8}       { je_yystrvalue = JE_AstrCat(je_yystrvalue, JE_UcharToCstr(strtoll(je_yytext+2, NULL, 16))); }
+<STRING>\\u{HEX4}       { je_yystrvalue = JE_AstrCat(je_yystrvalue, JE_UcharToCstr(strtoll(je_yytext+2, NULL, 16))); }
+<STRING>\\x{HEX2}       { je_yystrvalue = JE_AstrCat(je_yystrvalue, JE_UcharToCstr(strtoll(je_yytext+2, NULL, 16))); }
+<STRING>\\X{HEX2}       { je_yystrvalue = JE_AstrCat(je_yystrvalue, JE_UcharToCstr(strtoll(je_yytext+2, NULL, 16))); }
+<STRING>\\[\"]          { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\""); }
+<STRING>\\\\            { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\\"); }
+<STRING>\\[/]           { je_yystrvalue = JE_AstrCat(je_yystrvalue, "/");  }
+<STRING>\\b             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\b"); }
+<STRING>\\f             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\f"); }
+<STRING>\\n             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\n"); }
+<STRING>\\r             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\r"); }
+<STRING>\\t             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\t"); }
 <STRING>\\\n            { je_yynextline(); }
 <STRING>\\              { JeParseError(&je_yylloc, "String with a bad backslash sequence"); return BAD_T; }
 <STRING><<EOF>>         { JeParseError(&je_yylloc, "String with a missing terminating quote"); return BAD_T; }
