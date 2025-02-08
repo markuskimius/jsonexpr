@@ -247,15 +247,15 @@ class Interface {
     }
 
     vecset(wvec, index, wval) {
-        return this.instance.exports.je_vecset(wvec, index, wval);
+        return this.instance.exports.JE_VecSet(wvec, index, wval);
     }
 
     vecget(wvec, index) {
-        return this.instance.exports.je_vecget(wvec, index);
+        return this.instance.exports.JE_VecGet(wvec, index);
     }
 
     veclen(wvec) {
-        return this.instance.exports.je_veclen(wvec);
+        return this.instance.exports.JE_VecLen(wvec);
     }
 
     valmap(wval) {

@@ -31,20 +31,20 @@ typedef struct JE_VEC {
 * PUBLIC FUNCTIONS
 */
 
-JE_VEC* je_newvec();
-JE_VEC* je_dupvec(JE_VEC* vec);
-void je_freevec(JE_VEC* vec);
+JE_VEC* JE_VecNew();
+JE_VEC* JE_VecDup(JE_VEC* vec);
+void JE_VecDelete(JE_VEC* vec);
 
-int je_vecset(JE_VEC* vec, size_t index, JE_VAL* item);
-void je_vecpop(JE_VEC* vec);
-void je_vecpush(JE_VEC* vec, JE_VAL* item);
-void je_vecunset(JE_VEC* vec, size_t index);
-JE_VAL* je_vecget(JE_VEC* vec, size_t index);
-JE_VAL* je_vecback(JE_VEC* vec);
+int JE_VecSet(JE_VEC* vec, size_t index, JE_VAL* item);
+void JE_VecPop(JE_VEC* vec);
+void JE_VecPush(JE_VEC* vec, JE_VAL* item);
+void JE_VecUnset(JE_VEC* vec, size_t index);
+JE_VAL* JE_VecGet(JE_VEC* vec, size_t index);
+JE_VAL* JE_VecBack(JE_VEC* vec);
 
-int je_veccmp(JE_VEC* vec1, JE_VEC* vec2);
-char* je_vecastr(JE_VEC* vec);
-size_t je_veclen(JE_VEC* vec);
+int JE_VecCmp(JE_VEC* vec1, JE_VEC* vec2);
+char* JE_VecToAstr(JE_VEC* vec);
+size_t JE_VecLen(JE_VEC* vec);
 
 
 #ifdef __cplusplus

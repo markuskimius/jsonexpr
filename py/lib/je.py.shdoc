@@ -232,19 +232,19 @@ class Util:
         return self.instance.exports.JE_MapNext(wmap)
 
     def vecset(self, wvec, index, wval):
-        return self.instance.exports.je_vecset(wvec, index, wval)
+        return self.instance.exports.JE_VecSet(wvec, index, wval)
 
     def vecpush(self, wvec, wval):
-        return self.instance.exports.je_vecpush(wvec, wval)
+        return self.instance.exports.JE_VecPush(wvec, wval)
 
     def vecunset(self, wvec, index):
-        self.instance.exports.je_vecunset(wvec, index)
+        self.instance.exports.JE_VecUnset(wvec, index)
 
     def vecget(self, wvec, index):
-        return self.instance.exports.je_vecget(wvec, index)
+        return self.instance.exports.JE_VecGet(wvec, index)
 
     def veclen(self, wvec):
-        return self.instance.exports.je_veclen(wvec)
+        return self.instance.exports.JE_VecLen(wvec)
 
     def valbool(self, wval):
         return self.instance.exports.JE_ValNewFromBool(wval)

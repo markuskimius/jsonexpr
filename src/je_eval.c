@@ -18,7 +18,7 @@
 */
 
 static JE_VEC* newlist(JE_NODE* node, JE_SYMTBL* table, JE_VEC* list) {
-    if(!list) list = je_newvec();
+    if(!list) list = JE_VecNew();
 
     if(node) {
         switch(node->type) {
@@ -28,7 +28,7 @@ static JE_VEC* newlist(JE_NODE* node, JE_SYMTBL* table, JE_VEC* list) {
                 break;
 
             default:
-                je_vecpush(list, je_eval(node, table));
+                JE_VecPush(list, je_eval(node, table));
                 break;
         }
     }

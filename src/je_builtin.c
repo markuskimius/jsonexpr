@@ -66,10 +66,10 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
             if(left->type == JE_ARRAY_V && right->type == JE_INT_V) {
                 /* Index to 1 element past last -> push a new element if "create" is requested */
                 if(create && left->value.v->length == right->value.i) {
-                    je_vecpush(left->value.v, JE_ValNewFromNull());
+                    JE_VecPush(left->value.v, JE_ValNewFromNull());
                 }
 
-                result = je_vecget(left->value.v, right->value.i);
+                result = JE_VecGet(left->value.v, right->value.i);
                 if(!result) JeRuntimeError(&node->loc, "Invalid index, max %zu, got %lld", left->value.v->length-1, right->value.i);
 
                 /*
@@ -155,7 +155,7 @@ static void unfold(JE_VEC* vec, JE_NODE* node, JE_SYMTBL* table) {
             break;
 
         default:
-            je_vecpush(vec, JE_ValNewFromNode(node));
+            JE_VecPush(vec, JE_ValNewFromNode(node));
             break;
     }
 }
@@ -166,7 +166,7 @@ static void unfold(JE_VEC* vec, JE_NODE* node, JE_SYMTBL* table) {
 */
 
 static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* value = je_vecget(args, 0);
+    JE_VAL* value = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
     if(value->type == JE_FLOAT_V) result = JE_ValNewFromInt(ceil(value->value.f));
@@ -177,7 +177,7 @@ static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* value = je_vecget(args, 0);
+    JE_VAL* value = JE_VecGet(args, 0);
     JE_NODE* ast = je_parse(JE_ValToCstr(value));
     JE_VAL* result = je_eval(ast, table);
 
@@ -188,7 +188,7 @@ static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* FLOOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* value = je_vecget(args, 0);
+    JE_VAL* value = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
     if(value->type == JE_FLOAT_V) result = JE_ValNewFromInt(floor(value->value.f));
@@ -221,9 +221,9 @@ static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_NODE* var = je_vecget(args, 0)->value.n;
-    JE_VAL* iter = je_vecget(args, 1);
-    JE_NODE* expr = je_vecget(args, 2)->value.n;
+    JE_NODE* var = JE_VecGet(args, 0)->value.n;
+    JE_VAL* iter = JE_VecGet(args, 1);
+    JE_NODE* expr = JE_VecGet(args, 2)->value.n;
     JE_VAL* result = NULL;
 
     /* Validate */
@@ -235,7 +235,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
             JE_VEC* vec = iter->value.v;
 
             for(size_t i=0; i<vec->length; i++) {
-                JE_VAL* item = je_vecget(vec, i);
+                JE_VAL* item = JE_VecGet(vec, i);
 
                 je_tableset(table, name, JE_ValDup(item), 1);
 
@@ -253,10 +253,10 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
             while((map = JE_MapNext(map))) {
                 JE_VAL* key = JE_ValNewFromCstr(JE_MapKey(map));
                 JE_VAL* value = JE_MapVal(map);
-                JE_VEC* pair = je_newvec();
+                JE_VEC* pair = JE_VecNew();
 
-                je_vecpush(pair, key);
-                je_vecpush(pair, JE_ValDup(value));
+                JE_VecPush(pair, key);
+                JE_VecPush(pair, JE_ValDup(value));
                 je_tableset(table, name, JE_ValNewFromVec(pair), 1);
 
                 if(result) JE_ValDelete(result);
@@ -275,7 +275,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* ROUND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* value = je_vecget(args, 0);
+    JE_VAL* value = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
     if(value->type == JE_FLOAT_V) result = JE_ValNewFromInt(round(value->value.f));
@@ -422,7 +422,7 @@ static JE_VAL* WHILE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 */
 
 static JE_VAL* OP_INC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* result = NULL;
 
@@ -442,7 +442,7 @@ static JE_VAL* OP_INC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_DEC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* result = NULL;
 
@@ -462,7 +462,7 @@ static JE_VAL* OP_DEC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_INCPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* result = NULL;
 
@@ -482,7 +482,7 @@ static JE_VAL* OP_INCPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_DECPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* result = NULL;
 
@@ -502,9 +502,9 @@ static JE_VAL* OP_DECPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_SET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
 
@@ -516,9 +516,9 @@ static JE_VAL* OP_SET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_ADDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     left = tablemod(table, ref->value.n, 1);
@@ -544,9 +544,9 @@ static JE_VAL* OP_ADDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_SUBSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
@@ -565,9 +565,9 @@ static JE_VAL* OP_SUBSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_MULSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
@@ -586,9 +586,9 @@ static JE_VAL* OP_MULSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_DIVSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
@@ -607,9 +607,9 @@ static JE_VAL* OP_DIVSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_MODSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
@@ -633,9 +633,9 @@ static JE_VAL* OP_MODSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_POWSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
@@ -657,9 +657,9 @@ static JE_VAL* OP_POWSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 }
 
 static JE_VAL* OP_ORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
@@ -675,9 +675,9 @@ static JE_VAL* OP_ORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_ANDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
@@ -693,9 +693,9 @@ static JE_VAL* OP_ANDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_XORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
@@ -711,9 +711,9 @@ static JE_VAL* OP_XORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_SHLSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
@@ -740,9 +740,9 @@ static JE_VAL* OP_SHLSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_ASRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
@@ -769,9 +769,9 @@ static JE_VAL* OP_ASRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_SHRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* ref = je_vecget(args, 0);
+    JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
@@ -796,7 +796,7 @@ static JE_VAL* OP_SHRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_DEREF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* symnode = je_vecget(args, 0);
+    JE_VAL* symnode = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
     assert(symnode->type == JE_NODE_V);
@@ -808,12 +808,12 @@ static JE_VAL* OP_DEREF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_INDEX(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     if(left->type == JE_ARRAY_V && right->type == JE_INT_V) {
-        result = je_vecget(left->value.v, right->value.i);
+        result = JE_VecGet(left->value.v, right->value.i);
         if(!result) JeRuntimeError(loc, "Invalid index, max %zd, got %lld", left->value.v->length-1, right->value.i);
     }
     else if(left->type == JE_OBJECT_V && right->type == JE_STRING_V) {
@@ -829,8 +829,8 @@ static JE_VAL* OP_INDEX(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_NODE* right = je_vecget(args, 1)->value.n;
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_NODE* right = JE_VecGet(args, 1)->value.n;
     JE_VAL* result = NULL;
 
     if     (left->type == JE_OBJECT_V && right->type == JE_IDENT_N) result = JE_MapGet(left->value.m, right->value.s);
@@ -842,14 +842,14 @@ static JE_VAL* OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_TERM(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    return JE_ValDup(je_vecget(args, 1));
+    return JE_ValDup(JE_VecGet(args, 1));
 }
 
 
 static JE_VAL* OP_CALL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
-    JE_VEC* args2 = je_newvec();
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
+    JE_VEC* args2 = JE_VecNew();
     JE_VAL* result = NULL;
 
     assert(left->type == JE_FUNCTION_V);
@@ -858,21 +858,21 @@ static JE_VAL* OP_CALL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     if(right) unfold(args2, right->value.n, table);
     result = je_funcexec(left->value.fn, args2, table, loc);
 
-    je_freevec(args2);
+    JE_VecDelete(args2);
 
     return result;
 }
 
 
 static JE_VAL* OP_NOT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
+    JE_VAL* left = JE_VecGet(args, 0);
 
     return JE_ValNewFromBool(!JE_ValIsTrue(left));
 }
 
 
 static JE_VAL* OP_POS(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
+    JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
@@ -888,7 +888,7 @@ static JE_VAL* OP_POS(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_NEG(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
+    JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
@@ -904,7 +904,7 @@ static JE_VAL* OP_NEG(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_INV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
+    JE_VAL* left = JE_VecGet(args, 0);
 
     assert(left->type == JE_INT_V);
 
@@ -913,8 +913,8 @@ static JE_VAL* OP_INV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_MUL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
@@ -930,8 +930,8 @@ static JE_VAL* OP_MUL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_DIV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
@@ -947,8 +947,8 @@ static JE_VAL* OP_DIV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_MOD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
@@ -967,8 +967,8 @@ static JE_VAL* OP_MOD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_ADD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     if     (left->type == JE_INT_V    && right->type == JE_INT_V   ) result = JE_ValNewFromInt(left->value.i + right->value.i);
@@ -988,8 +988,8 @@ static JE_VAL* OP_ADD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_SUB(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
@@ -1005,8 +1005,8 @@ static JE_VAL* OP_SUB(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_POW(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_INT_V || left->type == JE_FLOAT_V);
@@ -1022,8 +1022,8 @@ static JE_VAL* OP_POW(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_OR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
@@ -1033,8 +1033,8 @@ static JE_VAL* OP_OR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_AND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
@@ -1044,8 +1044,8 @@ static JE_VAL* OP_AND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_XOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     assert(left->type == JE_INT_V);
     assert(right->type == JE_INT_V);
@@ -1055,56 +1055,56 @@ static JE_VAL* OP_XOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_LT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) < 0);
 }
 
 
 static JE_VAL* OP_GT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) > 0);
 }
 
 
 static JE_VAL* OP_EQ(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) == 0);
 }
 
 
 static JE_VAL* OP_NE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) != 0);
 }
 
 
 static JE_VAL* OP_LE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) <= 0);
 }
 
 
 static JE_VAL* OP_GE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) >= 0);
 }
 
 
 static JE_VAL* OP_LOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_NODE_V);
@@ -1122,8 +1122,8 @@ static JE_VAL* OP_LOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_LAND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_NODE_V);
@@ -1141,8 +1141,8 @@ static JE_VAL* OP_LAND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_SHL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
     int64_t a = left->value.i;
     int64_t b = right->value.i;
@@ -1163,8 +1163,8 @@ static JE_VAL* OP_SHL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_ASR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
     int64_t a = left->value.i;
     int64_t b = right->value.i;
@@ -1185,8 +1185,8 @@ static JE_VAL* OP_ASR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_SHR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
     uint64_t a = left->value.i;
     int64_t b = right->value.i;
@@ -1205,9 +1205,9 @@ static JE_VAL* OP_SHR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 
 static JE_VAL* OP_COND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VAL* left = je_vecget(args, 0);
-    JE_VAL* right = je_vecget(args, 1);
-    JE_VAL* righter = je_vecget(args, 2);
+    JE_VAL* left = JE_VecGet(args, 0);
+    JE_VAL* right = JE_VecGet(args, 1);
+    JE_VAL* righter = JE_VecGet(args, 2);
     JE_VAL* result = NULL;
 
     assert(left->type == JE_NODE_V);
@@ -1329,14 +1329,14 @@ JE_VAL* je_opexec(const char* key, JE_SYMTBL* table, JE_NODE* left, JE_NODE* rig
 
     if(fnval && fnval->type == JE_FUNCTION_V) {
         JE_FUNC* fn = fnval->value.fn;
-        JE_VEC* args = je_newvec();
+        JE_VEC* args = JE_VecNew();
 
-        if(left) je_vecpush(args, JE_ValNewFromNode(left));
-        if(right) je_vecpush(args, JE_ValNewFromNode(right));
-        if(righter) je_vecpush(args, JE_ValNewFromNode(righter));
+        if(left) JE_VecPush(args, JE_ValNewFromNode(left));
+        if(right) JE_VecPush(args, JE_ValNewFromNode(right));
+        if(righter) JE_VecPush(args, JE_ValNewFromNode(righter));
 
         result = je_funcexec(fn, args, table, &left->loc);
-        je_freevec(args);
+        JE_VecDelete(args);
     }
 
     return result ? result : JE_ValNewFromNull();

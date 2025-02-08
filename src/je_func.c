@@ -64,7 +64,7 @@ void je_freefunc(JE_FUNC* func) {
 
 
 JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* loc) {
-    JE_VEC* args = je_newvec();
+    JE_VEC* args = JE_VecNew();
     const char* cp = sig;
     int isok = 1;
 
@@ -99,19 +99,19 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE
                 isok = 0;
             }
 
-            je_vecpush(args, v);
+            JE_VecPush(args, v);
             cp++;
         }
         /* no evaluate */
         else if(*cp == '.') {
             /* No validation */
-            je_vecpush(args, JE_ValDup(val));
+            JE_VecPush(args, JE_ValDup(val));
             cp++;
         }
         /* many arguments */
         else if(*cp == '*') {
-            if(*(cp+1) == '*') je_vecpush(args, JE_ValDup(nodes->item[i]));
-            else je_vecpush(args, je_eval(node, table));
+            if(*(cp+1) == '*') JE_VecPush(args, JE_ValDup(nodes->item[i]));
+            else JE_VecPush(args, je_eval(node, table));
 
             /* do not advance cp */
         }
@@ -126,7 +126,7 @@ JE_VEC* je_funcargs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE
     }
 
     if(!isok) {
-        je_freevec(args);
+        JE_VecDelete(args);
         args = NULL;
     }
 
@@ -143,7 +143,7 @@ JE_VAL* je_funcexec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* 
             case JE_BINARY_FT : {
                 result = func->handler.bin(args, table, loc);
 
-                je_freevec(args);
+                JE_VecDelete(args);
                 break;
             }
 
