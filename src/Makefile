@@ -14,7 +14,7 @@ ifeq ($(findstring wasm,$(HOST)),wasm)
 
 	LD:=wasm-ld
 	CPPFLAGS:=-I$(INCDIR) --target=wasm32 -nostdlib $(CPPFLAGS)
-	LDFLAGS:=-L$(LIBDIR) --export=JE_Parse --export=JE_EvalByNode                                                                                                        \
+	LDFLAGS:=-L$(LIBDIR) --export=JE_Parse --export=JE_EvalNode                                                                                                          \
 		--export=JE_ValNewFromNull --export=JE_ValNewFromBool --export=JE_ValNewFromInt --export=JE_ValNewFromFloat --export=JE_ValNewFromCstr                           \
 		--export=JE_ValNewFromVec --export=JE_ValNewFromMap --export=JE_ValDelete                                                                                        \
 		--export=JE_ValGetBool --export=JE_ValGetInt --export=JE_ValGetFloat --export=JE_ValGetString --export=JE_ValGetVec --export=JE_ValGetMap --export=JE_ValGetFunc \

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "je_error.h"
 #include "je_eval.h"
@@ -53,9 +54,9 @@ void JE_FuncDelete(JE_FUNC* func) {
 
     if(func->count == 0) {
         if(func->ctx) JE_SymtblDelete(func->ctx);
-        if(func->name) JE_Free(func->name);
-        if(func->sig) JE_Free(func->sig);
-        JE_Free(func);
+        if(func->name) free(func->name);
+        if(func->sig) free(func->sig);
+        free(func);
     }
 }
 
@@ -78,7 +79,7 @@ JE_VEC* JE_FuncParseArgs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YY
         }
         /* evaluate */
         else if(strchr("BIDSAOF#@?", *cp)) {
-            JE_VAL* v = JE_EvalByNode(node, table);
+            JE_VAL* v = JE_EvalNode(node, table);
 
             if(*cp=='?' || *cp==v->type || (*cp=='#'&&strchr("ID",v->type)) || (*cp=='@'&&strchr("AO",v->type))) {
                 /* Same type -- ok */
@@ -107,7 +108,7 @@ JE_VEC* JE_FuncParseArgs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YY
         /* many arguments */
         else if(*cp == '*') {
             if(*(cp+1) == '*') JE_VecPush(args, JE_ValDup(nodes->item[i]));
-            else JE_VecPush(args, JE_EvalByNode(node, table));
+            else JE_VecPush(args, JE_EvalNode(node, table));
 
             /* do not advance cp */
         }
@@ -146,7 +147,7 @@ JE_VAL* JE_FuncExec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* 
                 JE_SYMTBL* ctx = JE_SymtblNew(func->ctx);
 
                 JE_SymtblSet(ctx, "ARG", JE_ValNewFromVec(args), 1);
-                result = JE_EvalByNode(func->handler.cust, ctx);
+                result = JE_EvalNode(func->handler.cust, ctx);
 
                 JE_SymtblDelete(ctx);  /* also deletes ARG */
                 break;

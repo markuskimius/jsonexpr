@@ -140,7 +140,7 @@ void JE_ValDelete(JE_VAL* val) {
         case JE_BOOL_V     : break;
         case JE_INT_V      : break;
         case JE_FLOAT_V    : break;
-        case JE_STRING_V   : JE_Free(val->value.s); break;
+        case JE_STRING_V   : free(val->value.s); break;
         case JE_ARRAY_V    : JE_VecDelete(val->value.v); break;
         case JE_OBJECT_V   : JE_MapDelete(val->value.m); break;
         case JE_FUNCTION_V : JE_FuncDelete(val->value.fn); break;
@@ -148,13 +148,13 @@ void JE_ValDelete(JE_VAL* val) {
         default            : JE_Die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
     }
 
-    if(val->astrdecoded) JE_Free(val->astrdecoded);
-    if(val->astrencoded) JE_Free(val->astrencoded);
+    if(val->astrdecoded) free(val->astrdecoded);
+    if(val->astrencoded) free(val->astrencoded);
 
     val->astrencoded = NULL;
     val->astrdecoded = NULL;
     val->value.s = NULL;
-    JE_Free(val);
+    free(val);
 }
 
 int JE_ValIsTrue(JE_VAL* val) {
@@ -196,7 +196,7 @@ const char* JE_ValToCstr(JE_VAL* val) {
     if(val) {
         /* Reset the previous representation */
         if(val->astrdecoded && val->type != JE_NULL_V) {
-            JE_Free(val->astrdecoded);
+            free(val->astrdecoded);
             val->astrdecoded = NULL;
         }
 
@@ -229,7 +229,7 @@ const char* JE_ValToQstr(JE_VAL* val) {
     if(val) {
         /* Reset the previous representation */
         if(val->astrencoded && val->type != JE_NULL_V) {
-            JE_Free(val->astrencoded);
+            free(val->astrencoded);
             val->astrencoded = NULL;
         }
 

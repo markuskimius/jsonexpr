@@ -50,7 +50,7 @@ static int _mapunset(JE_MAP* map, const char* key) {
 
     /* Terminal node -> remove the val at this node */
     if(ni == 0) {
-        if(map->key) JE_Free(map->key);
+        if(map->key) free(map->key);
         if(map->value) JE_ValDelete(map->value);
 
         map->key = NULL;
@@ -68,7 +68,7 @@ static int _mapunset(JE_MAP* map, const char* key) {
 
     /* Free this node if it has no children (if it's not the root node) */
     if(map->nchildren == 0 && map->prev) {
-        JE_Free(map);
+        free(map);
         freed = 1;
     }
 
@@ -132,7 +132,7 @@ void JE_MapDelete(JE_MAP* map) {
         }
 
         /* Free this node */
-        if(map->key) JE_Free((void*) map->key);
+        if(map->key) free((void*) map->key);
         if(map->value) JE_ValDelete(map->value);
 
         map->key = NULL;
@@ -141,7 +141,7 @@ void JE_MapDelete(JE_MAP* map) {
         map->nchildren = 0;
         map->length = 0;
         map->count = 0;
-        JE_Free(map);
+        free(map);
     }
 }
 
@@ -217,7 +217,7 @@ char* JE_MapToAstr(JE_MAP* map) {
         str = JE_AstrCat(str, ": ");
         str = JE_AstrCat(str, vstr);
 
-        JE_Free(kstr);
+        free(kstr);
     }
 
     /* Closing bracket */

@@ -50,12 +50,12 @@ void JE_VecDelete(JE_VEC* vec) {
             JE_ValDelete(vec->item[i]);
         }
 
-        if(vec->item) JE_Free(vec->item);
+        if(vec->item) free(vec->item);
         vec->item = NULL;
         vec->capacity = 0;
         vec->length = 0;
         vec->count = 0;
-        JE_Free(vec);
+        free(vec);
     }
 }
 

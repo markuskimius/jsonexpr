@@ -36,12 +36,12 @@ typedef struct JE_COMPILED {
 * PUBLIC FUNCTIONS
 */
 
-JE_COMPILED* je_compile(const char* code);
-JE_VAL* je_evalc(JE_COMPILED* compiled);
-void je_free(JE_COMPILED* compiled);
+JE_COMPILED* JE_Compile(const char* code);
+JE_VAL* JE_EvalCompiled(JE_COMPILED* compiled);
+void JE_FreeCompiled(JE_COMPILED* compiled);
 
-int je_setSymbols(JE_COMPILED* compiled, const char* json);
-void je_clearSymbols(JE_COMPILED* compiled);
+int JE_SetSymbols(JE_COMPILED* compiled, const char* json);
+void JE_ClearSymbols(JE_COMPILED* compiled);
 
 
 #ifdef __cplusplus

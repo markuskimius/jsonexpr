@@ -19,7 +19,7 @@ typedef struct JE_SYMTBL JE_SYMTBL;
 * PUBLIC FUNCTIONS
 */
 
-JE_VAL* JE_EvalByNode(JE_NODE* node, JE_SYMTBL* table);
+JE_VAL* JE_EvalNode(JE_NODE* node, JE_SYMTBL* table);
 
 
 #ifdef __cplusplus

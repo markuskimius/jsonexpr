@@ -27,7 +27,7 @@ static JE_VEC* _newlist(JE_NODE* node, JE_SYMTBL* table, JE_VEC* list) {
                 break;
 
             default:
-                JE_VecPush(list, JE_EvalByNode(node, table));
+                JE_VecPush(list, JE_EvalNode(node, table));
                 break;
         }
     }
@@ -38,8 +38,8 @@ static JE_VEC* _newlist(JE_NODE* node, JE_SYMTBL* table, JE_VEC* list) {
 static JE_MAP* _newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
     switch(node->type) {
         case ':': {
-            JE_VAL* left = JE_EvalByNode(node->left, table);
-            JE_VAL* right = JE_EvalByNode(node->right, table);
+            JE_VAL* left = JE_EvalNode(node->left, table);
+            JE_VAL* right = JE_EvalNode(node->right, table);
 
             if(left->type == JE_STRING_V) JE_MapSet(list, JE_ValToCstr(left), right);
             else {
@@ -85,7 +85,7 @@ static JE_MAP* _newpairlist(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
 * PUBLIC FUNCTIONS
 */
 
-JE_VAL* JE_EvalByNode(JE_NODE* node, JE_SYMTBL* table) {
+JE_VAL* JE_EvalNode(JE_NODE* node, JE_SYMTBL* table) {
     JE_VAL* result = NULL;
     int mytable = 0;
 

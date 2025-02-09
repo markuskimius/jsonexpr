@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "je_token.h"
@@ -59,13 +60,13 @@ JE_TOKEN* JE_TokenNew(size_t pos, size_t line, size_t column, JE_TOKEN* prev) {
 void JE_TokenDelete(JE_TOKEN* token, int recursive) {
     if(token) {
         if(token->next && recursive) JE_TokenDelete(token->next, recursive);
-        if(token->text) JE_Free(token->text);
+        if(token->text) free(token->text);
 
         token->text = NULL;
         token->prev = NULL;
         token->next = NULL;
 
-        JE_Free(token);
+        free(token);
     }
 }
 

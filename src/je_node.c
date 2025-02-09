@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "je_node.h"
@@ -187,7 +188,7 @@ void JE_NodeDelete(JE_NODE* node) {
     if(node->head) JE_TokenDelete(node->head, 1);    /* Free the tokens if this node is the token owner (root node) */
 
     if(node->type == JE_IDENT_N || node->type == JE_STRING_N) {
-        JE_Free(node->value.s);
+        free(node->value.s);
     }
 
     node->left = NULL;
@@ -197,7 +198,7 @@ void JE_NodeDelete(JE_NODE* node) {
     node->value.s = NULL;
     node->head = NULL;
 
-    JE_Free(node);
+    free(node);
 }
 
 char* JE_NodeTreeAstr(JE_NODE* node) {
@@ -261,9 +262,9 @@ char* JE_NodeTreeAstr(JE_NODE* node) {
     }
 
     /* Cleanup */
-    if(left) JE_Free(left);
-    if(right) JE_Free(right);
-    if(value) JE_Free(value);
+    if(left) free(left);
+    if(right) free(right);
+    if(value) free(value);
 
     return tree;
 }

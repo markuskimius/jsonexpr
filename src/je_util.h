@@ -31,7 +31,6 @@ typedef struct JE_LINE_ITER {
 
 void* JE_Calloc(size_t nmemb, size_t size);
 void* JE_Realloc(void *ptr, size_t nmemb, size_t size);
-void JE_Free(void *ptr);
 
 char* JE_UcharToCstr(uint32_t c);
 char* JE_IntToAstr(int64_t src);

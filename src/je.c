@@ -9,7 +9,7 @@
 * PUBLIC FUNCTIONS
 */
 
-JE_COMPILED* je_compile(const char* code) {
+JE_COMPILED* JE_Compile(const char* code) {
     JE_COMPILED* compiled = JE_Calloc(1, sizeof(JE_COMPILED));
 
     compiled->ast = JE_Parse(code);
@@ -18,23 +18,23 @@ JE_COMPILED* je_compile(const char* code) {
     return compiled;
 }
 
-void je_free(JE_COMPILED* compiled) {
+void JE_FreeCompiled(JE_COMPILED* compiled) {
     JE_NodeDelete(compiled->ast);
     JE_SymtblDelete(compiled->symtbl);
 
     compiled->ast = NULL;
     compiled->symtbl = NULL;
 
-    JE_Free(compiled);
+    free(compiled);
 }
 
-JE_VAL* je_evalc(JE_COMPILED* compiled) {
-    return JE_EvalByNode(compiled->ast, compiled->symtbl);
+JE_VAL* JE_EvalCompiled(JE_COMPILED* compiled) {
+    return JE_EvalNode(compiled->ast, compiled->symtbl);
 }
 
-int je_setSymbols(JE_COMPILED* compiled, const char* json) {
-    JE_COMPILED* c = je_compile(json);
-    JE_VAL* r = je_evalc(c);
+int JE_SetSymbols(JE_COMPILED* compiled, const char* json) {
+    JE_COMPILED* c = JE_Compile(json);
+    JE_VAL* r = JE_EvalCompiled(c);
     int isok = 0;
 
     if(r->type == JE_OBJECT_V) {
@@ -51,11 +51,11 @@ int je_setSymbols(JE_COMPILED* compiled, const char* json) {
     }
 
     JE_ValDelete(r);
-    je_free(c);
+    JE_FreeCompiled(c);
 
     return isok;
 }
 
-void je_clearSymbols(JE_COMPILED* compiled) {
+void JE_ClearSymbols(JE_COMPILED* compiled) {
     JE_SymtblClear(compiled->symtbl, 1);
 }

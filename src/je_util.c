@@ -59,10 +59,6 @@ void* JE_Realloc(void *ptr, size_t nmemb, size_t size) {
     return mem;
 }
 
-void JE_Free(void *ptr) {
-    free(ptr);
-}
-
 
 /* ***************************************************************************
 * SCALAR
@@ -141,7 +137,7 @@ char* JE_AstrCatFormat(char* dest, const char* format, ...) {
     snprintf(dest+dlen, slen+1, "%s", src);
 
     /* free */
-    JE_Free(src);
+    free(src);
 
     return dest;
 }
@@ -268,10 +264,10 @@ const char* JE_LineIterNext(JE_LINE_ITER* iter) {
 }
 
 void JE_LineIterDelete(JE_LINE_ITER* iter) {
-    if(iter->line) JE_Free(iter->line);
+    if(iter->line) free(iter->line);
 
     iter->next = NULL;
     iter->line = NULL;
 
-    JE_Free(iter);
+    free(iter);
 }

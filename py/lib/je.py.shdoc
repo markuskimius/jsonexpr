@@ -191,7 +191,7 @@ class Util:
         return self.instance.exports.JE_Parse(wcode)
 
     def eval(self, wtree, wsymtbl):
-        return self.instance.exports.JE_EvalByNode(wtree, wsymtbl)
+        return self.instance.exports.JE_EvalNode(wtree, wsymtbl)
 
     def nodefree(self, wnode):
         self.instance.exports.JE_NodeDelete(wnode)

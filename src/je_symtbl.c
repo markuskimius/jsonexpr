@@ -76,7 +76,7 @@ void JE_SymtblDelete(JE_SYMTBL* table) {
     if(table->count == 0) {
         JE_ValDelete(table->symval);
         JE_MapDelete(table->symbols);
-        JE_Free(table);
+        free(table);
     }
 }
 

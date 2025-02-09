@@ -20,12 +20,12 @@ $ sudo make PREFIX=/usr/local install
 
 int main() {
     JE_VAL* result = NULL;
-    JE_COMPILED* compiled = je_compile(
+    JE_COMPILED* compiled = JE_Compile(
         "PRINT(\"I have \" + LEN(grades) + \" students\");"
         "PRINT(\"Alice's grade is \" + grades.alice);"
     );
 
-    je_setSymbols(compiled,
+    JE_SetSymbols(compiled,
         "{"
         "  \"grades\" : {"
         "    \"alice\" : \"A\","
@@ -34,10 +34,10 @@ int main() {
         "}"
     );
 
-    result = je_evalc(compiled);
+    result = JE_EvalCompiled(compiled);
 
     JE_ValDelete(result);
-    je_free(compiled);
+    JE_FreeCompiled(compiled);
 
     return 0;
 }
