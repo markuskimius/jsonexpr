@@ -48,12 +48,12 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
 
     switch(node->type) {
         case JE_IDENT_N: {
-            result = je_tableget(table, node->value.s);
+            result = JE_SymtblGet(table, node->value.s);
 
             /* Create if it doesn't exist? */
             if(!result && create) {
                 result = JE_ValNewFromNull();
-                je_tableset(table, node->value.s, result, 0);
+                JE_SymtblSet(table, node->value.s, result, 0);
             }
 
             break;
@@ -237,7 +237,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
             for(size_t i=0; i<vec->length; i++) {
                 JE_VAL* item = JE_VecGet(vec, i);
 
-                je_tableset(table, name, JE_ValDup(item), 1);
+                JE_SymtblSet(table, name, JE_ValDup(item), 1);
 
                 if(result) JE_ValDelete(result);
                 result = JE_EvalByNode(expr, table);
@@ -257,7 +257,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
                 JE_VecPush(pair, key);
                 JE_VecPush(pair, JE_ValDup(value));
-                je_tableset(table, name, JE_ValNewFromVec(pair), 1);
+                JE_SymtblSet(table, name, JE_ValNewFromVec(pair), 1);
 
                 if(result) JE_ValDelete(result);
                 result = JE_EvalByNode(expr, table);

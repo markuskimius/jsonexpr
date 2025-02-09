@@ -19,7 +19,7 @@ ifeq ($(findstring wasm,$(HOST)),wasm)
 		--export=JE_ValNewFromVec --export=JE_ValNewFromMap --export=JE_ValDelete                                                                                        \
 		--export=JE_ValGetBool --export=JE_ValGetInt --export=JE_ValGetFloat --export=JE_ValGetString --export=JE_ValGetVec --export=JE_ValGetMap --export=JE_ValGetFunc \
 		--export=JE_ValGetType --export=JE_ValIsTrue --export=JE_ValToCstr --export=JE_ValToQstr --export=JE_ValCmp                                                      \
-		--export=je_newtable --export=je_freetable --export=je_tableget --export=je_tableset --export=je_tableunset --export=je_tableclear                               \
+		--export=JE_SymtblNew --export=JE_SymtblDelete --export=JE_SymtblSet --export=JE_SymtblUnset --export=JE_SymtblClear --export=JE_SymtblGet                       \
 		--export=JE_MapNew --export=JE_MapDelete --export=JE_MapGet --export=JE_MapSet --export=JE_MapUnset --export=JE_MapClear                                         \
 		--export=JE_MapNext --export=JE_MapCmp --export=JE_MapToAstr --export=JE_MapKey --export=JE_MapVal                                                               \
 		--export=JE_VecNew --export=JE_VecDelete --export=JE_VecSet --export=JE_VecPop --export=JE_VecPush --export=JE_VecUnset --export=JE_VecGet --export=JE_VecBack   \

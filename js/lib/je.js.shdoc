@@ -219,15 +219,15 @@ class Interface {
     }
 
     symnew(wsymtbl=0) {
-        return this.instance.exports.je_newtable(wsymtbl);
-    }
-
-    symget(wsymtbl, wkey) {
-        return this.instance.exports.je_tableget(wsymtbl, wkey);
+        return this.instance.exports.JE_SymtblNew(wsymtbl);
     }
 
     symclear(wsymtbl, localonly=1) {
-        return this.instance.exports.je_tableclear(wsymtbl, localonly);
+        return this.instance.exports.JE_SymtblClear(wsymtbl, localonly);
+    }
+
+    symget(wsymtbl, wkey) {
+        return this.instance.exports.JE_SymtblGet(wsymtbl, wkey);
     }
 
     mapset(wmap, wkey, wval) {

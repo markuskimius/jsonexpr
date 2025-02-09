@@ -13,14 +13,14 @@ JE_COMPILED* je_compile(const char* code) {
     JE_COMPILED* compiled = JE_Calloc(1, sizeof(JE_COMPILED));
 
     compiled->ast = je_parse(code);
-    compiled->symtbl = je_newtable(NULL);
+    compiled->symtbl = JE_SymtblNew(NULL);
 
     return compiled;
 }
 
 void je_free(JE_COMPILED* compiled) {
     JE_NodeDelete(compiled->ast);
-    je_freetable(compiled->symtbl);
+    JE_SymtblDelete(compiled->symtbl);
 
     compiled->ast = NULL;
     compiled->symtbl = NULL;
@@ -44,7 +44,7 @@ int je_setSymbols(JE_COMPILED* compiled, const char* json) {
             const char* key = JE_MapKey(m);
             JE_VAL* value = JE_MapVal(m);
 
-            je_tableset(compiled->symtbl, key, JE_ValDup(value), 1);
+            JE_SymtblSet(compiled->symtbl, key, JE_ValDup(value), 1);
         }
 
         isok = 1;
@@ -57,5 +57,5 @@ int je_setSymbols(JE_COMPILED* compiled, const char* json) {
 }
 
 void je_clearSymbols(JE_COMPILED* compiled) {
-    je_tableclear(compiled->symtbl, 1);
+    JE_SymtblClear(compiled->symtbl, 1);
 }

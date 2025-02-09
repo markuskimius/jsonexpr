@@ -36,7 +36,7 @@ JE_FUNC* JE_FuncNewUser(JE_NODE* handler, const char* name, const char* sig, JE_
     func->handler.cust = handler;
     func->name = strdup(name);
     func->sig = strdup(sig);
-    func->ctx = je_duptable(ctx);
+    func->ctx = JE_SymtblDup(ctx);
     func->count = 1;
 
     return func;
@@ -52,7 +52,7 @@ void JE_FuncDelete(JE_FUNC* func) {
     func->count--;
 
     if(func->count == 0) {
-        if(func->ctx) je_freetable(func->ctx);
+        if(func->ctx) JE_SymtblDelete(func->ctx);
         if(func->name) JE_Free(func->name);
         if(func->sig) JE_Free(func->sig);
         JE_Free(func);
@@ -143,12 +143,12 @@ JE_VAL* JE_FuncExec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* 
             }
 
             case JE_CUSTOM_FT : {
-                JE_SYMTBL* ctx = je_newtable(func->ctx);
+                JE_SYMTBL* ctx = JE_SymtblNew(func->ctx);
 
-                je_tableset(ctx, "ARG", JE_ValNewFromVec(args), 1);
+                JE_SymtblSet(ctx, "ARG", JE_ValNewFromVec(args), 1);
                 result = JE_EvalByNode(func->handler.cust, ctx);
 
-                je_freetable(ctx);  /* also frees ARG */
+                JE_SymtblDelete(ctx);  /* also deletes ARG */
                 break;
             }
 

@@ -43,36 +43,33 @@ static JE_SYMTBL* _newtable(JE_SYMTBL* parent, int isbuiltin) {
 
     /* Add UPSCOPE */
     if(table->parent) {
-        je_duptable(table->parent);
+        JE_SymtblDup(table->parent);
         JE_MapSet(table->symbols, "UPSCOPE", JE_ValNewFromMap(JE_MapDup(table->parent->symbols)));
     }
 
-    return je_duptable(table);
+    return JE_SymtblDup(table);
 }
 
-
-JE_SYMTBL* je_newtable(JE_SYMTBL* parent) {
+JE_SYMTBL* JE_SymtblNew(JE_SYMTBL* parent) {
     return _newtable(parent, 0);
 }
 
-
-JE_SYMTBL* je_duptable(JE_SYMTBL* table) {
+JE_SYMTBL* JE_SymtblDup(JE_SYMTBL* table) {
     table->count++;
 
     if(table->parent) {
-        je_duptable(table->parent);
+        JE_SymtblDup(table->parent);
     }
 
     return table;
 }
 
-
-void je_freetable(JE_SYMTBL* table) {
+void JE_SymtblDelete(JE_SYMTBL* table) {
     table->count--;
 
     /* Reduce parent counter */
     if(table->parent) {
-        je_freetable(table->parent);
+        JE_SymtblDelete(table->parent);
     }
 
     /* Free this table if it's no longer used */
@@ -83,15 +80,14 @@ void je_freetable(JE_SYMTBL* table) {
     }
 }
 
-
-void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* val, int localonly) {
+void JE_SymtblSet(JE_SYMTBL* table, const char* name, JE_VAL* val, int localonly) {
     /* Set at this level if the symbol exists at this level */
     if(JE_MapGet(table->symbols, name)) {
         JE_MapSet(table->symbols, name, val);
     }
     /* Set in parent if the symbol exists at the higher level */
-    else if(!localonly && table->parent && je_tableget(table->parent, name)) {
-        je_tableset(table->parent, name, val, localonly);
+    else if(!localonly && table->parent && JE_SymtblGet(table->parent, name)) {
+        JE_SymtblSet(table->parent, name, val, localonly);
     }
     /* Otherwise set at this level */
     else {
@@ -99,47 +95,44 @@ void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* val, int localonly)
     }
 }
 
-
-void je_tableunset(JE_SYMTBL* table, const char* name) {
+void JE_SymtblUnset(JE_SYMTBL* table, const char* name) {
     /* Unset at this level if the symbol exists at this level */
     if(JE_MapGet(table->symbols, name)) {
         JE_MapUnset(table->symbols, name);
     }
     /* Unset in parent if the symbol exists at the higher level */
-    else if(table->parent && je_tableget(table->parent, name)) {
-        je_tableunset(table->parent, name);
+    else if(table->parent && JE_SymtblGet(table->parent, name)) {
+        JE_SymtblUnset(table->parent, name);
     }
 }
 
-
-void je_tableclear(JE_SYMTBL* table, int localonly) {
+void JE_SymtblClear(JE_SYMTBL* table, int localonly) {
     JE_MapClear(table->symbols);
 
     /* clear parent */
     if(!localonly && table->parent) {
-        je_tableclear(table->parent, localonly);
+        JE_SymtblClear(table->parent, localonly);
     }
 }
 
-
-JE_VAL* je_tableget(JE_SYMTBL* table, const char* name) {
+JE_VAL* JE_SymtblGet(JE_SYMTBL* table, const char* name) {
     JE_VAL* val = NULL;
 
     if(name && strcmp(name,"LOCAL")==0) {
-        if(table) val = je_tableget(table, NULL);
+        if(table) val = JE_SymtblGet(table, NULL);
     }
     else if(name && strcmp(name,"GLOBAL")==0) {
-        if(table && table->global) val = je_tableget(table->global, NULL);
+        if(table && table->global) val = JE_SymtblGet(table->global, NULL);
     }
     else if(name && strcmp(name,"UPSCOPE")==0) {
-        if(table && table->parent) val = je_tableget(table->parent, NULL);
+        if(table && table->parent) val = JE_SymtblGet(table->parent, NULL);
     }
     else if(name && strcmp(name,"BUILTIN")==0) {
-        if(table && table->builtin) val = je_tableget(table->builtin, NULL);
+        if(table && table->builtin) val = JE_SymtblGet(table->builtin, NULL);
     }
     else if(name) {
         if(table && !val) val = JE_MapGet(table->symbols, name);
-        if(table && !val) val = je_tableget(table->parent, name);
+        if(table && !val) val = JE_SymtblGet(table->parent, name);
     }
     else {
         val = table->symval;

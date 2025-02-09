@@ -33,14 +33,14 @@ typedef struct JE_SYMTBL {
 * PUBLIC FUNCTIONS
 */
 
-JE_SYMTBL* je_newtable(JE_SYMTBL* parent);
-JE_SYMTBL* je_duptable(JE_SYMTBL* table);
-void je_freetable(JE_SYMTBL* table);
+JE_SYMTBL* JE_SymtblNew(JE_SYMTBL* parent);
+JE_SYMTBL* JE_SymtblDup(JE_SYMTBL* table);
+void JE_SymtblDelete(JE_SYMTBL* table);
 
-void je_tableset(JE_SYMTBL* table, const char* name, JE_VAL* value, int localonly);
-void je_tableunset(JE_SYMTBL* table, const char* name);
-void je_tableclear(JE_SYMTBL* table, int localonly);
-JE_VAL* je_tableget(JE_SYMTBL* table, const char* name);
+void JE_SymtblSet(JE_SYMTBL* table, const char* name, JE_VAL* value, int localonly);
+void JE_SymtblUnset(JE_SYMTBL* table, const char* name);
+void JE_SymtblClear(JE_SYMTBL* table, int localonly);
+JE_VAL* JE_SymtblGet(JE_SYMTBL* table, const char* name);
 
 
 #ifdef __cplusplus

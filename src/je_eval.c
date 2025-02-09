@@ -49,7 +49,7 @@ static JE_MAP* _newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
             }
 
             JE_ValDelete(left);
-            /* Do not free right (it's in the map) */
+            /* Do not delete right (it's in the map) */
 
             break;
         }
@@ -92,7 +92,7 @@ JE_VAL* JE_EvalByNode(JE_NODE* node, JE_SYMTBL* table) {
 
     /* Create a symbol table if none provided */
     if(!table) {
-        table = je_newtable(NULL);
+        table = JE_SymtblNew(NULL);
         mytable = 1;
     }
 
@@ -162,7 +162,7 @@ JE_VAL* JE_EvalByNode(JE_NODE* node, JE_SYMTBL* table) {
         }
     }
 
-    if(mytable) je_freetable(table);
+    if(mytable) JE_SymtblDelete(table);
 
     return result;
 }

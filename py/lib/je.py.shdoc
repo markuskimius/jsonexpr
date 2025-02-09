@@ -208,13 +208,13 @@ class Util:
         return self.instance.exports.JE_ValNewFromCstr(wstr)
 
     def symnew(self, wsymtbl=0):
-        return self.instance.exports.je_newtable(wsymtbl)
-
-    def symget(self, wsymtbl, wkey):
-        return self.instance.exports.je_tableget(wsymtbl, wkey)
+        return self.instance.exports.JE_SymtblNew(wsymtbl)
 
     def symclear(self, wsymtbl, localonly=1):
-        return self.instance.exports.je_tableclear(wsymtbl, localonly)
+        return self.instance.exports.JE_SymtblClear(wsymtbl, localonly)
+
+    def symget(self, wsymtbl, wkey):
+        return self.instance.exports.JE_SymtblGet(wsymtbl, wkey)
 
     def mapset(self, wmap, wkey, wval):
         return self.instance.exports.JE_MapSet(wmap, wkey, wval)
