@@ -27,7 +27,7 @@ typedef struct JE_SYMTBL JE_SYMTBL;
 typedef enum {
     JE_BINARY_FT,
     JE_CUSTOM_FT,
-} je_func_t;
+} JE_FUNC_T;
 
 
 /* ***************************************************************************
@@ -37,7 +37,7 @@ typedef enum {
 typedef JE_VAL* (*JE_BINARY_FN)(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc);
 
 typedef struct JE_FUNC {
-    je_func_t type;
+    JE_FUNC_T type;
     union {
         JE_BINARY_FN bin;
         JE_NODE* cust;
