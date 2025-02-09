@@ -12,25 +12,25 @@
 * CONSTANTS
 */
 
-#define IBUFSIZE 32
-#define DBUFSIZE 320
+#define _IBUFSIZE   32
+#define _DBUFSIZE   320
 
 
 /* ***************************************************************************
 * MACROS
 */
 
-#define JE_MAX(a,b)     (a>b?a:b)
-#define JE_MIN(a,b)     (a<b?a:b)
-#define JE_WORDSIZE     (sizeof(long))
-#define JE_ROUNDUP(x)   ((x + (JE_WORDSIZE-1)) & -JE_WORDSIZE)
+#define _MAX(a,b)   (a>b?a:b)
+#define _MIN(a,b)   (a<b?a:b)
+#define _WORDSIZE   (sizeof(long))
+#define _ROUNDUP(x) ((x + (_WORDSIZE-1)) & -_WORDSIZE)
 
 
 /* ***************************************************************************
-* GLOBALS
+* PRIVATE VARIABLES
 */
 
-char utf8buf[8];
+static char _utf8buf[8];
 
 
 /* ***************************************************************************
@@ -49,7 +49,7 @@ void* JE_Calloc(size_t nmemb, size_t size) {
 }
 
 void* JE_Realloc(void *ptr, size_t nmemb, size_t size) {
-    void* mem = realloc(ptr, nmemb * JE_ROUNDUP(size));
+    void* mem = realloc(ptr, nmemb * _ROUNDUP(size));
 
     if(mem == NULL) {
         perror(__FUNCTION__);
@@ -74,7 +74,7 @@ void JE_Free(void *ptr) {
 * function.
 */
 char* JE_UcharToCstr(uint32_t c) {
-    char* cp = utf8buf;
+    char* cp = _utf8buf;
 
     if     (c <   0x0080) { *cp++ = c; }
     else if(c <   0x0800) { *cp++ = (c >>  6) | 0xc0;                                                                      *cp++ = (c & 0x3f) | 0x80; }
@@ -84,21 +84,21 @@ char* JE_UcharToCstr(uint32_t c) {
 
     *cp = '\0';
 
-    return utf8buf;
+    return _utf8buf;
 }
 
 char* JE_IntToAstr(int64_t src) {
-    char* dest = JE_Calloc(1, IBUFSIZE);
+    char* dest = JE_Calloc(1, _IBUFSIZE);
 
-    snprintf(dest, IBUFSIZE, "%lld", src);
+    snprintf(dest, _IBUFSIZE, "%lld", src);
 
     return dest;
 }
 
 char* JE_FloatToAstr(double src) {
-    char* dest = JE_Calloc(1, DBUFSIZE);
+    char* dest = JE_Calloc(1, _DBUFSIZE);
 
-    snprintf(dest, DBUFSIZE, "%lf", src);
+    snprintf(dest, _DBUFSIZE, "%lf", src);
 
     return dest;
 }
@@ -228,7 +228,7 @@ size_t JE_CstrGetColumns(const char* s) {
     size_t maxwidth = 0;
 
     while((line = JE_LineIterNext(iter))) {
-        maxwidth = JE_MAX(maxwidth, strlen(line));
+        maxwidth = _MAX(maxwidth, strlen(line));
     }
 
     JE_LineIterDelete(iter);

@@ -15,14 +15,14 @@
 * CONSTANTS
 */
 
-#define NAMEMAX 16
+#define _NAMEMAX 16
 
 
 /* ***************************************************************************
 * GLOBALS
 */
 
-static char VALNAME[128][NAMEMAX];
+static char _VALNAME[128][_NAMEMAX];
 
 
 /* ***************************************************************************
@@ -263,20 +263,20 @@ const char* JE_ValGetType(JE_VAL* val) {
     char* name = NULL;
 
     switch(type) {
-        case JE_NULL_V      : snprintf(VALNAME[JE_NULL_V],     NAMEMAX, "NULL");      name = VALNAME[JE_NULL_V];     break;
-        case JE_BOOL_V      : snprintf(VALNAME[JE_BOOL_V],     NAMEMAX, "BOOL");      name = VALNAME[JE_BOOL_V];     break;
-        case JE_INT_V       : snprintf(VALNAME[JE_INT_V],      NAMEMAX, "INT");       name = VALNAME[JE_INT_V];      break;
-        case JE_FLOAT_V     : snprintf(VALNAME[JE_FLOAT_V],    NAMEMAX, "FLOAT");     name = VALNAME[JE_FLOAT_V];    break;
-        case JE_STRING_V    : snprintf(VALNAME[JE_STRING_V],   NAMEMAX, "STRING");    name = VALNAME[JE_STRING_V];   break;
-        case JE_ARRAY_V     : snprintf(VALNAME[JE_ARRAY_V],    NAMEMAX, "ARRAY");     name = VALNAME[JE_ARRAY_V];    break;
-        case JE_OBJECT_V    : snprintf(VALNAME[JE_OBJECT_V],   NAMEMAX, "OBJECT");    name = VALNAME[JE_OBJECT_V];   break;
-        case JE_FUNCTION_V  : snprintf(VALNAME[JE_FUNCTION_V], NAMEMAX, "FUNCTION");  name = VALNAME[JE_FUNCTION_V]; break;
-        case JE_NODE_V      : snprintf(VALNAME[JE_NODE_V],     NAMEMAX, "NODE");      name = VALNAME[JE_NODE_V];     break;
+        case JE_NULL_V      : snprintf(_VALNAME[JE_NULL_V],     _NAMEMAX, "NULL");     name = _VALNAME[JE_NULL_V];     break;
+        case JE_BOOL_V      : snprintf(_VALNAME[JE_BOOL_V],     _NAMEMAX, "BOOL");     name = _VALNAME[JE_BOOL_V];     break;
+        case JE_INT_V       : snprintf(_VALNAME[JE_INT_V],      _NAMEMAX, "INT");      name = _VALNAME[JE_INT_V];      break;
+        case JE_FLOAT_V     : snprintf(_VALNAME[JE_FLOAT_V],    _NAMEMAX, "FLOAT");    name = _VALNAME[JE_FLOAT_V];    break;
+        case JE_STRING_V    : snprintf(_VALNAME[JE_STRING_V],   _NAMEMAX, "STRING");   name = _VALNAME[JE_STRING_V];   break;
+        case JE_ARRAY_V     : snprintf(_VALNAME[JE_ARRAY_V],    _NAMEMAX, "ARRAY");    name = _VALNAME[JE_ARRAY_V];    break;
+        case JE_OBJECT_V    : snprintf(_VALNAME[JE_OBJECT_V],   _NAMEMAX, "OBJECT");   name = _VALNAME[JE_OBJECT_V];   break;
+        case JE_FUNCTION_V  : snprintf(_VALNAME[JE_FUNCTION_V], _NAMEMAX, "FUNCTION"); name = _VALNAME[JE_FUNCTION_V]; break;
+        case JE_NODE_V      : snprintf(_VALNAME[JE_NODE_V],     _NAMEMAX, "NODE");     name = _VALNAME[JE_NODE_V];     break;
         default:
-            if(isprint(type)) snprintf(VALNAME[0], NAMEMAX, "'%c' (%d)", type, type);
-            else snprintf(VALNAME[0], NAMEMAX, "? (%d)", type);
+            if(isprint(type)) snprintf(_VALNAME[0], _NAMEMAX, "'%c' (%d)", type, type);
+            else snprintf(_VALNAME[0], _NAMEMAX, "? (%d)", type);
 
-            name = VALNAME[0];
+            name = _VALNAME[0];
     }
 
     return name;

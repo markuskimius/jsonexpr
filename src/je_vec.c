@@ -11,14 +11,14 @@
 * CONSTANTS
 */
 
-#define INITSIZE 8
+#define _INITSIZE 8
 
 
 /* ***************************************************************************
 * MACROS
 */
 
-#define MAX(a,b) ((a)>(b)?(a):(b))
+#define _MAX(a,b) ((a)>(b)?(a):(b))
 
 
 /* ***************************************************************************
@@ -28,10 +28,10 @@
 JE_VEC* JE_VecNew() {
     JE_VEC* vec = JE_Calloc(1, sizeof(JE_VEC));
 
-    vec->item = JE_Calloc(INITSIZE, sizeof(JE_VAL*));
+    vec->item = JE_Calloc(_INITSIZE, sizeof(JE_VAL*));
     vec->count = 1;
     vec->length = 0;
-    vec->capacity = INITSIZE;
+    vec->capacity = _INITSIZE;
 
     return vec;
 }
@@ -127,7 +127,7 @@ JE_VAL* JE_VecBack(JE_VEC* vec) {
 }
 
 int JE_VecCmp(JE_VEC* vec1, JE_VEC* vec2) {
-    size_t len = MAX(vec1->length, vec2->length);
+    size_t len = _MAX(vec1->length, vec2->length);
     int cmp = 0;
 
     for(size_t i=0; i<len; i++) {

@@ -10,7 +10,7 @@
 * CONSTANTS
 */
 
-#define NDEGREE 256
+#define _NDEGREE 256
 
 
 /* ***************************************************************************
@@ -79,7 +79,7 @@ static JE_MAP* _mapnext(JE_MAP* map, const char* lastkey, int i) {
     int ni = *((const unsigned char*)lastkey + i) + 1;
 
     /* Next child, if any */
-    while(ni < NDEGREE) {
+    while(ni < _NDEGREE) {
         JE_MAP* nn = map->next[ni];
 
         if(nn) {
@@ -122,7 +122,7 @@ void JE_MapDelete(JE_MAP* map) {
 
     if(map->count == 0) {
         /* Free child nodes */
-        for(size_t i=0; i<NDEGREE; i++) {
+        for(size_t i=0; i<_NDEGREE; i++) {
             JE_MAP* n = map->next[i];
 
             if(n) {
@@ -243,7 +243,7 @@ void _JE_MapPrint(const JE_MAP* map, char c, int depth) {
     for(int i=0; i<depth; i++) printf("  ");
     printf("[%c] => addr=%p, prev=%p, key=%s, val=%s\n", c, map, map->prev, map->key, JE_ValToCstr(map->value));
 
-    for(int i=0; i<NDEGREE; i++) {
+    for(int i=0; i<_NDEGREE; i++) {
         const JE_MAP* next = map->next[i];
 
         if(next) _JE_MapPrint(next, i, depth+1);

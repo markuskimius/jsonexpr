@@ -8,9 +8,6 @@
 #include "je_util.h"
 #include "je_val.h"
 
-#define IBUFSIZE 32
-#define DBUFSIZE 320
-
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS

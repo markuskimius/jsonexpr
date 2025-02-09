@@ -13,7 +13,7 @@
 * CONSTANTS
 */
 
-#define PAGESIZE 4096
+#define _PAGESIZE 4096
 
 
 /* ***************************************************************************
@@ -125,16 +125,16 @@ int main(int argc, char* argv[]) {
 
 
 int doMyFdThing(int fd) {
-    char* code = calloc(1, PAGESIZE);
+    char* code = calloc(1, _PAGESIZE);
     size_t offset = 0;
     int result = 0;
 
     while(1) {
-        ssize_t size = read(fd, code+offset, PAGESIZE);
+        ssize_t size = read(fd, code+offset, _PAGESIZE);
         if(size <= 0) break;
 
         offset += size;
-        code = realloc(code, offset + PAGESIZE);
+        code = realloc(code, offset + _PAGESIZE);
     }
 
     result = doMyCodeThing(code);

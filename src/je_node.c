@@ -12,14 +12,14 @@
 * CONSTANTS
 */
 
-#define NAMEMAX 16
+#define _NAMEMAX 16
 
 
 /* ***************************************************************************
 * GLOBALS
 */
 
-static char NODENAMEL[JE_NULL_N][NAMEMAX];
+static char NODENAMEL[JE_NULL_N][_NAMEMAX];
 
 static char* NODENAMEH[] = {
     "NULL_N",
@@ -402,7 +402,7 @@ const char* je_nodetype(JE_NODE* node) {
     char* name = NULL;
 
     if(isprint(type)) {
-        snprintf(NODENAMEL[type], NAMEMAX, "%c", type);
+        snprintf(NODENAMEL[type], _NAMEMAX, "%c", type);
         name = NODENAMEL[type];
     }
     else if(JE_NULL_N <= type && type < JE_MAX_N) {
