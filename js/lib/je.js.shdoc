@@ -207,7 +207,7 @@ class Interface {
     }
 
     parse(wcode) {
-        return this.instance.exports.je_parse(wcode);
+        return this.instance.exports.JE_Parse(wcode);
     }
 
     eval(wtree, wsymtbl) {

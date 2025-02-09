@@ -188,7 +188,7 @@ class Util:
         self.instance.exports.free(waddr)
 
     def parse(self, wcode):
-        return self.instance.exports.je_parse(wcode)
+        return self.instance.exports.JE_Parse(wcode)
 
     def eval(self, wtree, wsymtbl):
         return self.instance.exports.JE_EvalByNode(wtree, wsymtbl)

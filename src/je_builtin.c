@@ -178,7 +178,7 @@ static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
 static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = JE_VecGet(args, 0);
-    JE_NODE* ast = je_parse(JE_ValToCstr(value));
+    JE_NODE* ast = JE_Parse(JE_ValToCstr(value));
     JE_VAL* result = JE_EvalByNode(ast, table);
 
     JE_NodeDelete(ast);

@@ -146,7 +146,7 @@ static void je_yynextline() {
 
 %%
 
-JE_NODE* je_parse(const char* code) {
+JE_NODE* JE_Parse(const char* code) {
     /* Initialize globals */
     je_yypos = 0;
     je_yylineno = 1;

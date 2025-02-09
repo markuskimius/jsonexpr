@@ -12,7 +12,7 @@
 JE_COMPILED* je_compile(const char* code) {
     JE_COMPILED* compiled = JE_Calloc(1, sizeof(JE_COMPILED));
 
-    compiled->ast = je_parse(code);
+    compiled->ast = JE_Parse(code);
     compiled->symtbl = JE_SymtblNew(NULL);
 
     return compiled;

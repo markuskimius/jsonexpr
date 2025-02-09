@@ -21,7 +21,7 @@ extern JE_NODE* je_ast;
 * PUBLIC FUNCTIONS
 */
 
-JE_NODE* je_parse(const char* code);
+JE_NODE* JE_Parse(const char* code);
 
 
 #ifdef __cplusplus
