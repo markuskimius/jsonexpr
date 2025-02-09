@@ -23,9 +23,5 @@ simple: simple.o
 
 simple.o: simple.c
 
-nav: nav.o
-
-nav.o: nav.c
-
 
 # vim:noet:
