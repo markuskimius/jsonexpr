@@ -17,33 +17,23 @@
 
 
 /* ***************************************************************************
-* TYPES
+* PRIVATE VARIABLES
 */
 
-typedef struct JE_USERFN {
-    JE_NODE* body;
-} JE_USERFN;
-
-
-/* ***************************************************************************
-* GLOBALS
-*/
-
-static JE_MAP* BINFNS = NULL;
-static JE_MAP* BINOPS = NULL;
-static size_t ncustfunc = 0;
+static JE_MAP* _BINFNS = NULL;
+static JE_MAP* _BINOPS = NULL;
+static size_t _ncustfunc = 0;
 
 
 /* ***************************************************************************
 * PRIVATE FUNCTIONS
 */
 
-static void addfn(JE_MAP* map, const char* key, const char* sig, JE_BINARY_FN fn) {
+static void _addtomap(JE_MAP* map, const char* key, const char* sig, JE_BINARY_FN fn) {
     JE_MapSet(map, key, JE_ValNewFromFunc(JE_FuncNew(fn, key, sig)));
 }
 
-
-static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
+static JE_VAL* _symtblGetByNode(JE_SYMTBL* table, JE_NODE* node, int create) {
     JE_VAL* result = NULL;
 
     switch(node->type) {
@@ -146,12 +136,11 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
     return result;
 }
 
-
-static void unfold(JE_VEC* vec, JE_NODE* node, JE_SYMTBL* table) {
+static void _unfold(JE_VEC* vec, JE_NODE* node, JE_SYMTBL* table) {
     switch(node->type) {
         case ',':
-            if(node->left) unfold(vec, node->left, table);
-            if(node->right) unfold(vec, node->right, table);
+            if(node->left) _unfold(vec, node->left, table);
+            if(node->right) _unfold(vec, node->right, table);
             break;
 
         default:
@@ -165,7 +154,7 @@ static void unfold(JE_VEC* vec, JE_NODE* node, JE_SYMTBL* table) {
 * BUILT-IN FUNCTIONS
 */
 
-static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
@@ -175,8 +164,7 @@ static JE_VAL* CEIL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result;
 }
 
-
-static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = JE_VecGet(args, 0);
     JE_NODE* ast = JE_Parse(JE_ValToCstr(value));
     JE_VAL* result = JE_EvalByNode(ast, table);
@@ -186,8 +174,7 @@ static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result;
 }
 
-
-static JE_VAL* FLOOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _FLOOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
@@ -197,8 +184,7 @@ static JE_VAL* FLOOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result;
 }
 
-
-static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _FOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* last = JE_EvalByNode(args->item[0]->value.n, table);
     JE_VAL* result = NULL;
 
@@ -219,8 +205,7 @@ static JE_VAL* FOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_NODE* var = JE_VecGet(args, 0)->value.n;
     JE_VAL* iter = JE_VecGet(args, 1);
     JE_NODE* expr = JE_VecGet(args, 2)->value.n;
@@ -273,8 +258,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* ROUND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _ROUND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* value = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
@@ -284,8 +268,7 @@ static JE_VAL* ROUND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result;
 }
 
-
-static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* spec = args->item[0];
     const char* sig = JE_ValToCstr(spec);
     int isok = 1;
@@ -327,7 +310,7 @@ static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     if(isok) {
         char name[64];
 
-        snprintf(name, sizeof(name), "%zd", ++ncustfunc);
+        snprintf(name, sizeof(name), "%zd", ++_ncustfunc);
 
         return JE_ValNewFromFunc(JE_FuncNewUser(args->item[1]->value.n, name, sig, table));
     }
@@ -335,8 +318,7 @@ static JE_VAL* FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return NULL;
 }
 
-
-static JE_VAL* IF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _IF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
 
     for(size_t i=0; i<(args->length & ~1UL); i+=2) {
@@ -355,8 +337,7 @@ static JE_VAL* IF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* LEN(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _LEN(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
     JE_VAL* val = args->item[0];
 
@@ -370,8 +351,7 @@ static JE_VAL* LEN(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result;
 }
 
-
-static JE_VAL* PRINT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _PRINT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     int64_t i = 0;
 
     for(i=0; i<args->length; i++) {
@@ -384,8 +364,7 @@ static JE_VAL* PRINT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return JE_ValNewFromInt(i);
 }
 
-
-static JE_VAL* SQRT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _SQRT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
     JE_VAL* val = args->item[0];
 
@@ -398,8 +377,7 @@ static JE_VAL* SQRT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* WHILE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _WHILE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* last = JE_EvalByNode(args->item[0]->value.n, table);
     JE_VAL* result = NULL;
 
@@ -421,13 +399,13 @@ static JE_VAL* WHILE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 * BUILT-IN OPERATIONS
 */
 
-static JE_VAL* OP_INC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_INC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* result = NULL;
 
     assert(ref->type == JE_NODE_V);
-    left = tablemod(table, ref->value.n, 0);
+    left = _symtblGetByNode(table, ref->value.n, 0);
 
     if(left) {
         switch(left->type) {
@@ -440,14 +418,13 @@ static JE_VAL* OP_INC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_DEC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_DEC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* result = NULL;
 
     assert(ref->type == JE_NODE_V);
-    left = tablemod(table, ref->value.n, 0);
+    left = _symtblGetByNode(table, ref->value.n, 0);
 
     if(left) {
         switch(left->type) {
@@ -460,14 +437,13 @@ static JE_VAL* OP_DEC(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_INCPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_INCPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* result = NULL;
 
     assert(ref->type == JE_NODE_V);
-    left = tablemod(table, ref->value.n, 0);
+    left = _symtblGetByNode(table, ref->value.n, 0);
 
     if(left) {
         switch(left->type) {
@@ -480,14 +456,13 @@ static JE_VAL* OP_INCPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_DECPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_DECPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* result = NULL;
 
     assert(ref->type == JE_NODE_V);
-    left = tablemod(table, ref->value.n, 0);
+    left = _symtblGetByNode(table, ref->value.n, 0);
 
     if(left) {
         switch(left->type) {
@@ -500,28 +475,26 @@ static JE_VAL* OP_DECPOST(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_SET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_SET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
 
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
     if(left) JE_ValSwap(left, right);
 
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_ADDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_ADDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if     (left->type == JE_INT_V    && right->type == JE_INT_V   ) left->value.i += right->value.i;
@@ -542,15 +515,14 @@ static JE_VAL* OP_ADDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_SUBSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_SUBSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) left->value.i -= right->value.i;
@@ -563,15 +535,14 @@ static JE_VAL* OP_SUBSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_MULSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_MULSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) left->value.i *= right->value.i;
@@ -584,15 +555,14 @@ static JE_VAL* OP_MULSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_DIVSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_DIVSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if     (left->type == JE_INT_V   && right->type == JE_INT_V  ) left->value.i /= right->value.i;
@@ -605,15 +575,14 @@ static JE_VAL* OP_DIVSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_MODSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_MODSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if(left->type == JE_INT_V && right->type == JE_INT_V) left->value.i %= right->value.i;
@@ -631,15 +600,14 @@ static JE_VAL* OP_MODSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_POWSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_POWSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V || right->type == JE_FLOAT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if(left->type == JE_INT_V || left->type == JE_FLOAT_V) {
@@ -656,14 +624,14 @@ static JE_VAL* OP_POWSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-static JE_VAL* OP_ORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_ORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if(left->type == JE_INT_V) left->value.i |= right->value.i;
@@ -673,15 +641,14 @@ static JE_VAL* OP_ORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_ANDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_ANDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if(left->type == JE_INT_V) left->value.i &= right->value.i;
@@ -691,15 +658,14 @@ static JE_VAL* OP_ANDSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_XORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_XORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if(left->type == JE_INT_V) left->value.i ^= right->value.i;
@@ -709,15 +675,14 @@ static JE_VAL* OP_XORSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_SHLSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_SHLSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if(left->type == JE_INT_V) {
@@ -738,15 +703,14 @@ static JE_VAL* OP_SHLSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_ASRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_ASRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if(left->type == JE_INT_V) {
@@ -767,15 +731,14 @@ static JE_VAL* OP_ASRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_SHRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_SHRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* ref = JE_VecGet(args, 0);
     JE_VAL* left = NULL;
     JE_VAL* right = JE_VecGet(args, 1);
 
     assert(ref->type == JE_NODE_V);
     assert(right->type == JE_INT_V);
-    left = tablemod(table, ref->value.n, 1);
+    left = _symtblGetByNode(table, ref->value.n, 1);
 
     if(left) {
         if(left->type == JE_INT_V) {
@@ -794,20 +757,18 @@ static JE_VAL* OP_SHRSET(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return left ? JE_ValDup(left) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_DEREF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_DEREF(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* symnode = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
     assert(symnode->type == JE_NODE_V);
 
-    result = tablemod(table, symnode->value.n, 0);
+    result = _symtblGetByNode(table, symnode->value.n, 0);
 
     return result ? JE_ValDup(result) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_INDEX(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_INDEX(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -827,8 +788,7 @@ static JE_VAL* OP_INDEX(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? JE_ValDup(result) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_NODE* right = JE_VecGet(args, 1)->value.n;
     JE_VAL* result = NULL;
@@ -840,13 +800,11 @@ static JE_VAL* OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? JE_ValDup(result) : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_TERM(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_TERM(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return JE_ValDup(JE_VecGet(args, 1));
 }
 
-
-static JE_VAL* OP_CALL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_CALL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VEC* args2 = JE_VecNew();
@@ -855,7 +813,7 @@ static JE_VAL* OP_CALL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     assert(left->type == JE_FUNCTION_V);
     assert(right == NULL || right->type == JE_NODE_V);
 
-    if(right) unfold(args2, right->value.n, table);
+    if(right) _unfold(args2, right->value.n, table);
     result = JE_FuncExec(left->value.fn, args2, table, loc);
 
     JE_VecDelete(args2);
@@ -863,15 +821,13 @@ static JE_VAL* OP_CALL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result;
 }
 
-
-static JE_VAL* OP_NOT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_NOT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
 
     return JE_ValNewFromBool(!JE_ValIsTrue(left));
 }
 
-
-static JE_VAL* OP_POS(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_POS(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
@@ -886,8 +842,7 @@ static JE_VAL* OP_POS(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_NEG(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_NEG(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* result = NULL;
 
@@ -902,8 +857,7 @@ static JE_VAL* OP_NEG(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_INV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_INV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
 
     assert(left->type == JE_INT_V);
@@ -911,8 +865,7 @@ static JE_VAL* OP_INV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return JE_ValNewFromInt(~left->value.i);
 }
 
-
-static JE_VAL* OP_MUL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_MUL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -928,8 +881,7 @@ static JE_VAL* OP_MUL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_DIV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_DIV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -945,8 +897,7 @@ static JE_VAL* OP_DIV(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_MOD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_MOD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -965,8 +916,7 @@ static JE_VAL* OP_MOD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_ADD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_ADD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -986,8 +936,7 @@ static JE_VAL* OP_ADD(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_SUB(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_SUB(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -1003,8 +952,7 @@ static JE_VAL* OP_SUB(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_POW(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_POW(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -1020,8 +968,7 @@ static JE_VAL* OP_POW(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_OR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_OR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
@@ -1031,8 +978,7 @@ static JE_VAL* OP_OR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return JE_ValNewFromInt(left->value.i | right->value.i);
 }
 
-
-static JE_VAL* OP_AND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_AND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
@@ -1042,8 +988,7 @@ static JE_VAL* OP_AND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return JE_ValNewFromInt(left->value.i & right->value.i);
 }
 
-
-static JE_VAL* OP_XOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_XOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
@@ -1053,56 +998,49 @@ static JE_VAL* OP_XOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return JE_ValNewFromInt(left->value.i ^ right->value.i);
 }
 
-
-static JE_VAL* OP_LT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_LT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) < 0);
 }
 
-
-static JE_VAL* OP_GT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_GT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) > 0);
 }
 
-
-static JE_VAL* OP_EQ(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_EQ(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) == 0);
 }
 
-
-static JE_VAL* OP_NE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_NE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) != 0);
 }
 
-
-static JE_VAL* OP_LE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_LE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) <= 0);
 }
 
-
-static JE_VAL* OP_GE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_GE(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
 
     return JE_ValNewFromBool(JE_ValCmp(left, right) >= 0);
 }
 
-
-static JE_VAL* OP_LOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_LOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -1120,8 +1058,7 @@ static JE_VAL* OP_LOR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result;
 }
 
-
-static JE_VAL* OP_LAND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_LAND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -1139,8 +1076,7 @@ static JE_VAL* OP_LAND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result;
 }
 
-
-static JE_VAL* OP_SHL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_SHL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -1161,8 +1097,7 @@ static JE_VAL* OP_SHL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_ASR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_ASR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -1183,8 +1118,7 @@ static JE_VAL* OP_ASR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_SHR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_SHR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* result = NULL;
@@ -1203,8 +1137,7 @@ static JE_VAL* OP_SHR(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     return result ? result : JE_ValNewFromNull();
 }
 
-
-static JE_VAL* OP_COND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
+static JE_VAL* _OP_COND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* left = JE_VecGet(args, 0);
     JE_VAL* right = JE_VecGet(args, 1);
     JE_VAL* righter = JE_VecGet(args, 2);
@@ -1233,98 +1166,96 @@ static JE_VAL* OP_COND(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 * PUBLIC FUNCTIONS
 */
 
-JE_MAP* je_binfns() {
-    if(!BINFNS) {
-        BINFNS = JE_MapNew();
+JE_MAP* JE_BuiltinFns() {
+    if(!_BINFNS) {
+        _BINFNS = JE_MapNew();
 
-        JE_MapSet(BINFNS, "VERSION", JE_ValNewFromCstr(JE_VERSION));
-        JE_MapSet(BINFNS, "VERSION_MAJOR", JE_ValNewFromInt(JE_VERSION_MAJOR));
-        JE_MapSet(BINFNS, "VERSION_MINOR", JE_ValNewFromInt(JE_VERSION_MINOR));
-        JE_MapSet(BINFNS, "VERSION_PATCH", JE_ValNewFromInt(JE_VERSION_PATCH));
+        JE_MapSet(_BINFNS, "VERSION", JE_ValNewFromCstr(JE_VERSION));
+        JE_MapSet(_BINFNS, "VERSION_MAJOR", JE_ValNewFromInt(JE_VERSION_MAJOR));
+        JE_MapSet(_BINFNS, "VERSION_MINOR", JE_ValNewFromInt(JE_VERSION_MINOR));
+        JE_MapSet(_BINFNS, "VERSION_PATCH", JE_ValNewFromInt(JE_VERSION_PATCH));
 
-        addfn(BINFNS, "CEIL"    , "#"   , CEIL    );
-        addfn(BINFNS, "EVAL"    , "S"   , EVAL    );
-        addfn(BINFNS, "FLOOR"   , "#"   , FLOOR   );
-        addfn(BINFNS, "FOR"     , "....", FOR     );
-        addfn(BINFNS, "FOREACH" , ".@." , FOREACH );
-        addfn(BINFNS, "FUNCTION", "S."  , FUNCTION);
-        addfn(BINFNS, "IF"      , ".**" , IF      );
-        addfn(BINFNS, "LEN"     , "?"   , LEN     );
-        addfn(BINFNS, "PRINT"   , "*"   , PRINT   );
-        addfn(BINFNS, "ROUND"   , "#"   , ROUND   );
-        addfn(BINFNS, "SQRT"    , "?"   , SQRT    );
-        addfn(BINFNS, "WHILE"   , ".."  , WHILE   );
+        _addtomap(_BINFNS, "CEIL"    , "#"   , _CEIL    );
+        _addtomap(_BINFNS, "EVAL"    , "S"   , _EVAL    );
+        _addtomap(_BINFNS, "FLOOR"   , "#"   , _FLOOR   );
+        _addtomap(_BINFNS, "FOR"     , "....", _FOR     );
+        _addtomap(_BINFNS, "FOREACH" , ".@." , _FOREACH );
+        _addtomap(_BINFNS, "FUNCTION", "S."  , _FUNCTION);
+        _addtomap(_BINFNS, "IF"      , ".**" , _IF      );
+        _addtomap(_BINFNS, "LEN"     , "?"   , _LEN     );
+        _addtomap(_BINFNS, "PRINT"   , "*"   , _PRINT   );
+        _addtomap(_BINFNS, "ROUND"   , "#"   , _ROUND   );
+        _addtomap(_BINFNS, "SQRT"    , "?"   , _SQRT    );
+        _addtomap(_BINFNS, "WHILE"   , ".."  , _WHILE   );
     }
 
-    return BINFNS;
+    return _BINFNS;
 }
 
+JE_MAP* JE_BuiltinOps() {
+    if(!_BINOPS) {
+        _BINOPS = JE_MapNew();
 
-JE_MAP* je_binops() {
-    if(!BINOPS) {
-        BINOPS = JE_MapNew();
+        _addtomap(_BINOPS, "++x" , "."  , _OP_INC     );
+        _addtomap(_BINOPS, "--x" , "."  , _OP_DEC     );
+        _addtomap(_BINOPS, "x++" , "."  , _OP_INCPOST );
+        _addtomap(_BINOPS, "x--" , "."  , _OP_DECPOST );
 
-        addfn(BINOPS, "++x" , "."  , OP_INC     );
-        addfn(BINOPS, "--x" , "."  , OP_DEC     );
-        addfn(BINOPS, "x++" , "."  , OP_INCPOST );
-        addfn(BINOPS, "x--" , "."  , OP_DECPOST );
+        _addtomap(_BINOPS, "="   , ".?" , _OP_SET     );
+        _addtomap(_BINOPS, "+="  , ".?" , _OP_ADDSET  );
+        _addtomap(_BINOPS, "-="  , ".#" , _OP_SUBSET  );
+        _addtomap(_BINOPS, "*="  , ".#" , _OP_MULSET  );
+        _addtomap(_BINOPS, "/="  , ".#" , _OP_DIVSET  );
+        _addtomap(_BINOPS, "%="  , ".#" , _OP_MODSET  );
+        _addtomap(_BINOPS, "**=" , ".#" , _OP_POWSET  );
 
-        addfn(BINOPS, "="   , ".?" , OP_SET     );
-        addfn(BINOPS, "+="  , ".?" , OP_ADDSET  );
-        addfn(BINOPS, "-="  , ".#" , OP_SUBSET  );
-        addfn(BINOPS, "*="  , ".#" , OP_MULSET  );
-        addfn(BINOPS, "/="  , ".#" , OP_DIVSET  );
-        addfn(BINOPS, "%="  , ".#" , OP_MODSET  );
-        addfn(BINOPS, "**=" , ".#" , OP_POWSET  );
+        _addtomap(_BINOPS, "|="  , ".I" , _OP_ORSET   );
+        _addtomap(_BINOPS, "&="  , ".I" , _OP_ANDSET  );
+        _addtomap(_BINOPS, "^="  , ".I" , _OP_XORSET  );
+        _addtomap(_BINOPS, "<<=" , ".I" , _OP_SHLSET  );
+        _addtomap(_BINOPS, ">>=" , ".I" , _OP_ASRSET  );
+        _addtomap(_BINOPS, ">>>=", ".I" , _OP_SHRSET  );
 
-        addfn(BINOPS, "|="  , ".I" , OP_ORSET   );
-        addfn(BINOPS, "&="  , ".I" , OP_ANDSET  );
-        addfn(BINOPS, "^="  , ".I" , OP_XORSET  );
-        addfn(BINOPS, "<<=" , ".I" , OP_SHLSET  );
-        addfn(BINOPS, ">>=" , ".I" , OP_ASRSET  );
-        addfn(BINOPS, ">>>=", ".I" , OP_SHRSET  );
+        _addtomap(_BINOPS, "*x"  , "."  , _OP_DEREF   );
+        _addtomap(_BINOPS, "[]"  , "??" , _OP_INDEX   );
+        _addtomap(_BINOPS, "."   , "?." , _OP_MEMBER  );
+        _addtomap(_BINOPS, ";"   , "??" , _OP_TERM    );
+        _addtomap(_BINOPS, "()"  , "F**", _OP_CALL    );
 
-        addfn(BINOPS, "*x"  , "."  , OP_DEREF   );
-        addfn(BINOPS, "[]"  , "??" , OP_INDEX   );
-        addfn(BINOPS, "."   , "?." , OP_MEMBER  );
-        addfn(BINOPS, ";"   , "??" , OP_TERM    );
-        addfn(BINOPS, "()"  , "F**", OP_CALL    );
+        _addtomap(_BINOPS, "!"   , "?"  , _OP_NOT     );
+        _addtomap(_BINOPS, "~"   , "I"  , _OP_INV     );
+        _addtomap(_BINOPS, "+x"  , "#"  , _OP_POS     );
+        _addtomap(_BINOPS, "-x"  , "#"  , _OP_NEG     );
 
-        addfn(BINOPS, "!"   , "?"  , OP_NOT     );
-        addfn(BINOPS, "~"   , "I"  , OP_INV     );
-        addfn(BINOPS, "+x"  , "#"  , OP_POS     );
-        addfn(BINOPS, "-x"  , "#"  , OP_NEG     );
+        _addtomap(_BINOPS, "*"   , "##" , _OP_MUL     );
+        _addtomap(_BINOPS, "/"   , "##" , _OP_DIV     );
+        _addtomap(_BINOPS, "%"   , "##" , _OP_MOD     );
+        _addtomap(_BINOPS, "+"   , "??" , _OP_ADD     );
+        _addtomap(_BINOPS, "-"   , "##" , _OP_SUB     );
+        _addtomap(_BINOPS, "|"   , "II" , _OP_OR      );
+        _addtomap(_BINOPS, "&"   , "II" , _OP_AND     );
+        _addtomap(_BINOPS, "^"   , "II" , _OP_XOR     );
+        _addtomap(_BINOPS, "<"   , "??" , _OP_LT      );
+        _addtomap(_BINOPS, ">"   , "??" , _OP_GT      );
+        _addtomap(_BINOPS, "**"  , "##" , _OP_POW     );
+        _addtomap(_BINOPS, "=="  , "??" , _OP_EQ      );
+        _addtomap(_BINOPS, "!="  , "??" , _OP_NE      );
+        _addtomap(_BINOPS, "<="  , "??" , _OP_LE      );
+        _addtomap(_BINOPS, ">="  , "??" , _OP_GE      );
+        _addtomap(_BINOPS, "||"  , ".." , _OP_LOR     );
+        _addtomap(_BINOPS, "&&"  , ".." , _OP_LAND    );
+        _addtomap(_BINOPS, "<<"  , "II" , _OP_SHL     );
+        _addtomap(_BINOPS, ">>"  , "II" , _OP_ASR     );
+        _addtomap(_BINOPS, ">>>" , "II" , _OP_SHR     );
 
-        addfn(BINOPS, "*"   , "##" , OP_MUL     );
-        addfn(BINOPS, "/"   , "##" , OP_DIV     );
-        addfn(BINOPS, "%"   , "##" , OP_MOD     );
-        addfn(BINOPS, "+"   , "??" , OP_ADD     );
-        addfn(BINOPS, "-"   , "##" , OP_SUB     );
-        addfn(BINOPS, "|"   , "II" , OP_OR      );
-        addfn(BINOPS, "&"   , "II" , OP_AND     );
-        addfn(BINOPS, "^"   , "II" , OP_XOR     );
-        addfn(BINOPS, "<"   , "??" , OP_LT      );
-        addfn(BINOPS, ">"   , "??" , OP_GT      );
-        addfn(BINOPS, "**"  , "##" , OP_POW     );
-        addfn(BINOPS, "=="  , "??" , OP_EQ      );
-        addfn(BINOPS, "!="  , "??" , OP_NE      );
-        addfn(BINOPS, "<="  , "??" , OP_LE      );
-        addfn(BINOPS, ">="  , "??" , OP_GE      );
-        addfn(BINOPS, "||"  , ".." , OP_LOR     );
-        addfn(BINOPS, "&&"  , ".." , OP_LAND    );
-        addfn(BINOPS, "<<"  , "II" , OP_SHL     );
-        addfn(BINOPS, ">>"  , "II" , OP_ASR     );
-        addfn(BINOPS, ">>>" , "II" , OP_SHR     );
-
-        addfn(BINOPS, "?:"  , "...", OP_COND    );
+        _addtomap(_BINOPS, "?:"  , "...", _OP_COND    );
     }
 
-    return BINOPS;
+    return _BINOPS;
 }
 
-
-JE_VAL* je_opexec(const char* key, JE_SYMTBL* table, JE_NODE* left, JE_NODE* right, JE_NODE* righter) {
-    JE_VAL* fnval = JE_MapGet(je_binops(), key);
+JE_VAL* JE_BuiltinOpExec(const char* key, JE_SYMTBL* table, JE_NODE* left, JE_NODE* right, JE_NODE* righter) {
+    JE_VAL* fnval = JE_MapGet(JE_BuiltinOps(), key);
     JE_VAL* result = NULL;
 
     if(fnval && fnval->type == JE_FUNCTION_V) {

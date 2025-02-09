@@ -20,7 +20,7 @@ static JE_SYMTBL* _newtable(JE_SYMTBL* parent, int isbuiltin) {
 
     /* Built-in */
     if(!parent && isbuiltin) {
-        JE_MAP* bi = je_binfns();
+        JE_MAP* bi = JE_BuiltinFns();
 
         while((bi = JE_MapNext(bi))) {
             JE_MapSet(table->symbols, bi->key, bi->value);
