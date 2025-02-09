@@ -70,7 +70,7 @@ int JE_VecSet(JE_VEC* vec, size_t index, JE_VAL* item) {
         vec->item[index] = item;
     }
     else {
-        je_throwLater("Insert to invalid index %zd (max %zd)", index, vec->length);
+        JE_ThrowLater("Insert to invalid index %zd (max %zd)", index, vec->length);
         isok = 0;
     }
 

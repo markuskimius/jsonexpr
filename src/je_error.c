@@ -19,7 +19,7 @@ char* je_throwText = NULL;
 * PUBLIC FUNCTIONS
 */
 
-void _je_die(const char* file, const char* func, size_t line, const char* format, ...) {
+void _JE_Die(const char* file, const char* func, size_t line, const char* format, ...) {
     va_list ap;
 
     if(je_throwText) JE_Free(je_throwText);
@@ -32,8 +32,7 @@ void _je_die(const char* file, const char* func, size_t line, const char* format
     exit(1);
 }
 
-
-void je_throw(const char* type, JE_YYLTYPE* loc, const char* format, ...) {
+void JE_Throw(const char* type, JE_YYLTYPE* loc, const char* format, ...) {
     va_list ap;
     char* text = JE_LocToAstr(loc);
     char* buf;
@@ -48,8 +47,7 @@ void je_throw(const char* type, JE_YYLTYPE* loc, const char* format, ...) {
     exit(1);
 }
 
-
-void je_throwx(const char* file, const char* func, size_t line, const char* type, JE_YYLTYPE* loc, const char* format, ...) {
+void JE_Throwx(const char* file, const char* func, size_t line, const char* type, JE_YYLTYPE* loc, const char* format, ...) {
     va_list ap;
     char* text = JE_LocToAstr(loc);
     char* buf;
@@ -64,8 +62,7 @@ void je_throwx(const char* file, const char* func, size_t line, const char* type
     exit(1);
 }
 
-
-void je_throwLater(const char* format, ...) {
+void JE_ThrowLater(const char* format, ...) {
     va_list ap;
 
     if(je_throwText) JE_Free(je_throwText);

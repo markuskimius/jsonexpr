@@ -120,7 +120,7 @@ JE_VAL* JE_ValDup(JE_VAL* val) {
         case JE_OBJECT_V   : return JE_ValNewFromMap(JE_MapDup(val->value.m));
         case JE_FUNCTION_V : return JE_ValNewFromFunc(JE_FuncDup(val->value.fn));
         case JE_NODE_V     : return JE_ValNewFromNode(val->value.n);
-        default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
+        default            : JE_Die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
     }
 
     return val;
@@ -145,7 +145,7 @@ void JE_ValDelete(JE_VAL* val) {
         case JE_OBJECT_V   : JE_MapDelete(val->value.m); break;
         case JE_FUNCTION_V : JE_FuncDelete(val->value.fn); break;
         case JE_NODE_V     : break;
-        default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
+        default            : JE_Die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
     }
 
     if(val->astrdecoded) JE_Free(val->astrdecoded);
@@ -211,7 +211,7 @@ const char* JE_ValToCstr(JE_VAL* val) {
             case JE_OBJECT_V   : val->astrdecoded = JE_MapToAstr(val->value.m); break;
             case JE_FUNCTION_V : val->astrdecoded = JE_FuncToAstr(val->value.fn); break;
             case JE_NODE_V     : val->astrdecoded = JE_NodeAstr(val->value.n); break;
-            default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
+            default            : JE_Die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }
 
         /* Default */
@@ -244,7 +244,7 @@ const char* JE_ValToQstr(JE_VAL* val) {
             case JE_OBJECT_V   : val->astrencoded = JE_MapToAstr(val->value.m); break;
             case JE_FUNCTION_V : val->astrencoded = JE_CstrToQstr(JE_ValToCstr(val)); break;
             case JE_NODE_V     : val->astrencoded = JE_CstrToQstr(JE_ValToCstr(val)); break;
-            default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
+            default            : JE_Die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }
 
         /* Default */

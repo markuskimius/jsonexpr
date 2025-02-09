@@ -9,7 +9,7 @@
 extern int yylex();
 
 void yyerror(const char* s) {
-    JeParseError(&yylloc, s);
+    JE_ParseError(&yylloc, s);
 }
 %}
 

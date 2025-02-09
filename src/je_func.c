@@ -73,7 +73,7 @@ JE_VEC* JE_FuncParseArgs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YY
 
         /* check too many arguments */
         if(*cp == '\0') {
-            JeRuntimeError(&node->loc, "Too many arguments, expected %ld, got %zu", (cp-sig), nodes->length);
+            JE_RuntimeError(&node->loc, "Too many arguments, expected %ld, got %zu", (cp-sig), nodes->length);
             isok = 0;
         }
         /* evaluate */
@@ -91,7 +91,7 @@ JE_VEC* JE_FuncParseArgs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YY
                 v = sv;
             }
             else {
-                JeRuntimeError(&node->loc, "%d-th argument is invalid type, expected %c, got %c", (int)i, *cp, v->type);
+                JE_RuntimeError(&node->loc, "%d-th argument is invalid type, expected %c, got %c", (int)i, *cp, v->type);
                 isok = 0;
             }
 
@@ -117,7 +117,7 @@ JE_VEC* JE_FuncParseArgs(const char* sig, JE_VEC* nodes, JE_SYMTBL* table, JE_YY
 
     /* check too few arguments */
     if(isok && !strchr("*", *cp)) {
-        JeRuntimeError(loc, "Too few arguments, expected > %ld, got %zu", (cp-sig), nodes->length);
+        JE_RuntimeError(loc, "Too few arguments, expected > %ld, got %zu", (cp-sig), nodes->length);
         isok = 0;
     }
 
@@ -153,7 +153,7 @@ JE_VAL* JE_FuncExec(JE_FUNC* func, JE_VEC* nodes, JE_SYMTBL* table, JE_YYLTYPE* 
             }
 
             default: {
-                je_die("We shouldn't get here");
+                JE_Die("We shouldn't get here");
             }
         }
     }

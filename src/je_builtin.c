@@ -60,7 +60,7 @@ static JE_VAL* _symtblGetByNode(JE_SYMTBL* table, JE_NODE* node, int create) {
                 }
 
                 result = JE_VecGet(left->value.v, right->value.i);
-                if(!result) JeRuntimeError(&node->loc, "Invalid index, max %zu, got %lld", left->value.v->length-1, right->value.i);
+                if(!result) JE_RuntimeError(&node->loc, "Invalid index, max %zu, got %lld", left->value.v->length-1, right->value.i);
 
                 /*
                 * `result` is an item in `left`, but `left` will disappear upon
@@ -81,16 +81,16 @@ static JE_VAL* _symtblGetByNode(JE_SYMTBL* table, JE_NODE* node, int create) {
                     JE_MapSet(left->value.m, right->value.s, result);
                 }
 
-                if(!result) JeRuntimeError(&node->loc, "Invalid key, %s", JE_ValToQstr(right));
+                if(!result) JE_RuntimeError(&node->loc, "Invalid key, %s", JE_ValToQstr(right));
 
                 /* See above */
                 if(result && left->value.m->count <= 1) {
                     result = JE_ValDup(result);
                 }
             }
-            else if(left->type == JE_ARRAY_V ) JeRuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", JE_ValGetType(right));
-            else if(left->type == JE_OBJECT_V) JeRuntimeError(&node->loc, "OBJECT key must be STRING but got %s", JE_ValGetType(right));
-            else                               JeRuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", JE_ValGetType(left));
+            else if(left->type == JE_ARRAY_V ) JE_RuntimeError(&node->loc, "ARRAY index must be INTEGER but got %s", JE_ValGetType(right));
+            else if(left->type == JE_OBJECT_V) JE_RuntimeError(&node->loc, "OBJECT key must be STRING but got %s", JE_ValGetType(right));
+            else                               JE_RuntimeError(&node->loc, "ARRAY or OBJECT expected before '[' but got %s", JE_ValGetType(left));
 
             JE_ValDelete(left);
             JE_ValDelete(right);
@@ -110,27 +110,27 @@ static JE_VAL* _symtblGetByNode(JE_SYMTBL* table, JE_NODE* node, int create) {
                     JE_MapSet(left->value.m, right->value.s, result);
                 }
 
-                if(!result) JeRuntimeError(&node->loc, "Invalid key, %s", right->value.s);
+                if(!result) JE_RuntimeError(&node->loc, "Invalid key, %s", right->value.s);
 
                 /* See above */
                 if(result && left->value.m->count <= 1) {
                     result = JE_ValDup(result);
                 }
             }
-            else if(left->type == JE_OBJECT_V) JeRuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", JE_NodeTypeCstr(right));
-            else                               JeRuntimeError(&node->loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
+            else if(left->type == JE_OBJECT_V) JE_RuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", JE_NodeTypeCstr(right));
+            else                               JE_RuntimeError(&node->loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
 
             JE_ValDelete(left);
             break;
         }
 
         default:
-            JeParseError(&node->loc, "Invalid node type: %s", JE_NodeTypeCstr(node));
+            JE_ParseError(&node->loc, "Invalid node type: %s", JE_NodeTypeCstr(node));
             break;
     }
 
     if(!result) {
-        JeRuntimeError(&node->loc, "Undefined symbol");
+        JE_RuntimeError(&node->loc, "Undefined symbol");
     }
 
     return result;
@@ -212,7 +212,7 @@ static JE_VAL* _FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
 
     /* Validate */
-    if(var->type != JE_IDENT_N) JeRuntimeError(&var->loc, "Identifier expected, got %s", JE_NodeTypeCstr(var));
+    if(var->type != JE_IDENT_N) JE_RuntimeError(&var->loc, "Identifier expected, got %s", JE_NodeTypeCstr(var));
 
     switch(iter->type) {
         case JE_ARRAY_V: {
@@ -252,7 +252,7 @@ static JE_VAL* _FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         }
 
         default:
-            JeRuntimeError(&var->loc, "Array or object expected, got %s", JE_ValGetType(iter));
+            JE_RuntimeError(&var->loc, "Array or object expected, got %s", JE_ValGetType(iter));
     }
 
     return result ? result : JE_ValNewFromNull();
@@ -280,21 +280,21 @@ static JE_VAL* _FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         for(size_t i=0; i<strlen(sig); i++) {
             /* Validate signature */
             if(!strchr("BIDSAOF#@?.*", sig[i])) {
-                JeRuntimeError(loc, "Invalid function argument signature: %c", sig[i]);
+                JE_RuntimeError(loc, "Invalid function argument signature: %c", sig[i]);
                 isok = 0;
                 break;
             }
 
             /* Signature can only end with a star */
             if(nstars && sig[i] != '*') {
-                JeRuntimeError(loc, "'*' must terminate function argument signature");
+                JE_RuntimeError(loc, "'*' must terminate function argument signature");
                 isok = 0;
                 break;
             }
 
             /* Maximum # of stars is 2 */
             if(sig[i] == '*' && nstars == 2) {
-                JeRuntimeError(loc, "Too many '*', maximum is 2");
+                JE_RuntimeError(loc, "Too many '*', maximum is 2");
                 isok = 0;
                 break;
             }
@@ -303,7 +303,7 @@ static JE_VAL* _FUNCTION(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         }
     }
     else {
-        JeRuntimeError(loc, "Invalid argument type, expected string but got %c", spec->type);
+        JE_RuntimeError(loc, "Invalid argument type, expected string but got %c", spec->type);
         isok = 0;
     }
 
@@ -345,7 +345,7 @@ static JE_VAL* _LEN(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
         case JE_STRING_V   : result = JE_ValNewFromInt(strlen(JE_ValToCstr(val))); break;
         case JE_ARRAY_V    : result = JE_ValNewFromInt(val->value.v->length); break;
         case JE_OBJECT_V   : result = JE_ValNewFromInt(val->value.m->length); break;
-        default            : JeRuntimeError(loc, "Type has no length: '%c' (%d)", val->type, val->type); break;
+        default            : JE_RuntimeError(loc, "Type has no length: '%c' (%d)", val->type, val->type); break;
     }
 
     return result;
@@ -371,7 +371,7 @@ static JE_VAL* _SQRT(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     switch(val->type) {
         case JE_INT_V      : result = JE_ValNewFromFloat(sqrt(val->value.i)); break;
         case JE_FLOAT_V    : result = JE_ValNewFromFloat(sqrt(val->value.f)); break;
-        default            : JeRuntimeError(loc, "Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
+        default            : JE_RuntimeError(loc, "Invalid argument to SQRT(): '%c' (%d)", val->type, val->type); break;
     }
 
     return result ? result : JE_ValNewFromNull();
@@ -775,15 +775,15 @@ static JE_VAL* _OP_INDEX(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
 
     if(left->type == JE_ARRAY_V && right->type == JE_INT_V) {
         result = JE_VecGet(left->value.v, right->value.i);
-        if(!result) JeRuntimeError(loc, "Invalid index, max %zd, got %lld", left->value.v->length-1, right->value.i);
+        if(!result) JE_RuntimeError(loc, "Invalid index, max %zd, got %lld", left->value.v->length-1, right->value.i);
     }
     else if(left->type == JE_OBJECT_V && right->type == JE_STRING_V) {
         result = JE_MapGet(left->value.m, right->value.s);
-        if(!result) JeRuntimeError(loc, "Invalid key, %s", JE_ValToQstr(right));
+        if(!result) JE_RuntimeError(loc, "Invalid key, %s", JE_ValToQstr(right));
     }
-    else if(left->type == JE_ARRAY_V ) JeRuntimeError(loc, "ARRAY index must be INTEGER but got %s", JE_ValGetType(right));
-    else if(left->type == JE_OBJECT_V) JeRuntimeError(loc, "OBJECT key must be STRING but got %s", JE_ValGetType(right));
-    else                               JeRuntimeError(loc, "ARRAY or OBJECT expected before '[' but got %s", JE_ValGetType(left));
+    else if(left->type == JE_ARRAY_V ) JE_RuntimeError(loc, "ARRAY index must be INTEGER but got %s", JE_ValGetType(right));
+    else if(left->type == JE_OBJECT_V) JE_RuntimeError(loc, "OBJECT key must be STRING but got %s", JE_ValGetType(right));
+    else                               JE_RuntimeError(loc, "ARRAY or OBJECT expected before '[' but got %s", JE_ValGetType(left));
 
     return result ? JE_ValDup(result) : JE_ValNewFromNull();
 }
@@ -794,8 +794,8 @@ static JE_VAL* _OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
 
     if     (left->type == JE_OBJECT_V && right->type == JE_IDENT_N) result = JE_MapGet(left->value.m, right->value.s);
-    else if(left->type == JE_OBJECT_V                             ) JeRuntimeError(loc, "IDENTIFIER expected after '.' but got %s", JE_NodeTypeCstr(right));
-    else                                                            JeRuntimeError(loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
+    else if(left->type == JE_OBJECT_V                             ) JE_RuntimeError(loc, "IDENTIFIER expected after '.' but got %s", JE_NodeTypeCstr(right));
+    else                                                            JE_RuntimeError(loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
 
     return result ? JE_ValDup(result) : JE_ValNewFromNull();
 }

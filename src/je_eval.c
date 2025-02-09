@@ -44,7 +44,7 @@ static JE_MAP* _newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
             if(left->type == JE_STRING_V) JE_MapSet(list, JE_ValToCstr(left), right);
             else {
                 JE_ValDelete(right);
-                JeRuntimeError(&node->left->loc, "STRING expected, got %s", JE_ValGetType(left));
+                JE_RuntimeError(&node->left->loc, "STRING expected, got %s", JE_ValGetType(left));
             }
 
             JE_ValDelete(left);
@@ -54,7 +54,7 @@ static JE_MAP* _newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
         }
 
         default:
-            JeRuntimeError(&node->loc, "PAIR expected, got %s", JE_NodeTypeCstr(node));
+            JE_RuntimeError(&node->loc, "PAIR expected, got %s", JE_NodeTypeCstr(node));
             break;
     }
 
@@ -72,7 +72,7 @@ static JE_MAP* _newpairlist(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
                 break;
 
             default:
-                JeRuntimeError(&node->loc, "PAIRLIST expected, got %c", JE_NodeTypeCstr(node));
+                JE_RuntimeError(&node->loc, "PAIRLIST expected, got %c", JE_NodeTypeCstr(node));
                 break;
         }
     }
@@ -157,7 +157,7 @@ JE_VAL* JE_EvalByNode(JE_NODE* node, JE_SYMTBL* table) {
 
             case ';'           : result = JE_BuiltinOpExec(";", table, node->left, node->right, NULL); break;
             case '?'           : result = JE_BuiltinOpExec("?:", table, node->left, node->right, node->righter); break;
-            default            : JeLogicError(&node->loc, "Invalid node type: %s", JE_NodeTypeCstr(node)); break;
+            default            : JE_LogicError(&node->loc, "Invalid node type: %s", JE_NodeTypeCstr(node)); break;
         }
     }
 

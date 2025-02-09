@@ -131,8 +131,8 @@ static void je_yynextline() {
 <STRING>\\r             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\r"); }
 <STRING>\\t             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\t"); }
 <STRING>\\\n            { je_yynextline(); }
-<STRING>\\              { JeParseError(&je_yylloc, "String with a bad backslash sequence"); return BAD_T; }
-<STRING><<EOF>>         { JeParseError(&je_yylloc, "String with a missing terminating quote"); return BAD_T; }
+<STRING>\\              { JE_ParseError(&je_yylloc, "String with a bad backslash sequence"); return BAD_T; }
+<STRING><<EOF>>         { JE_ParseError(&je_yylloc, "String with a missing terminating quote"); return BAD_T; }
 <STRING>\"              { BEGIN(INITIAL); je_yylval.s = je_yystrvalue; return STRING_T; }
 "#"                     { BEGIN(COMMENT); }
 <COMMENT>.              ;
@@ -141,8 +141,8 @@ static void je_yynextline() {
 <COMMENT2>.             ;
 <COMMENT2>\n            { je_yynextline(); }
 <COMMENT2>"*/"          { BEGIN(INITIAL); }
-<COMMENT2><<EOF>>       { JeParseError(&je_yylloc, "Multiline-comment with a missing comment terminator"); }
-.                       { JeLogicError(&je_yylloc, "(%d): We shouldn't get here", ((unsigned) je_yytext[0]) & 0xff); }
+<COMMENT2><<EOF>>       { JE_ParseError(&je_yylloc, "Multiline-comment with a missing comment terminator"); }
+.                       { JE_LogicError(&je_yylloc, "(%d): We shouldn't get here", ((unsigned) je_yytext[0]) & 0xff); }
 
 %%
 
