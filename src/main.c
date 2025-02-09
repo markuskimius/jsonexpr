@@ -149,7 +149,7 @@ int doMyCodeThing(const char* code) {
     JE_VAL* result = JE_EvalByNode(ast, NULL);
 
     if(tree) {
-        char* tree = je_nodetree(ast);
+        char* tree = JE_NodeTreeAstr(ast);
 
         fprintf(stderr, "%s\n", tree);
         free(tree);
@@ -160,7 +160,7 @@ int doMyCodeThing(const char* code) {
     }
 
     JE_ValDelete(result);
-    je_freenode(ast);
+    JE_NodeDelete(ast);
 
     return 0;
 }

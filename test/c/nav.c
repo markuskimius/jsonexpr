@@ -137,7 +137,7 @@ void output(JE_NODE* ast) {
 
 
 void tree(JE_NODE* ast) {
-    char* nodetree = je_nodetree(ast);
+    char* nodetree = JE_NodeTreeAstr(ast);
 
     fprintf(stderr, "%s\n", nodetree);
 
@@ -189,7 +189,7 @@ int doMyCodeThing(const char* code) {
     }
 
     je_freenav(nav);
-    je_freenode(ast);
+    JE_NodeDelete(ast);
 
     return 0;
 }

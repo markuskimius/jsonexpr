@@ -16,12 +16,12 @@
 
 
 /* ***************************************************************************
-* GLOBALS
+* PRIVATE VARIABLES
 */
 
-static char NODENAMEL[JE_NULL_N][_NAMEMAX];
+static char _NODENAMEL[JE_NULL_N][_NAMEMAX];
 
-static char* NODENAMEH[] = {
+static char* _NODENAMEH[] = {
     "NULL_N",
     "BOOL_N",
     "INT_N",
@@ -69,7 +69,7 @@ static char* NODENAMEH[] = {
 * PRIVATE FUNCTIONS
 */
 
-static JE_TOKEN* je_blanktoken() {
+static JE_TOKEN* _blanktoken() {
     JE_TOKEN* token = JE_TokenNew(0, 0, 0, NULL);
 
     token->text = JE_Calloc(1, sizeof(int64_t));
@@ -77,16 +77,16 @@ static JE_TOKEN* je_blanktoken() {
     return token;
 }
 
-static JE_YYLTYPE je_blankloc() {
+static JE_YYLTYPE _blankloc() {
     JE_YYLTYPE loc;
 
-    loc.first = je_blanktoken();
+    loc.first = _blanktoken();
     loc.last = loc.first;
 
     return loc;
 }
 
-static void je_nodeswap(JE_NODE* node1, JE_NODE* node2) {
+static void _nodeswap(JE_NODE* node1, JE_NODE* node2) {
     JE_NODE tmp;
 
     memcpy(&tmp, node1, sizeof(JE_NODE));
@@ -94,7 +94,7 @@ static void je_nodeswap(JE_NODE* node1, JE_NODE* node2) {
     memcpy(node2, &tmp, sizeof(JE_NODE));
 }
 
-static void je_nodereloc(JE_NODE* node, JE_TOKEN* head) {
+static void _nodereloc(JE_NODE* node, JE_TOKEN* head) {
     JE_TOKEN* first = node->loc.first;
     JE_TOKEN* last = node->loc.last;
     JE_TOKEN* first_child = NULL;
@@ -121,7 +121,7 @@ static void je_nodereloc(JE_NODE* node, JE_TOKEN* head) {
     node->loc.first = first;
     node->loc.last = last;
 
-    if(node->parent) je_nodereloc(node->parent, head);
+    if(node->parent) _nodereloc(node->parent, head);
 }
 
 
@@ -129,14 +129,14 @@ static void je_nodereloc(JE_NODE* node, JE_TOKEN* head) {
 * PUBLIC FUNCTIONS
 */
 
-JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, JE_YYLTYPE* loc) {
+JE_NODE* JE_NodeNew(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, JE_YYLTYPE* loc) {
     JE_NODE* node = JE_Calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->left = left;
     node->right = right;
     node->righter = righter;
-    node->loc = loc ? *loc : je_blankloc();
+    node->loc = loc ? *loc : _blankloc();
     node->head = loc ? NULL : node->loc.first;
 
     if(left) left->parent = node;
@@ -146,47 +146,43 @@ JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, J
     return node;
 }
 
-
-JE_NODE* je_newinode(int type, int64_t i, JE_YYLTYPE* loc) {
+JE_NODE* JE_NodeNewInt(int type, int64_t i, JE_YYLTYPE* loc) {
     JE_NODE* node = JE_Calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.i = i;
-    node->loc = loc ? *loc : je_blankloc();
+    node->loc = loc ? *loc : _blankloc();
     node->head = loc ? NULL : node->loc.first;
 
     return node;
 }
 
-
-JE_NODE* je_newfnode(int type, double f, JE_YYLTYPE* loc) {
+JE_NODE* JE_NodeNewFloat(int type, double f, JE_YYLTYPE* loc) {
     JE_NODE* node = JE_Calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.f = f;
-    node->loc = loc ? *loc : je_blankloc();
+    node->loc = loc ? *loc : _blankloc();
     node->head = loc ? NULL : node->loc.first;
 
     return node;
 }
 
-
-JE_NODE* je_newsnode(int type, char* s, JE_YYLTYPE* loc) {
+JE_NODE* JE_NodeNewStr(int type, char* s, JE_YYLTYPE* loc) {
     JE_NODE* node = JE_Calloc(1, sizeof(JE_NODE));
 
     node->type = type;
     node->value.s = s;
-    node->loc = loc ? *loc : je_blankloc();
+    node->loc = loc ? *loc : _blankloc();
     node->head = loc ? NULL : node->loc.first;
 
     return node;
 }
 
-
-void je_freenode(JE_NODE* node) {
-    if(node->left) je_freenode(node->left);
-    if(node->right) je_freenode(node->right);
-    if(node->righter) je_freenode(node->righter);
+void JE_NodeDelete(JE_NODE* node) {
+    if(node->left) JE_NodeDelete(node->left);
+    if(node->right) JE_NodeDelete(node->right);
+    if(node->righter) JE_NodeDelete(node->righter);
 
     if(node->head) JE_TokenDelete(node->head, 1);    /* Free the tokens if this node is the token owner (root node) */
 
@@ -204,126 +200,7 @@ void je_freenode(JE_NODE* node) {
     JE_Free(node);
 }
 
-
-// JE_NODE* je_nodedetach(JE_NODE* node) {
-//     JE_NODE* parent = node->parent;
-//     JE_TOKEN* first = node->loc.first;
-//     JE_TOKEN* last = node->loc.last;
-//     JE_TOKEN* head = JE_TokenFindHead(first);
-//
-//     /* Detach node */
-//     if(parent && parent->left == node) parent->left = NULL;
-//     if(parent && parent->right == node) parent->right = NULL;
-//     if(parent && parent->righter == node) parent->righter = NULL;
-//     node->parent = NULL;
-//
-//     /* Detach tokens */
-//     node->head = JE_TokenDetach(first, last);
-//
-//     /* Update locations */
-//     je_nodereloc(parent, head);
-//
-//     return node;
-// }
-//
-//
-// JE_NODE* je_nodeattachto(JE_NODE* dest, JE_NODE* src, int where) {
-//     JE_NODE* replaced = NULL;
-//     JE_TOKEN* dtoken = NULL;
-//
-//     assert(src->parent == NULL);
-//
-//     /* Attach node */
-//     switch(where) {
-//         case 1  :
-//             dtoken = dest->loc.first;
-//             if(dest->left && dest->left->loc.first == dtoken) dtoken = dtoken->prev;
-//             if(dest->left) replaced = je_nodedetach(dest->left);
-//
-//             dest->left = src;
-//             JE_TokenAttachTo(dtoken, src->loc.first);
-//             dest->left->loc.first = dtoken;
-//
-//             break;
-//
-//         case 2  :
-//             dtoken = dest->loc.last;
-//             if(dest->right) replaced = je_nodedetach(dest->right);
-//
-//             dest->right = src;
-//             JE_TokenAttachTo(dtoken, src->loc.first);
-//
-//             break;
-//
-//         case 3  :
-//             dtoken = dest->loc.last;
-//             if(dest->righter) replaced = je_nodedetach(dest->righter);
-//
-//             dest->righter = src;
-//             JE_TokenAttachTo(dtoken, src->loc.first);
-//
-//             break;
-//     }
-//     src->parent = dest;
-//     src->head = NULL;
-//
-//     /* Update locations */
-//     if(replaced) je_nodereloc(dest, JE_TokenFindHead(dest->loc.first));
-//
-//     return replaced;
-// }
-//
-//
-// void je_noderemove(JE_NODE* node, int free) {
-//     JE_NODE* detached = je_nodedetach(node);
-//
-//     if(free) je_freenode(detached);
-//
-//     // JE_NODE* newnode = NULL;
-//
-//     // if(node->parent == NULL) {
-//     //     newnode = je_newinode(JE_NULL_N, 0, NULL);
-//
-//     //     /* Create something for the caller to free */
-//     //     je_nodeswap(node, newnode);
-//     //     je_nodereplace(newnode, NULL, free);
-//     // }
-//     // else {
-//     //     je_nodereplace(node, NULL, free);
-//     // }
-// }
-//
-//
-// JE_NODE* je_nodereplace(JE_NODE* node, JE_NODE* newnode, int free) {
-//     JE_NODE* parent = node->parent;
-//
-//     if(parent && parent->left == node) parent->left = newnode;
-//     if(parent && parent->right == node) parent->right = newnode;
-//     if(parent && parent->righter == node) parent->righter = newnode;
-//
-//     if(newnode && newnode->parent) {
-//         if(newnode->parent->left == newnode) newnode->parent->left = NULL;
-//         if(newnode->parent->right == newnode) newnode->parent->right = NULL;
-//         if(newnode->parent->righter == newnode) newnode->parent->righter = NULL;
-//     }
-//
-//     if(newnode) {
-//         newnode->parent = parent;
-//         newnode->head = NULL;
-//     }
-//
-//     node->parent = NULL;
-//
-//     if(free) {
-//         je_freenode(node);
-//         node = NULL;
-//     }
-//
-//     return node;
-// }
-
-
-char* je_nodetree(JE_NODE* node) {
+char* JE_NodeTreeAstr(JE_NODE* node) {
     char* left = NULL;
     char* right = NULL;
     char* value = NULL;
@@ -332,13 +209,13 @@ char* je_nodetree(JE_NODE* node) {
     char* np;
 
     /* Get the values */
-    if(node->left) left = je_nodetree(node->left);
-    if(node->right) right = je_nodetree(node->right);
+    if(node->left) left = JE_NodeTreeAstr(node->left);
+    if(node->right) right = JE_NodeTreeAstr(node->right);
     // if(!left && !right) value = JE_LocToAstr(&node->loc);
     value = JE_LocToAstr(&node->loc);
 
     /* This node */
-    asprintf(&tree, "%s at %p w/ p=%p (%zd,%zd,%zd)-(%zd,%zd,%zd)\n", je_nodetype(node), node, node->parent,
+    asprintf(&tree, "%s at %p w/ p=%p (%zd,%zd,%zd)-(%zd,%zd,%zd)\n", JE_NodeTypeCstr(node), node, node->parent,
         node->loc.first->first_pos,
         node->loc.first->first_line,
         node->loc.first->first_column,
@@ -391,22 +268,20 @@ char* je_nodetree(JE_NODE* node) {
     return tree;
 }
 
-
-char* je_nodeastr(JE_NODE* node) {
+char* JE_NodeAstr(JE_NODE* node) {
     return JE_LocToAstr(&node->loc);
 }
 
-
-const char* je_nodetype(JE_NODE* node) {
+const char* JE_NodeTypeCstr(JE_NODE* node) {
     int type = node->type;
     char* name = NULL;
 
     if(isprint(type)) {
-        snprintf(NODENAMEL[type], _NAMEMAX, "%c", type);
-        name = NODENAMEL[type];
+        snprintf(_NODENAMEL[type], _NAMEMAX, "%c", type);
+        name = _NODENAMEL[type];
     }
     else if(JE_NULL_N <= type && type < JE_MAX_N) {
-        name = NODENAMEH[type-JE_NULL_N];
+        name = _NODENAMEH[type-JE_NULL_N];
     }
     else {
         asprintf(&name, "(%x)", type);   /* FIXME - Memory leak */

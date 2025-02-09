@@ -55,7 +55,7 @@ static JE_MAP* _newpair(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
         }
 
         default:
-            JeRuntimeError(&node->loc, "PAIR expected, got %s", je_nodetype(node));
+            JeRuntimeError(&node->loc, "PAIR expected, got %s", JE_NodeTypeCstr(node));
             break;
     }
 
@@ -73,7 +73,7 @@ static JE_MAP* _newpairlist(JE_NODE* node, JE_SYMTBL* table, JE_MAP* list) {
                 break;
 
             default:
-                JeRuntimeError(&node->loc, "PAIRLIST expected, got %c", je_nodetype(node));
+                JeRuntimeError(&node->loc, "PAIRLIST expected, got %c", JE_NodeTypeCstr(node));
                 break;
         }
     }
@@ -158,7 +158,7 @@ JE_VAL* JE_EvalByNode(JE_NODE* node, JE_SYMTBL* table) {
 
             case ';'           : result = je_opexec(";", table, node->left, node->right, NULL); break;
             case '?'           : result = je_opexec("?:", table, node->left, node->right, node->righter); break;
-            default            : JeLogicError(&node->loc, "Invalid node type: %s", je_nodetype(node)); break;
+            default            : JeLogicError(&node->loc, "Invalid node type: %s", JE_NodeTypeCstr(node)); break;
         }
     }
 

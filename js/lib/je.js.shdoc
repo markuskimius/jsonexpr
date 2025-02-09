@@ -215,7 +215,7 @@ class Interface {
     }
 
     nodefree(wnode) {
-        this.instance.exports.je_freenode(wnode);
+        this.instance.exports.JE_NodeDelete(wnode);
     }
 
     symnew(wsymtbl=0) {

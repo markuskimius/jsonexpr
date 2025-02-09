@@ -92,21 +92,15 @@ typedef struct JE_NODE {
 * PUBLIC FUNCTIONS
 */
 
-JE_NODE* je_newnode(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, JE_YYLTYPE* loc);
-JE_NODE* je_newinode(int type, int64_t i, JE_YYLTYPE* loc);
-JE_NODE* je_newfnode(int type, double f, JE_YYLTYPE* loc);
-JE_NODE* je_newsnode(int type, char* s, JE_YYLTYPE* loc);
-void je_freenode(JE_NODE* node);
+JE_NODE* JE_NodeNew(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, JE_YYLTYPE* loc);
+JE_NODE* JE_NodeNewInt(int type, int64_t i, JE_YYLTYPE* loc);
+JE_NODE* JE_NodeNewFloat(int type, double f, JE_YYLTYPE* loc);
+JE_NODE* JE_NodeNewStr(int type, char* s, JE_YYLTYPE* loc);
+void JE_NodeDelete(JE_NODE* node);
 
-JE_NODE* je_nodedetach(JE_NODE* node);
-JE_NODE* je_nodeattachto(JE_NODE* dest, JE_NODE* src, int where);
-
-void je_noderemove(JE_NODE* node, int free);
-JE_NODE* je_nodereplace(JE_NODE* node, JE_NODE* newnode, int free);
-
-char* je_nodetree(JE_NODE* node);
-char* je_nodeastr(JE_NODE* node);
-const char* je_nodetype(JE_NODE* node);
+char* JE_NodeTreeAstr(JE_NODE* node);
+char* JE_NodeAstr(JE_NODE* node);
+const char* JE_NodeTypeCstr(JE_NODE* node);
 
 
 #ifdef __cplusplus

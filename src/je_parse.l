@@ -177,7 +177,7 @@ JE_NODE* je_parse(const char* code) {
     je_ast->head = je_first;
 
     // printf("%s\n", JE_TokenToAstr(je_first, NULL));
-    // printf("%s\n", je_nodetree(je_ast));
+    // printf("%s\n", JE_NodeTreeAstr(je_ast));
 
     return je_ast;
 }

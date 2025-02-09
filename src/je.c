@@ -19,7 +19,7 @@ JE_COMPILED* je_compile(const char* code) {
 }
 
 void je_free(JE_COMPILED* compiled) {
-    je_freenode(compiled->ast);
+    JE_NodeDelete(compiled->ast);
     je_freetable(compiled->symtbl);
 
     compiled->ast = NULL;

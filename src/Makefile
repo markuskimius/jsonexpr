@@ -24,7 +24,7 @@ ifeq ($(findstring wasm,$(HOST)),wasm)
 		--export=JE_MapNext --export=JE_MapCmp --export=JE_MapToAstr --export=JE_MapKey --export=JE_MapVal                                                               \
 		--export=JE_VecNew --export=JE_VecDelete --export=JE_VecSet --export=JE_VecPop --export=JE_VecPush --export=JE_VecUnset --export=JE_VecGet --export=JE_VecBack   \
 		--export=JE_VecCmp --export=JE_VecToAstr --export=JE_VecLen                                                                                                      \
-		--export=je_freenode --export=je_nodetree
+		--export=JE_NodeDelete --export=JE_NodeTreeAstr
 	LDLIBS:=-lc-wasm
 else
 	PREFIX:=..

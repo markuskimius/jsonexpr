@@ -210,7 +210,7 @@ const char* JE_ValToCstr(JE_VAL* val) {
             case JE_ARRAY_V    : val->astrdecoded = JE_VecToAstr(val->value.v); break;
             case JE_OBJECT_V   : val->astrdecoded = JE_MapToAstr(val->value.m); break;
             case JE_FUNCTION_V : val->astrdecoded = JE_FuncToAstr(val->value.fn); break;
-            case JE_NODE_V     : val->astrdecoded = je_nodeastr(val->value.n); break;
+            case JE_NODE_V     : val->astrdecoded = JE_NodeAstr(val->value.n); break;
             default            : je_die("Invalid val type '%c' (%d)\n", val->type, val->type); break;
         }
 

@@ -127,7 +127,7 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
                     result = JE_ValDup(result);
                 }
             }
-            else if(left->type == JE_OBJECT_V) JeRuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", je_nodetype(right));
+            else if(left->type == JE_OBJECT_V) JeRuntimeError(&node->loc, "IDENTIFIER expected after '.' but got %s", JE_NodeTypeCstr(right));
             else                               JeRuntimeError(&node->loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
 
             JE_ValDelete(left);
@@ -135,7 +135,7 @@ static JE_VAL* tablemod(JE_SYMTBL* table, JE_NODE* node, int create) {
         }
 
         default:
-            JeParseError(&node->loc, "Invalid node type: %s", je_nodetype(node));
+            JeParseError(&node->loc, "Invalid node type: %s", JE_NodeTypeCstr(node));
             break;
     }
 
@@ -181,7 +181,7 @@ static JE_VAL* EVAL(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_NODE* ast = je_parse(JE_ValToCstr(value));
     JE_VAL* result = JE_EvalByNode(ast, table);
 
-    je_freenode(ast);
+    JE_NodeDelete(ast);
 
     return result;
 }
@@ -227,7 +227,7 @@ static JE_VAL* FOREACH(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
 
     /* Validate */
-    if(var->type != JE_IDENT_N) JeRuntimeError(&var->loc, "Identifier expected, got %s", je_nodetype(var));
+    if(var->type != JE_IDENT_N) JeRuntimeError(&var->loc, "Identifier expected, got %s", JE_NodeTypeCstr(var));
 
     switch(iter->type) {
         case JE_ARRAY_V: {
@@ -834,7 +834,7 @@ static JE_VAL* OP_MEMBER(JE_VEC* args, JE_SYMTBL* table, JE_YYLTYPE* loc) {
     JE_VAL* result = NULL;
 
     if     (left->type == JE_OBJECT_V && right->type == JE_IDENT_N) result = JE_MapGet(left->value.m, right->value.s);
-    else if(left->type == JE_OBJECT_V                             ) JeRuntimeError(loc, "IDENTIFIER expected after '.' but got %s", je_nodetype(right));
+    else if(left->type == JE_OBJECT_V                             ) JeRuntimeError(loc, "IDENTIFIER expected after '.' but got %s", JE_NodeTypeCstr(right));
     else                                                            JeRuntimeError(loc, "OBJECT expected before '.' but got %s", JE_ValGetType(left));
 
     return result ? JE_ValDup(result) : JE_ValNewFromNull();

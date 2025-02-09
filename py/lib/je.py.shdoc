@@ -194,10 +194,10 @@ class Util:
         return self.instance.exports.JE_EvalByNode(wtree, wsymtbl)
 
     def nodefree(self, wnode):
-        self.instance.exports.je_freenode(wnode)
+        self.instance.exports.JE_NodeDelete(wnode)
 
     def nodetree(self, wnode):
-        wtree = self.instance.exports.je_nodetree(wnode)
+        wtree = self.instance.exports.JE_NodeTreeAstr(wnode)
         tree = self.strat(wtree)
 
         self.free(wtree)
