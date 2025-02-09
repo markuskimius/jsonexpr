@@ -19,7 +19,7 @@
 
 
 /* ***************************************************************************
-* GLOBALS
+* PRIVATE VARIABLES
 */
 
 static char _VALNAME[128][_NAMEMAX];

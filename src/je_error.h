@@ -27,7 +27,7 @@ typedef struct JE_YYLTYPE JE_YYLTYPE;
 * GLOBALS
 */
 
-extern char* je_throwText;
+extern char* JE_throwText;
 
 
 /* ***************************************************************************

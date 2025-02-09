@@ -12,7 +12,7 @@
 * GLOBALS
 */
 
-char* je_throwText = NULL;
+char* JE_throwText = NULL;
 
 
 /* ***************************************************************************
@@ -22,13 +22,13 @@ char* je_throwText = NULL;
 void _JE_Die(const char* file, const char* func, size_t line, const char* format, ...) {
     va_list ap;
 
-    if(je_throwText) JE_Free(je_throwText);
+    if(JE_throwText) JE_Free(JE_throwText);
 
     va_start(ap, format);
-    vasprintf(&je_throwText, format, ap);
+    vasprintf(&JE_throwText, format, ap);
     va_end(ap);
 
-    fprintf(stderr, "%s line %zu in %s(): %s\n", file, line, func, je_throwText);
+    fprintf(stderr, "%s line %zu in %s(): %s\n", file, line, func, JE_throwText);
     exit(1);
 }
 
@@ -65,9 +65,9 @@ void JE_Throwx(const char* file, const char* func, size_t line, const char* type
 void JE_ThrowLater(const char* format, ...) {
     va_list ap;
 
-    if(je_throwText) JE_Free(je_throwText);
+    if(JE_throwText) JE_Free(JE_throwText);
 
     va_start(ap, format);
-    vasprintf(&je_throwText, format, ap);
+    vasprintf(&JE_throwText, format, ap);
     va_end(ap);
 }
