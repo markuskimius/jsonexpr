@@ -77,8 +77,8 @@ typedef struct JE_YYLTYPE {
 
 %%
 
-start       :                           { je_ast = $$ = JE_NodeNewInt(JE_NULL_N, 0, &je_yylloc);  }
-            | expr                      { je_ast = $$ = $1;                                       }
+start       :                           { JE_ast = $$ = JE_NodeNewInt(JE_NULL_N, 0, &JE_yylloc);  }
+            | expr                      { JE_ast = $$ = $1;                                       }
             ;
 
 expr        : NULL_T                    { $$ = JE_NodeNewInt(JE_NULL_N, 0, &@$);                  }

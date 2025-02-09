@@ -103,12 +103,12 @@ $(BUILDDIR)/je: $(BUILDDIR)/main.o $(BUILDDIR)/libje.a
 
 $(BUILDDIR)/libje.a: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o        \
 		$(BUILDDIR)/je_map.o $(BUILDDIR)/je_node.o $(BUILDDIR)/je_symtbl.o $(BUILDDIR)/je_util.o $(BUILDDIR)/je_val.o	\
-		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.je_yy.o $(BUILDDIR)/je_token.o $(BUILDDIR)/je.o
+		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.JE_yy.o $(BUILDDIR)/je_token.o $(BUILDDIR)/je.o
 	llvm-ar rcs $@ $^
 
 $(BUILDDIR)/je.wasm: $(BUILDDIR)/je_builtin.o $(BUILDDIR)/je_error.o $(BUILDDIR)/je_eval.o $(BUILDDIR)/je_func.o $(BUILDDIR)/main-wasm.o    \
 		$(BUILDDIR)/je_map.o $(BUILDDIR)/je_node.o $(BUILDDIR)/je_symtbl.o $(BUILDDIR)/je_util.o $(BUILDDIR)/je_val.o						\
-		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.je_yy.o $(BUILDDIR)/je_token.o
+		$(BUILDDIR)/je_vec.o $(BUILDDIR)/je_parse.tab.o $(BUILDDIR)/lex.JE_yy.o $(BUILDDIR)/je_token.o
 	$(LD) $(LDFLAGS) $(TARGET_ARCH) $^ $(LDLIBS) -o $@ && chmod a-x $@
 
 $(BUILDDIR)/main.o: main.c je.h
@@ -141,13 +141,13 @@ $(BUILDDIR)/je_vec.o: je_vec.c je_error.h je_util.h je_val.h je_vec.h
 
 $(BUILDDIR)/je_parse.tab.o: je_parse.tab.c je_parse.tab.h je_node.h je_parse.h je_error.h je_val.h
 
-$(BUILDDIR)/lex.je_yy.o: lex.je_yy.c je_parse.h je_error.h je_util.h je_node.h
+$(BUILDDIR)/lex.JE_yy.o: lex.JE_yy.c je_parse.h je_error.h je_util.h je_node.h
 
 je_parse.tab.c je_parse.tab.h: je_parse.y
-	bison -Dapi.prefix={je_yy} -t -v -d $<
+	bison -Dapi.prefix={JE_yy} -t -v -d $<
 
-lex.je_yy.c: je_parse.l
-	flex -P je_yy $<
+lex.JE_yy.c: je_parse.l
+	flex -P JE_yy $<
 
 je_parse.h: je_parse.tab.h
 	touch $@

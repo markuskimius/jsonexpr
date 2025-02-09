@@ -25,30 +25,30 @@ EXP     ([eE][-+]?[0-9]+)
 
 #define JE_YYSTR_INITSIZE 8
 
-size_t je_yypos = 0;
-size_t je_yycolumn = 1;
-char* je_yystrvalue = NULL;
-JE_NODE* je_ast = NULL;
-JE_TOKEN* je_last = NULL;
-JE_TOKEN* je_first = NULL;
+size_t JE_yypos = 0;
+size_t JE_yycolumn = 1;
+char* JE_yystrvalue = NULL;
+JE_NODE* JE_ast = NULL;
+JE_TOKEN* JE_last = NULL;
+JE_TOKEN* JE_first = NULL;
 
 #define YY_USER_ACTION                                                      \
     if(YY_START == INITIAL) {                                               \
-        je_last = JE_TokenNew(je_yypos, je_yylineno, je_yycolumn, je_last); \
-        if(!je_first) je_first = je_last;                                   \
+        JE_last = JE_TokenNew(JE_yypos, JE_yylineno, JE_yycolumn, JE_last); \
+        if(!JE_first) JE_first = JE_last;                                   \
                                                                             \
-        je_yylloc.first = je_last;                                          \
-        je_yylloc.last = je_last;                                           \
+        JE_yylloc.first = JE_last;                                          \
+        JE_yylloc.last = JE_last;                                           \
     }                                                                       \
-    je_yypos += je_yyleng;                                                  \
-    je_yycolumn += je_yyleng;                                               \
-    je_yylloc.last->text = JE_AstrCat(je_last->text, je_yytext);            \
-    je_yylloc.last->last_pos = je_yypos;                                    \
-    je_yylloc.last->last_line = je_yylineno;                                \
-    je_yylloc.last->last_column = je_yycolumn;                              \
+    JE_yypos += JE_yyleng;                                                  \
+    JE_yycolumn += JE_yyleng;                                               \
+    JE_yylloc.last->text = JE_AstrCat(JE_last->text, JE_yytext);            \
+    JE_yylloc.last->last_pos = JE_yypos;                                    \
+    JE_yylloc.last->last_line = JE_yylineno;                                \
+    JE_yylloc.last->last_column = JE_yycolumn;                              \
 
-static void je_yynextline() {
-    je_yycolumn = 1;
+static void JE_yynextline() {
+    JE_yycolumn = 1;
 }
 
 %}
@@ -56,39 +56,39 @@ static void je_yynextline() {
 %%
 
 [ \r\t]+                ;
-[\n]                    { je_yynextline(); }
+[\n]                    { JE_yynextline(); }
 "null"                  { return NULL_T; }
-"true"                  { je_yylval.i = 1; return BOOL_T; }
-"false"                 { je_yylval.i = 0; return BOOL_T; }
-{INT}                   { je_yylval.i = strtoll(je_yytext, NULL, 0); return INT_T; }
-0{OCT}+                 { je_yylval.i = strtoll(je_yytext, NULL, 0); return INT_T; }
-0[xX]{HEX}+             { je_yylval.i = strtoll(je_yytext, NULL, 0); return INT_T; }
-{INT}{FRAC}{EXP}        { je_yylval.f = strtod(je_yytext, NULL); return FLOAT_T; }
-{INT}{FRAC}             { je_yylval.f = strtod(je_yytext, NULL); return FLOAT_T; }
-{INT}{EXP}              { je_yylval.f = strtod(je_yytext, NULL); return FLOAT_T; }
-[_a-zA-Z][_a-zA-Z0-9]*  { je_yylval.s = strdup(je_yytext); return IDENT_T; }
-"{"                     { return je_yytext[0]; }
-"}"                     { return je_yytext[0]; }
-"["                     { return je_yytext[0]; }
-"]"                     { return je_yytext[0]; }
-"("                     { return je_yytext[0]; }
-")"                     { return je_yytext[0]; }
-":"                     { return je_yytext[0]; }
-","                     { return je_yytext[0]; }
-";"                     { return je_yytext[0]; }
-"."                     { return je_yytext[0]; }
-"="                     { return je_yytext[0]; }
-"*"                     { return je_yytext[0]; }
-"/"                     { return je_yytext[0]; }
-"%"                     { return je_yytext[0]; }
-"+"                     { return je_yytext[0]; }
-"-"                     { return je_yytext[0]; }
-"?"                     { return je_yytext[0]; }
-"!"                     { return je_yytext[0]; }
-"~"                     { return je_yytext[0]; }
-"|"                     { return je_yytext[0]; }
-"&"                     { return je_yytext[0]; }
-"^"                     { return je_yytext[0]; }
+"true"                  { JE_yylval.i = 1; return BOOL_T; }
+"false"                 { JE_yylval.i = 0; return BOOL_T; }
+{INT}                   { JE_yylval.i = strtoll(JE_yytext, NULL, 0); return INT_T; }
+0{OCT}+                 { JE_yylval.i = strtoll(JE_yytext, NULL, 0); return INT_T; }
+0[xX]{HEX}+             { JE_yylval.i = strtoll(JE_yytext, NULL, 0); return INT_T; }
+{INT}{FRAC}{EXP}        { JE_yylval.f = strtod(JE_yytext, NULL); return FLOAT_T; }
+{INT}{FRAC}             { JE_yylval.f = strtod(JE_yytext, NULL); return FLOAT_T; }
+{INT}{EXP}              { JE_yylval.f = strtod(JE_yytext, NULL); return FLOAT_T; }
+[_a-zA-Z][_a-zA-Z0-9]*  { JE_yylval.s = strdup(JE_yytext); return IDENT_T; }
+"{"                     { return JE_yytext[0]; }
+"}"                     { return JE_yytext[0]; }
+"["                     { return JE_yytext[0]; }
+"]"                     { return JE_yytext[0]; }
+"("                     { return JE_yytext[0]; }
+")"                     { return JE_yytext[0]; }
+":"                     { return JE_yytext[0]; }
+","                     { return JE_yytext[0]; }
+";"                     { return JE_yytext[0]; }
+"."                     { return JE_yytext[0]; }
+"="                     { return JE_yytext[0]; }
+"*"                     { return JE_yytext[0]; }
+"/"                     { return JE_yytext[0]; }
+"%"                     { return JE_yytext[0]; }
+"+"                     { return JE_yytext[0]; }
+"-"                     { return JE_yytext[0]; }
+"?"                     { return JE_yytext[0]; }
+"!"                     { return JE_yytext[0]; }
+"~"                     { return JE_yytext[0]; }
+"|"                     { return JE_yytext[0]; }
+"&"                     { return JE_yytext[0]; }
+"^"                     { return JE_yytext[0]; }
 "**"                    { return POW_T; }
 "++"                    { return INC_T; }
 "--"                    { return DEC_T; }
@@ -115,69 +115,69 @@ static void je_yynextline() {
 "^="                    { return XOREQ_T; }
 "|="                    { return OREQ_T; }
 "**="                   { return POWEQ_T; }
-["]                     { BEGIN(STRING); je_yystrvalue = JE_Calloc(1, JE_YYSTR_INITSIZE); }
-<STRING>[^"\\\n]+       { je_yystrvalue = JE_AstrCat(je_yystrvalue, je_yytext); }
-<STRING>\n              { je_yystrvalue = JE_AstrCat(je_yystrvalue, je_yytext); je_yynextline(); }
-<STRING>\\U{HEX8}       { je_yystrvalue = JE_AstrCat(je_yystrvalue, JE_UcharToCstr(strtoll(je_yytext+2, NULL, 16))); }
-<STRING>\\u{HEX4}       { je_yystrvalue = JE_AstrCat(je_yystrvalue, JE_UcharToCstr(strtoll(je_yytext+2, NULL, 16))); }
-<STRING>\\x{HEX2}       { je_yystrvalue = JE_AstrCat(je_yystrvalue, JE_UcharToCstr(strtoll(je_yytext+2, NULL, 16))); }
-<STRING>\\X{HEX2}       { je_yystrvalue = JE_AstrCat(je_yystrvalue, JE_UcharToCstr(strtoll(je_yytext+2, NULL, 16))); }
-<STRING>\\[\"]          { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\""); }
-<STRING>\\\\            { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\\"); }
-<STRING>\\[/]           { je_yystrvalue = JE_AstrCat(je_yystrvalue, "/");  }
-<STRING>\\b             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\b"); }
-<STRING>\\f             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\f"); }
-<STRING>\\n             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\n"); }
-<STRING>\\r             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\r"); }
-<STRING>\\t             { je_yystrvalue = JE_AstrCat(je_yystrvalue, "\t"); }
-<STRING>\\\n            { je_yynextline(); }
-<STRING>\\              { JE_ParseError(&je_yylloc, "String with a bad backslash sequence"); return BAD_T; }
-<STRING><<EOF>>         { JE_ParseError(&je_yylloc, "String with a missing terminating quote"); return BAD_T; }
-<STRING>\"              { BEGIN(INITIAL); je_yylval.s = je_yystrvalue; return STRING_T; }
+["]                     { BEGIN(STRING); JE_yystrvalue = JE_Calloc(1, JE_YYSTR_INITSIZE); }
+<STRING>[^"\\\n]+       { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, JE_yytext); }
+<STRING>\n              { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, JE_yytext); JE_yynextline(); }
+<STRING>\\U{HEX8}       { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, JE_UcharToCstr(strtoll(JE_yytext+2, NULL, 16))); }
+<STRING>\\u{HEX4}       { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, JE_UcharToCstr(strtoll(JE_yytext+2, NULL, 16))); }
+<STRING>\\x{HEX2}       { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, JE_UcharToCstr(strtoll(JE_yytext+2, NULL, 16))); }
+<STRING>\\X{HEX2}       { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, JE_UcharToCstr(strtoll(JE_yytext+2, NULL, 16))); }
+<STRING>\\[\"]          { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, "\""); }
+<STRING>\\\\            { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, "\\"); }
+<STRING>\\[/]           { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, "/");  }
+<STRING>\\b             { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, "\b"); }
+<STRING>\\f             { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, "\f"); }
+<STRING>\\n             { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, "\n"); }
+<STRING>\\r             { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, "\r"); }
+<STRING>\\t             { JE_yystrvalue = JE_AstrCat(JE_yystrvalue, "\t"); }
+<STRING>\\\n            { JE_yynextline(); }
+<STRING>\\              { JE_ParseError(&JE_yylloc, "String with a bad backslash sequence"); return BAD_T; }
+<STRING><<EOF>>         { JE_ParseError(&JE_yylloc, "String with a missing terminating quote"); return BAD_T; }
+<STRING>\"              { BEGIN(INITIAL); JE_yylval.s = JE_yystrvalue; return STRING_T; }
 "#"                     { BEGIN(COMMENT); }
 <COMMENT>.              ;
-<COMMENT>\n             { BEGIN(INITIAL); je_yynextline(); }
+<COMMENT>\n             { BEGIN(INITIAL); JE_yynextline(); }
 "/*"                    { BEGIN(COMMENT2); }
 <COMMENT2>.             ;
-<COMMENT2>\n            { je_yynextline(); }
+<COMMENT2>\n            { JE_yynextline(); }
 <COMMENT2>"*/"          { BEGIN(INITIAL); }
-<COMMENT2><<EOF>>       { JE_ParseError(&je_yylloc, "Multiline-comment with a missing comment terminator"); }
-.                       { JE_LogicError(&je_yylloc, "(%d): We shouldn't get here", ((unsigned) je_yytext[0]) & 0xff); }
+<COMMENT2><<EOF>>       { JE_ParseError(&JE_yylloc, "Multiline-comment with a missing comment terminator"); }
+.                       { JE_LogicError(&JE_yylloc, "(%d): We shouldn't get here", ((unsigned) JE_yytext[0]) & 0xff); }
 
 %%
 
 JE_NODE* JE_Parse(const char* code) {
     /* Initialize globals */
-    je_yypos = 0;
-    je_yylineno = 1;
-    je_yycolumn = 1;
-    je_ast = NULL;
-    je_last = NULL;
-    je_first = NULL;
-    je_yystrvalue = NULL;
+    JE_yypos = 0;
+    JE_yylineno = 1;
+    JE_yycolumn = 1;
+    JE_ast = NULL;
+    JE_last = NULL;
+    JE_first = NULL;
+    JE_yystrvalue = NULL;
 
     /* Parse from string */
     if(code) {
-        YY_BUFFER_STATE bp = je_yy_scan_string(code);
+        YY_BUFFER_STATE bp = JE_yy_scan_string(code);
 
-        je_yy_switch_to_buffer(bp);
-        je_yyparse();
-        je_yy_flush_buffer(bp);
-        je_yy_delete_buffer(bp);
+        JE_yy_switch_to_buffer(bp);
+        JE_yyparse();
+        JE_yy_flush_buffer(bp);
+        JE_yy_delete_buffer(bp);
     }
     /* Parse from stdin */
     else {
-        je_yyin = stdin;
+        JE_yyin = stdin;
 
         do {
-            je_yyparse();
-        } while(!feof(je_yyin));
+            JE_yyparse();
+        } while(!feof(JE_yyin));
     }
 
-    je_ast->head = je_first;
+    JE_ast->head = JE_first;
 
-    // printf("%s\n", JE_TokenToAstr(je_first, NULL));
-    // printf("%s\n", JE_NodeTreeAstr(je_ast));
+    // printf("%s\n", JE_TokenToAstr(JE_first, NULL));
+    // printf("%s\n", JE_NodeTreeAstr(JE_ast));
 
-    return je_ast;
+    return JE_ast;
 }

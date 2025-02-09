@@ -14,7 +14,7 @@ extern "C" {
 
 typedef struct JE_NODE JE_NODE;
 
-extern JE_NODE* je_ast;
+extern JE_NODE* JE_ast;
 
 
 /* ***************************************************************************
