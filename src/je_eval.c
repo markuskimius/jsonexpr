@@ -7,7 +7,6 @@
 #include "je_func.h"
 #include "je_map.h"
 #include "je_node.h"
-#include "je_oper.h"
 #include "je_symtbl.h"
 #include "je_val.h"
 #include "je_vec.h"
