@@ -70,7 +70,7 @@ static char* NODENAMEH[] = {
 */
 
 static JE_TOKEN* je_blanktoken() {
-    JE_TOKEN* token = je_newtoken(0, 0, 0, NULL);
+    JE_TOKEN* token = JE_TokenNew(0, 0, 0, NULL);
 
     token->text = JE_Calloc(1, sizeof(int64_t));
 
@@ -111,11 +111,11 @@ static void je_nodereloc(JE_NODE* node, JE_TOKEN* head) {
     else if(node->left && node->left->loc.last) last_child = node->left->loc.last;
 
     /* Use first child's first location? */
-    if(je_tokenhead(first) != head) first = first_child;
+    if(JE_TokenFindHead(first) != head) first = first_child;
     else if(first_child && first_child->first_pos < first->first_pos) first = first_child;
 
     /* Use last child's last location? */
-    if(je_tokenhead(last) != head) last = last_child;
+    if(JE_TokenFindHead(last) != head) last = last_child;
     else if(last_child && last_child->last_pos < last->last_pos) last = last_child;
 
     node->loc.first = first;
@@ -188,7 +188,7 @@ void je_freenode(JE_NODE* node) {
     if(node->right) je_freenode(node->right);
     if(node->righter) je_freenode(node->righter);
 
-    if(node->head) je_freetoken(node->head, 1);    /* Free the tokens if this node is the token owner (root node) */
+    if(node->head) JE_TokenDelete(node->head, 1);    /* Free the tokens if this node is the token owner (root node) */
 
     if(node->type == JE_IDENT_N || node->type == JE_STRING_N) {
         JE_Free(node->value.s);
@@ -209,7 +209,7 @@ void je_freenode(JE_NODE* node) {
 //     JE_NODE* parent = node->parent;
 //     JE_TOKEN* first = node->loc.first;
 //     JE_TOKEN* last = node->loc.last;
-//     JE_TOKEN* head = je_tokenhead(first);
+//     JE_TOKEN* head = JE_TokenFindHead(first);
 //
 //     /* Detach node */
 //     if(parent && parent->left == node) parent->left = NULL;
@@ -218,7 +218,7 @@ void je_freenode(JE_NODE* node) {
 //     node->parent = NULL;
 //
 //     /* Detach tokens */
-//     node->head = je_tokendetach(first, last);
+//     node->head = JE_TokenDetach(first, last);
 //
 //     /* Update locations */
 //     je_nodereloc(parent, head);
@@ -241,7 +241,7 @@ void je_freenode(JE_NODE* node) {
 //             if(dest->left) replaced = je_nodedetach(dest->left);
 //
 //             dest->left = src;
-//             je_tokenattachto(dtoken, src->loc.first);
+//             JE_TokenAttachTo(dtoken, src->loc.first);
 //             dest->left->loc.first = dtoken;
 //
 //             break;
@@ -251,7 +251,7 @@ void je_freenode(JE_NODE* node) {
 //             if(dest->right) replaced = je_nodedetach(dest->right);
 //
 //             dest->right = src;
-//             je_tokenattachto(dtoken, src->loc.first);
+//             JE_TokenAttachTo(dtoken, src->loc.first);
 //
 //             break;
 //
@@ -260,7 +260,7 @@ void je_freenode(JE_NODE* node) {
 //             if(dest->righter) replaced = je_nodedetach(dest->righter);
 //
 //             dest->righter = src;
-//             je_tokenattachto(dtoken, src->loc.first);
+//             JE_TokenAttachTo(dtoken, src->loc.first);
 //
 //             break;
 //     }
@@ -268,7 +268,7 @@ void je_freenode(JE_NODE* node) {
 //     src->head = NULL;
 //
 //     /* Update locations */
-//     if(replaced) je_nodereloc(dest, je_tokenhead(dest->loc.first));
+//     if(replaced) je_nodereloc(dest, JE_TokenFindHead(dest->loc.first));
 //
 //     return replaced;
 // }

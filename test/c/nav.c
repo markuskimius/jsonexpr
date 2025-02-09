@@ -129,7 +129,7 @@ int doMyFdThing(int fd) {
 
 
 void output(JE_NODE* ast) {
-    char* text = je_astrtoken(ast->head, NULL);
+    char* text = JE_TokenToAstr(ast->head, NULL);
 
     printf("%s", text);
     free(text);

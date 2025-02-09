@@ -31,16 +31,16 @@ typedef struct JE_TOKEN {
 * PUBLIC FUNCTIONS
 */
 
-JE_TOKEN* je_newtoken(size_t first_pos, size_t first_line, size_t first_column, JE_TOKEN* prev);
-void je_freetoken(JE_TOKEN* token, int recursive);
+JE_TOKEN* JE_TokenNew(size_t first_pos, size_t first_line, size_t first_column, JE_TOKEN* prev);
+void JE_TokenDelete(JE_TOKEN* token, int recursive);
 
-JE_TOKEN* je_tokenhead(JE_TOKEN* token);
-JE_TOKEN* je_tokentail(JE_TOKEN* token);
-JE_TOKEN* je_tokendetach(JE_TOKEN* begin, JE_TOKEN* end);
-JE_TOKEN* je_tokenattachat(JE_TOKEN* dest, JE_TOKEN* src);
-JE_TOKEN* je_tokenattachto(JE_TOKEN* dest, JE_TOKEN* src);
+JE_TOKEN* JE_TokenFindHead(JE_TOKEN* token);
+JE_TOKEN* JE_TokenFindTail(JE_TOKEN* token);
+JE_TOKEN* JE_TokenDetach(JE_TOKEN* begin, JE_TOKEN* end);
+JE_TOKEN* JE_TokenAttachAt(JE_TOKEN* dest, JE_TOKEN* src);
+JE_TOKEN* JE_TokenAttachTo(JE_TOKEN* dest, JE_TOKEN* src);
 
-char* je_astrtoken(JE_TOKEN* begin, JE_TOKEN* end);
+char* JE_TokenToAstr(JE_TOKEN* begin, JE_TOKEN* end);
 
 
 #ifdef __cplusplus

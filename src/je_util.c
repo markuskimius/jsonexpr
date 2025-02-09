@@ -182,7 +182,7 @@ char* JE_CstrToQstr(const char* src) {
 }
 
 char* JE_LocToAstr(JE_YYLTYPE* loc) {
-    return je_astrtoken(loc->first, loc->last->next);
+    return JE_TokenToAstr(loc->first, loc->last->next);
 }
 
 char* JE_CstrAcat(const char* s1, const char* s2) {

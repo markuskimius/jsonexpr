@@ -34,7 +34,7 @@ JE_TOKEN* je_first = NULL;
 
 #define YY_USER_ACTION                                                      \
     if(YY_START == INITIAL) {                                               \
-        je_last = je_newtoken(je_yypos, je_yylineno, je_yycolumn, je_last); \
+        je_last = JE_TokenNew(je_yypos, je_yylineno, je_yycolumn, je_last); \
         if(!je_first) je_first = je_last;                                   \
                                                                             \
         je_yylloc.first = je_last;                                          \
@@ -176,7 +176,7 @@ JE_NODE* je_parse(const char* code) {
 
     je_ast->head = je_first;
 
-    // printf("%s\n", je_astrtoken(je_first, NULL));
+    // printf("%s\n", JE_TokenToAstr(je_first, NULL));
     // printf("%s\n", je_nodetree(je_ast));
 
     return je_ast;
