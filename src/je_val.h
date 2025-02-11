@@ -33,7 +33,7 @@ typedef enum {
     JE_OBJECT_V    = 'O',
     JE_FUNCTION_V  = 'F',
     JE_NODE_V      = 'N',
-} val_t;
+} JE_VAL_T;
 
 
 /* ***************************************************************************
@@ -41,7 +41,7 @@ typedef enum {
 */
 
 typedef struct JE_VAL {
-    val_t type;
+    JE_VAL_T type;
 
     union {
         int64_t i;
