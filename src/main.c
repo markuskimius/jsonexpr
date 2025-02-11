@@ -123,7 +123,6 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-
 int doMyFdThing(int fd) {
     char* code = calloc(1, _PAGESIZE);
     size_t offset = 0;
@@ -142,7 +141,6 @@ int doMyFdThing(int fd) {
 
     return result;
 }
-
 
 int doMyCodeThing(const char* code) {
     JE_NODE* ast = JE_Parse(code);
