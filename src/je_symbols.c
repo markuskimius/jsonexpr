@@ -360,6 +360,12 @@ static JE_VALUE _SQRT(JE_VEC* args, const JE_NODE* code, JE_MAP* symmap, const J
     return JE_ValueF64(sqrt(f64.data.f64));
 }
 
+static JE_VALUE _STRLEN(JE_VEC* args, const JE_NODE* code, JE_MAP* symmap, const JE_ASTINFO* info) {
+    const JE_VALUE value = args->data[0];
+
+    return JE_ValueI64(JE_StrLength(value.data.str));
+}
+
 static JE_VALUE _WHILE(JE_VEC* args, const JE_NODE* code, JE_MAP* symmap, const JE_ASTINFO* info) {
     const JE_NODE* cond = args->data[0].data.nod.node;
     const JE_NODE* stmt = args->data[1].data.nod.node;
@@ -413,6 +419,7 @@ JE_MAP JE_Symbols(int set) {
     if(set & JE_SYMBOLS_LINEAR) JE_MapSet(&map, JE_StrCreate(JE_Strdup("LEN")), JE_ValueFun(JE_FunCreate(JE_Strdup("LEN"), _LEN, JE_Strdup("?"), NULL, NULL)));
     if(set & JE_SYMBOLS_LINEAR) JE_MapSet(&map, JE_StrCreate(JE_Strdup("ROUND")), JE_ValueFun(JE_FunCreate(JE_Strdup("ROUND"), _ROUND, JE_Strdup("#"), NULL, NULL)));
     if(set & JE_SYMBOLS_LINEAR) JE_MapSet(&map, JE_StrCreate(JE_Strdup("SQRT")), JE_ValueFun(JE_FunCreate(JE_Strdup("SQRT"), _SQRT, JE_Strdup("#"), NULL, NULL)));
+    if(set & JE_SYMBOLS_LINEAR) JE_MapSet(&map, JE_StrCreate(JE_Strdup("STRLEN")), JE_ValueFun(JE_FunCreate(JE_Strdup("STRLEN"), _STRLEN, JE_Strdup("S"), NULL, NULL)));
 
     if(set & JE_SYMBOLS_LOOPABLE) JE_MapSet(&map, JE_StrCreate(JE_Strdup("FOR")), JE_ValueFun(JE_FunCreate(JE_Strdup("FOR"), _FOR, JE_Strdup("...."), NULL, NULL)));
     if(set & JE_SYMBOLS_LOOPABLE) JE_MapSet(&map, JE_StrCreate(JE_Strdup("FOREACH")), JE_ValueFun(JE_FunCreate(JE_Strdup("FOREACH"), _FOREACH, JE_Strdup(".?."), NULL, NULL)));

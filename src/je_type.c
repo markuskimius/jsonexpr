@@ -1161,7 +1161,7 @@ static JE_VALUE _StrToF64(const JE_VALUE* x) {
 }
 
 static int _StrToCtru(const JE_VALUE* x) {
-    return JE_StrLength(x->data.str) ? 1 : 0;
+    return x->data.str.length ? 1 : 0;
 }
 
 static char* _StrToCstr(const JE_VALUE* x) {

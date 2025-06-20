@@ -137,10 +137,21 @@ void JE_StrDestroy(JE_STR* str) {
 }
 
 /**
-* Return the binary length of JE_STR.
+* Return the UTF-8 code point length of JE_STR.
 */
 size_t JE_StrLength(const JE_STR str) {
-    return str.length;
+    uint8_t* cp = str.data;
+    size_t count = str.length;
+    size_t length = 0;
+
+    while(count--) {
+        /*
+        * From https://stackoverflow.com/a/32936928/20025913:
+        */
+        length += (*cp++ & 0xC0) != 0x80;
+    }
+
+    return length;
 }
 
 /**

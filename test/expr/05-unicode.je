@@ -1,1 +1,4 @@
-PRINT("\x21\u0394\U0001f6ab\n")
+mystr = "\x21\u0394\U0001f6ab";
+PRINT(mystr);
+PRINT(mystr + " is " + LEN(mystr) + " bytes long.");
+PRINT(mystr + " is " + STRLEN(mystr) + " characters long.");
