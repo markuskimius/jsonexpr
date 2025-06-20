@@ -1,6 +1,6 @@
-# jsonexpr for Python
+# JSONexpr for Python
 
-This document describes using jsonexpr with Python.
+This document describes using JSONexpr with Python.
 For the language overview, see the [main page](https://github.com/markuskimius/jsonexpr).
 
 

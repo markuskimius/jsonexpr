@@ -1,4 +1,4 @@
-JE_VERSION:=0.2.0
+JE_VERSION:=0.2.1
 SHDOC:=src/je_const.h
 JSSHDOC:=js/lib/je.js
 PYSHDOC:=py/setup.py py/bin/je py/lib/je.py py/lib/__init__.py
