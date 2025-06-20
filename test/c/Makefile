@@ -1,8 +1,9 @@
 CC:=clang
-BINARIES:=simple
-CFLAGS:=-I../../include -g
-LDFLAGS:=-L../../lib -g
-LDLIBS:=-lje -lm
+ARCH:=$(shell uname -m)
+BINARIES:=example
+CPPFLAGS:=-I../../build/$(ARCH)/include
+LDFLAGS:=-L../../build/$(ARCH)/lib
+LDLIBS:=-lje
 
 
 ##############################################################################
@@ -15,13 +16,9 @@ all: $(BINARIES)
 clean:
 	$(RM) $(BINARIES) *.o
 
+example: example.o
 
-##############################################################################
-# FILES
-
-simple: simple.o
-
-simple.o: simple.c
+example.o: example.c
 
 
 # vim:noet:

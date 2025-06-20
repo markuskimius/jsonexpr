@@ -30,7 +30,7 @@ import getopts
 import asyncio
 import tornado.web
 
-__copyright__ = "Copyright 2022-2024 Mark Kim"
+__copyright__ = "Copyright 2022-2025 Mark Kim"
 __license__ = "Apache 2.0"
 __author__ = "Mark Kim"
 
@@ -92,7 +92,6 @@ def main():
 
     doMyThing()
 
-
 def isInt(value):
     is_int = True
 
@@ -102,7 +101,6 @@ def isInt(value):
         is_int = False
 
     return is_int
-
 
 def doMyThing():
     loop = asyncio.get_event_loop()

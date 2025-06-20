@@ -1,7 +1,7 @@
-# jsonexpr for Javascript
+# JSONexpr for Javascript
 
-This document describes using jsonexpr with Javascript.
-For the language overview, see the [main page](https://github.com/markuskimius/jsonexpr).
+This document describes using JSONexpr with Javascript.
+For the language overview, see the [main page](../README.md).
 
 
 ## Example
@@ -10,24 +10,24 @@ For the language overview, see the [main page](https://github.com/markuskimius/j
 <script type="module">
     import je from "//cdn.cbreak.org/jsonexpr/je-latest.min.js";
 
-    const compiled = await je.compile(`
+    const instance = await je.instance();
+    const parsed = instance.parse(`
         PRINT("I have " + LEN(grades) + " students");
         PRINT("Alice's grade is " + grades.alice);
+        grades
     `);
-
-    compiled.setSymbols({
-        grades : {
-            alice : "A",
-            bob   : "B",
-        }
+    const symmap = instance.symmap({
+        "grades" : {
+            "alice"   : "A",
+            "bob"     : "B",
+            "charlie" : "B",
+        },
     });
-
-    const result = await compiled.eval();
+    const result = parsed.eval(symmap);
 </script>
 ```
 
-Output:
-
+Output to the console:
 ```
 I have 2 students
 Alice's grade is A
@@ -36,5 +36,4 @@ Alice's grade is A
 
 ## License
 
-[Apache 2.0](https://github.com/markuskimius/jsonexpr/blob/main/LICENSE)
-
+[Apache 2.0](../LICENSE)

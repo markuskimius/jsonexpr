@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+    <html>
+        <title>JSONexpr Test</title>
+        <style>
+            html, body {
+                background-color: #000000;
+                color           : #ffffff;
+                font-family     : sans-serif;
+            }
+
+            .section {
+                font-weight     : bold;
+                margin-top      : 1em;
+            }
+
+            #code {
+                background-color: #ffffff;
+                color           : #000000;
+                border          : 1px white solid;
+                overflow-y      : scroll;
+            }
+
+            #console {
+                background-color: #000000;
+                color           : #ffffff;
+                border          : 1px white solid;
+                overflow-y      : scroll;
+            }
+
+            a {
+                color           : #00ffff;
+            }
+
+            a:visited {
+                color           : #ff00ff;
+            }
+        </style>
+    </html>
+    <body>
+        <div class="section">Output:</div>
+        <textarea id="console" rows="30" cols="125" readonly scroll></textarea>
+        <div><button id="runButton">Run</button> <button id="clearButton">Clear</button></div>
+
+        <script type="module">
+            import je from "./lib/je.js";
+
+            function main() {
+                const stdout = document.querySelector("#console");
+
+                document.querySelector("#runButton").addEventListener("click", async () => {
+                    const instance = await je.instance();
+                    const parsed = instance.parse(`
+                        PRINT("I have " + LEN(grades) + " students");
+                        PRINT("Alice's grade is " + grades.alice);
+                        grades
+                    `);
+                    const symmap = instance.symmap({
+                        "grades" : {
+                            "alice"   : "A",
+                            "bob"     : "B",
+                            "charlie" : "B",
+                        },
+                    });
+                    let result = parsed.eval(symmap);
+                    console.log();
+
+                    console.log("= 1 =");
+                    console.log("symmap :", symmap["grades"], je.length(symmap["grades"]));
+                    console.log("result :", result, je.length(result));
+                    console.log();
+
+                    console.log("= 2 =");
+                    symmap["grades"]["bob"] = [ "A", "B", "C" ];
+                    result["bob"][1] = "D";
+                    console.log("symmap :", symmap["grades"], je.length(symmap["grades"]));
+                    console.log("result :", result, je.length(result));
+                    console.log();
+
+                    console.log("= 3 =");
+                    delete symmap["grades"]["alice"];
+                    console.log("symmap :", symmap["grades"], je.length(symmap["grades"]));
+                    console.log("result :", result, je.length(result));
+                    console.log();
+
+                    console.log("= 4 =");
+                    symmap["grades"] = [ "A", "B", "C" ];
+                    result["bob"] = [ "D", "F" ];
+                    console.log("symmap :", symmap["grades"], je.length(symmap["grades"]));
+                    console.log("result :", result, je.length(result));
+                    console.log();
+
+                    console.log("= 5 =");
+                    symmap["grades"] = { "alice":"A", "bob":"B", "charlie":"C" };
+                    symmap["grades"]["charlie"] = result["bob"];
+                    result["bob"][0] = "E";
+                    console.log("symmap :", symmap["grades"], je.length(symmap["grades"]));
+                    console.log("result :", result, je.length(result));
+                    console.log();
+
+                    console.log("= 6 =");
+                    symmap["grades"] = { "alice":"A", "bob":result["bob"], "charlie":result["bob"] };
+                    console.log("symmap :", symmap["grades"], je.length(symmap["grades"]));
+                    console.log("result :", result, je.length(result));
+                    console.log();
+
+                    console.log("= 7 =");
+                    result["bob"][0] = "F";
+                    console.log("symmap :", symmap["grades"], je.length(symmap["grades"]));
+                    console.log("result :", result, je.length(result));
+                    console.log();
+                });
+
+                document.querySelector("#clearButton").addEventListener("click", () => {
+                    stdout.value = "_";
+                });
+
+                /* Redirect the output to the page */
+                console.log = function(...args) {
+                    /* Output */
+                    stdout.value = stdout.value.slice(0,-1) + args.map((x) => String(x)).join(" ") + "\n_";
+
+                    /* Scroll to bottom */
+                    stdout.scrollTop = stdout.scrollHeight;
+                }
+
+                console.log(`jsonexpr ${je.VERSION}`);
+            }
+
+            main();
+        </script>
+    </body>
+</html>

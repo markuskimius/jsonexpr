@@ -1,11 +1,11 @@
+#include <fcntl.h>
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <getopt.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "je.h"
 
 
@@ -22,15 +22,14 @@
 
 void usage() {
     printf("%s\n",
-"Run a JsonExpr script.\n"
+"Run a jsonexpr script.\n"
 "\n"
 "Usage: {SCRIPTNAME} [OPTIONS] [FILES]\n"
 "\n"
 "Options:\n"
-"  FILE                  File(s) to run.\n"
+"  FILE                  File(s) to evaluate.\n"
 "\n"
 "  -e,--eval EXPR        Evaluate EXPR.\n"
-"  -t,--tree             Display the syntax tree.\n"
 "  -q,--quiet            Do not output the result.\n"
 "  -v,--version          Display version and quit.\n"
     );
@@ -51,7 +50,6 @@ int doMyCodeThing(const char* code);
 char* evalv[256];
 int evalc = 0;
 int quiet = 0;
-int tree = 0;
 
 
 /* ***************************************************************************
@@ -64,7 +62,6 @@ int main(int argc, char* argv[]) {
     /* Process options */
     static struct option long_options[] = {
         {"eval"   , required_argument, 0, 'e'},
-        {"tree"   , no_argument      , 0, 't'},
         {"quiet"  , no_argument      , 0, 'q'},
         {"version", no_argument      , 0, 'v'},
         {"help"   , no_argument      , 0, 'h'},
@@ -80,7 +77,6 @@ int main(int argc, char* argv[]) {
 
         switch(c) {
             case 'e' : evalv[evalc++] = optarg; break;
-            case 't' : tree = 1; break;
             case 'q' : quiet = 1; break;
             case 'v' : version(); exit(0); break;
             case 'h' : usage(); exit(0); break;
@@ -124,16 +120,22 @@ int main(int argc, char* argv[]) {
 }
 
 int doMyFdThing(int fd) {
-    char* code = calloc(1, _PAGESIZE);
+    char* code = NULL;
     size_t offset = 0;
+    size_t size = 0;
     int result = 0;
 
     while(1) {
-        ssize_t size = read(fd, code+offset, _PAGESIZE);
+        code = realloc(code, _PAGESIZE);
+        if(!code) {
+            perror("doMyFdThing");
+            exit(1);
+        }
+
+        size = read(fd, code+offset, _PAGESIZE);
         if(size <= 0) break;
 
         offset += size;
-        code = realloc(code, offset + _PAGESIZE);
     }
 
     result = doMyCodeThing(code);
@@ -143,22 +145,24 @@ int doMyFdThing(int fd) {
 }
 
 int doMyCodeThing(const char* code) {
-    JE_NODE* ast = JE_Parse(code);
-    JE_VAL* result = JE_EvalNode(ast, NULL);
+    JE_AST ast = JE_Parse(code);
 
-    if(tree) {
-        char* tree = JE_NodeTreeAstr(ast);
+    if(ast.isok) {
+        JE_MAP* symmap = JE_SymmapCreate(JE_SYMBOLS_DEFAULT);
+        JE_VALUE result = JE_AstEval(ast, symmap);
 
-        fprintf(stderr, "%s\n", tree);
-        free(tree);
+        if(!quiet) {
+            char* cstr = JE_VCALL(&result,toQstr);
+
+            printf("%s\n", cstr);
+            free(cstr);
+        }
+
+        JE_VCALL(&result,destroy);
+        JE_SymmapDestroy(symmap);
     }
 
-    if(!quiet) {
-        printf("%s\n", JE_ValToQstr(result));
-    }
-
-    JE_ValDelete(result);
-    JE_NodeDelete(ast);
+    JE_AstDestroy(&ast);
 
     return 0;
 }

@@ -1,101 +1,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include "je_map.h"
+#include "je_str.h"
+#include "je_type.h"
 #include "je_util.h"
-#include "je_val.h"
+#include "je_value.h"
 
 
 /* ***************************************************************************
 * CONSTANTS
 */
 
-#define _NDEGREE 256
+#define _MINSIZE 32
 
 
 /* ***************************************************************************
 * PRIVATE FUNCTIONS
 */
 
-static int _mapset(JE_MAP* map, const char* key0, const char* keyi, JE_VAL* val) {
-    int ni = *(const unsigned char*)keyi;
-    JE_MAP* nn = map->next[ni];
-    int incr = 0;
-
-    /* Terminal node -> assign the val to this node */
-    if(ni == 0) {
-        if(!map->key) map->key = strdup(key0);
-        if(map->value) JE_ValDelete(map->value);
-        if(!map->value) incr++;
-        map->value = val;
-
-        return incr;
-    }
-
-    /* Create next node if needed */
-    if(!nn) {
-        nn = map->next[ni] = JE_MapNew();
-        nn->prev = map;
-        map->nchildren++;
-    }
-
-    /* Traverse to next node */
-    return _mapset(nn, key0, keyi+1, val);
+static void _resize(JE_MAP* map, size_t nmemb) {
+    map->key = JE_Realloc(map->key, sizeof(JE_STR) * nmemb);
+    map->value = JE_Realloc(map->value, sizeof(JE_VALUE) * nmemb);
 }
 
-static int _mapunset(JE_MAP* map, const char* key) {
-    int ni = *(const unsigned char*)key;
-    JE_MAP* nn = map->next[ni];
-    int freed = 0;
+static ssize_t _find(const JE_MAP map, const JE_STR key) {
+    ssize_t i = 0;
+    ssize_t j = map.size;
+    ssize_t k = (i+j)/2;
 
-    /* Terminal node -> remove the val at this node */
-    if(ni == 0) {
-        if(map->key) free(map->key);
-        if(map->value) JE_ValDelete(map->value);
+    while(i<j) {
+        int64_t cmp = JE_StrCompare(key, map.key[k]);
 
-        map->key = NULL;
-        map->value = NULL;
-    }
-    /* Traverse to the next node */
-    else if(nn) {
-        int cfreed = _mapunset(nn, key+1);
+        if(cmp == 0) return k;
+        if(cmp < 0) j = k;
+        if(cmp > 0) i = k+1;
 
-        if(cfreed) {
-            map->next[ni] = NULL;
-            map->nchildren--;
-        }
+        k = (i+j)/2;
     }
 
-    /* Free this node if it has no children (if it's not the root node) */
-    if(map->nchildren == 0 && map->prev) {
-        free(map);
-        freed = 1;
-    }
-
-    return freed;
-}
-
-static JE_MAP* _mapnext(JE_MAP* map, const char* lastkey, int i) {
-    int ni = *((const unsigned char*)lastkey + i) + 1;
-
-    /* Next child, if any */
-    while(ni < _NDEGREE) {
-        JE_MAP* nn = map->next[ni];
-
-        if(nn) {
-            if(nn->value) return nn;            /* Child node is terminal -> return it */
-            else return _mapnext(nn, "\0", 0);  /* Child node is nonterminal -> traverse to it */
-        }
-
-        ni++;
-    }
-
-    /* Next child of parent */
-    if(map->prev && i>=0) {
-        return _mapnext(map->prev, lastkey, i-1);
-    }
-
-    return NULL;
+    return ~k;
 }
 
 
@@ -103,176 +48,213 @@ static JE_MAP* _mapnext(JE_MAP* map, const char* lastkey, int i) {
 * PUBLIC FUNCTIONS
 */
 
-JE_MAP* JE_MapNew() {
-    JE_MAP* map = JE_Calloc(1, sizeof(JE_MAP));
-
-    map->count = 1;
-
-    return map;
-}
-
-JE_MAP* JE_MapDup(JE_MAP* map) {
-    map->count++;
-
-    return map;
-}
-
-void JE_MapDelete(JE_MAP* map) {
-    map->count--;
-
-    if(map->count == 0) {
-        /* Free child nodes */
-        for(size_t i=0; i<_NDEGREE; i++) {
-            JE_MAP* n = map->next[i];
-
-            if(n) {
-                JE_MapDelete(n);
-                map->next[i] = NULL;
-            }
-        }
-
-        /* Free this node */
-        if(map->key) free((void*) map->key);
-        if(map->value) JE_ValDelete(map->value);
-
-        map->key = NULL;
-        map->value = NULL;
-        map->prev = NULL;
-        map->nchildren = 0;
-        map->length = 0;
-        map->count = 0;
-        free(map);
-    }
-}
-
-void JE_MapSet(JE_MAP* map, const char* key, JE_VAL* val) {
-    map->length += _mapset(map, key, key, val);
-}
-
-void JE_MapUnset(JE_MAP* map, const char* key) {
-    if(JE_MapGet(map, key)) map->length--;
-
-    _mapunset(map, key);
-}
-
-void JE_MapClear(JE_MAP* map) {
-    JE_MAP* next = map;
-
-    /* Keep removing the first item */
-    while((next = JE_MapNext(map))) {
-        JE_MapUnset(map, next->key);
-    }
-}
-
-JE_VAL* JE_MapGet(JE_MAP* map, const char* key) {
-    int ni = (unsigned)*key;
-    JE_MAP* nn = map->next[ni];
-
-    if(ni == 0) return map->value;          /* Terminal node -> return the val at this node */
-    else if(nn) return JE_MapGet(nn, key+1);   /* Traverse to next node */
-    else        return NULL;                /* Not found */
-}
-
-int JE_MapCmp(JE_MAP* map1, JE_MAP* map2) {
-    int cmp = 0;
-
-    while(1) {
-        map1 = JE_MapNext(map1);
-        map2 = JE_MapNext(map2);
-
-        if(map1 && map2) {
-            cmp = strcmp(map1->key, map2->key);
-            if(cmp == 0) cmp = JE_ValCmp(map1->value, map2->value);
-        }
-        else if(map1) cmp = 1;
-        else if(map2) cmp = -1;
-        else          break;
-
-        if(cmp != 0) break;
-    }
-
-    return cmp;
-}
-
-JE_MAP* JE_MapNext(JE_MAP* map) {
-    if(map->key) return _mapnext(map, map->key, strlen(map->key));
-    else return _mapnext(map, "\0", 0);
-}
-
-char* JE_MapToAstr(JE_MAP* map) {
-    char* str = JE_Calloc(1, strlen("{  }")+1);
-    size_t i = 0;
-
-    /* Opening brace */
-    str = JE_AstrCat(str, "{");
-
-    /* Elements */
-    while((map = JE_MapNext(map))) {
-        char* kstr = JE_CstrToQstr(map->key);
-        const char* vstr = JE_ValToQstr(map->value);
-
-        if(i++ > 0) str = JE_AstrCat(str, ",");
-        str = JE_AstrCat(str, " ");
-        str = JE_AstrCat(str, kstr);
-        str = JE_AstrCat(str, ": ");
-        str = JE_AstrCat(str, vstr);
-
-        free(kstr);
-    }
-
-    /* Closing bracket */
-    str = JE_AstrCat(str, " }");
-
-    return str;
-}
-
-char* JE_MapKey(JE_MAP* map) {
-    return map->key;
-}
-
-JE_VAL* JE_MapVal(JE_MAP* map) {
-    return map->value;
-}
-
-
-/* ***************************************************************************
-* TEST FUNCTIONS
+/**
+* Create a new JE_MAP, optionally specifying the initial capacity.  0 can be
+* passed instead of the capacity to default to a reasonable initial capacity.
 */
+JE_MAP JE_MapCreate(size_t capacity) {
+    JE_MAP map;
 
-void _JE_MapPrint(const JE_MAP* map, char c, int depth) {
-    for(int i=0; i<depth; i++) printf("  ");
-    printf("[%c] => addr=%p, prev=%p, key=%s, val=%s\n", c, map, map->prev, map->key, JE_ValToCstr(map->value));
+    map.key = JE_Malloc(sizeof(JE_STR) * (capacity ? capacity : _MINSIZE));
+    map.value = JE_Malloc(sizeof(JE_VALUE) * (capacity ? capacity : _MINSIZE));
+    map.size = 0;
 
-    for(int i=0; i<_NDEGREE; i++) {
-        const JE_MAP* next = map->next[i];
+    return map;
+}
 
-        if(next) _JE_MapPrint(next, i, depth+1);
+/**
+* Return a clone of map.
+*/
+JE_MAP JE_MapClone(const JE_MAP map) {
+    JE_MAP dup;
+
+    dup.key = JE_Malloc(sizeof(JE_STR) * (map.size<_MINSIZE ? _MINSIZE : map.size));
+    dup.value = JE_Malloc(sizeof(JE_VALUE) * (map.size<_MINSIZE ? _MINSIZE : map.size));
+    dup.size = map.size;
+
+    for(size_t i=0; i<map.size; i++) dup.key[i] = JE_StrClone(map.key[i]);
+    for(size_t i=0; i<map.size; i++) dup.value[i] = JE_VCALL(&map.value[i],clone);
+
+    return dup;
+}
+
+/**
+* Concatenate two JE_MAP's, return a new JE_MAP.
+*/
+JE_MAP JE_MapPlusMap(const JE_MAP x, const JE_MAP y) {
+    JE_MAP map = JE_MapClone(x);
+
+    for(size_t i=0; i<y.size; i++) JE_MapSet(&map, JE_StrClone(y.key[i]), JE_VCALL(&y.value[i],clone));
+
+    return map;
+}
+
+/**
+* Compare x to y.  Return a value less than, equal to, or greater than 0 if
+* x is less than, equal to, or greater than y, respectively.
+*/
+int64_t JE_MapCompare(const JE_MAP x, const JE_MAP y) {
+    size_t size = x.size<y.size ? x.size : y.size;
+
+    for(size_t i=0; i<size; i++) {
+        int64_t cmp = 0;
+
+        cmp = JE_StrCompare(x.key[i], y.key[i]);
+        if(cmp) return cmp;
+
+        cmp = JE_VCALL(&x.value[i],compare,y.value[i]);
+        if(cmp) return cmp;
+    }
+
+    return x.size - y.size;
+}
+
+/**
+* Concatenate y to x.
+*/
+void JE_MapPlusAssnMap(JE_MAP* x, const JE_MAP y) {
+    _resize(x, x->size + y.size);
+
+    for(size_t i=0; i<y.size; i++) JE_MapSet(x, JE_StrClone(y.key[i]), JE_VCALL(&y.value[i],clone));
+}
+
+/**
+* Destroy map.
+*/
+void JE_MapDestroy(JE_MAP* map) {
+    for(size_t i=0; i<map->size; i++) JE_StrDestroy(&map->key[i]);
+    for(size_t i=0; i<map->size; i++) JE_VCALL(&map->value[i],destroy);
+
+    JE_Free(map->key);
+    JE_Free(map->value);
+
+    memset(map, 0, sizeof(JE_MAP));
+}
+
+/**
+* Map a key to a value.
+*
+* Once added into map, key and val may no longer be operated on by the caller.
+* If val needs to be modified after the set, modify the returned pointer
+* instead.
+*
+* If the key already maps to a value, the old key and the old value are destroyed.
+*/
+JE_VALUE* JE_MapSet(JE_MAP* map, JE_STR key, JE_VALUE val) {
+    ssize_t i = _find(*map, key);
+    size_t nshift = 0;
+
+    if(i >= 0) {
+        JE_StrDestroy(&map->key[i]);
+        JE_VCALL(&map->value[i],destroy);
+    }
+    else {
+        i = ~i;
+        nshift = map->size - i;
+
+        /* Allocate space */
+        map->size++;
+        map->key = JE_Realloc(map->key, sizeof(JE_STR) * map->size);
+        map->value = JE_Realloc(map->value, sizeof(JE_VALUE) * map->size);
+
+        /* Make space for the new item */
+        memmove(&map->key[i+1], &map->key[i], sizeof(JE_STR) * nshift);
+        memmove(&map->value[i+1], &map->value[i], sizeof(JE_VALUE) * nshift);
+    }
+
+    /* Set */
+    map->key[i] = key;
+    map->value[i] = val;
+
+    return &map->value[i];
+}
+
+JE_VALUE* JE_MapGet(const JE_MAP map, const JE_STR key) {
+    ssize_t i = _find(map, key);
+    JE_VALUE* value = NULL;
+
+    if(i >= 0) value = &map.value[i];
+
+    return value;
+}
+
+void JE_MapRemove(JE_MAP* map, const JE_STR key) {
+    ssize_t i = _find(*map, key);
+
+    if(i >= 0) {
+        size_t nshift = map->size - i - 1;
+
+        /* Destroy */
+        JE_StrDestroy(&map->key[i]);
+        JE_VCALL(&map->value[i],destroy);
+
+        /* Shift */
+        if(nshift) {
+            memmove(&map->key[i], &map->key[i+1], sizeof(JE_STR) * nshift);
+            memmove(&map->value[i], &map->value[i+1], sizeof(JE_VALUE) * nshift);
+        }
+
+        /* Update size */
+        map->size--;
     }
 }
 
-void _JE_MapTest() {
-    JE_MAP* map = JE_MapNew();
-    JE_MAP* mapi = map;
+/**
+* Return the number of elements in JE_MAP.
+*/
+size_t JE_MapSize(const JE_MAP map) {
+    return map.size;
+}
 
-    /* Set test */
-    JE_MapSet(map, "Hello", JE_ValNewFromCstr("world!"));
-    JE_MapSet(map, "Bye", JE_ValNewFromCstr("cruel world!"));
+/**
+* Convert JE_MAP to a C string.  The returned C string must be freed.
+*/
+char* JE_MapToCstr(const JE_MAP map) {
+    char* cstr = JE_Malloc(_MINSIZE);
+    size_t capacity = _MINSIZE;
+    size_t clen = 0;
 
-    /* Get test */
-    printf("Bye, %s\n", JE_ValToQstr(JE_MapGet(map, "Bye")));
-    printf("Hello, %s\n", JE_ValToQstr(JE_MapGet(map, "Hello")));
-    printf("Nosuchkey: %s\n", JE_ValToQstr(JE_MapGet(map, "Nosuchkey")));
-    printf("\n");
+    cstr[clen++] = '{';
 
-    /* Print the map */
-    // _JE_MapPrint(map, 0, 0);
+    for(size_t i=0; i<map.size; i++) {
+        char* kstr = JE_StrToQstr(map.key[i]);
+        char* vstr = JE_VCALL(&map.value[i],toQstr);
+        size_t klen = strlen(kstr);
+        size_t vlen = strlen(vstr);
 
-    /* Iterator test */
-    while((mapi = JE_MapNext(mapi))) {
-        printf("%s, %s\n", mapi->key, JE_ValToQstr(mapi->value));
+        if(i) cstr[clen++] = ',';
+        cstr[clen++] = ' ';
+
+        /* allocate memory */
+        cstr = JE_Realloc(cstr, clen+klen+vlen+5);
+
+        /* key */
+        memcpy(cstr+clen, kstr, klen);
+        clen += klen;
+
+        /* : */
+        cstr[clen++] = ':';
+        cstr[clen++] = ' ';
+
+        /* value */
+        memcpy(cstr+clen, vstr, vlen);
+        clen += vlen;
+
+        JE_Free(kstr);
+        JE_Free(vstr);
     }
-    printf("\n");
 
-    /* Free test */
-    JE_MapDelete(map);
+    cstr[clen++] = ' ';
+    cstr[clen++] = '}';
+    cstr[clen++] = '\0';
+
+    return cstr;
+}
+
+/**
+* Convert JE_MAP to a quoted C string.  The returned quoted C string must be
+* freed.
+*/
+char* JE_MapToQstr(const JE_MAP map) {
+    return JE_MapToCstr(map);
 }

@@ -30,7 +30,7 @@ import errno
 import getopts
 import jsonexpr as je
 
-__copyright__ = "Copyright 2024 Mark Kim"
+__copyright__ = "Copyright 2024-2025 Mark Kim"
 __license__ = "Apache 2.0"
 __version__ = "${JE_VERSION}"
 __author__ = "Mark Kim"
@@ -43,9 +43,7 @@ SCRIPTNAME = os.path.basename(__file__)
 SCRIPTDIR = os.path.dirname(__file__)
 
 class opts:
-    wasmfile = os.path.join(SCRIPTDIR, "..", "lib", "je.wasm")
     quiet = 0
-    tree = 0
     eval = []
     files = []
 
@@ -55,7 +53,7 @@ class opts:
 
 def usage():
     """\\
-Run a JsonExpr script.
+Run a JSONexpr script.
 
 Usage: {SCRIPTNAME} [OPTIONS] [FILES]
 
@@ -63,7 +61,6 @@ Options:
   FILE                  File(s) to run.
 
   -e,--eval EXPR        Evaluate EXPR.
-  -t,--tree             Display the syntax tree.
   -q,--quiet            Do not output the result.
   -v,--version          Display version and quit.
 """
@@ -84,7 +81,6 @@ def main():
     # Process options
     getopt = getopts.getopts(sys.argv, {
         "e" : 1, "eval"    : 1,
-        "t" : 0, "tree"    : 0,
         "q" : 0, "quiet"   : 0,
         "v" : 0, "version" : 0,
         "h" : 0, "help"    : 0,
@@ -93,7 +89,6 @@ def main():
     for c in getopt:
         if   c in ("-")            : opts.files.append(getopt.optarg)
         elif c in ("e", "eval")    : opts.eval.append(getopt.optarg)
-        elif c in ("t", "tree")    : opts.tree = 1
         elif c in ("q", "quiet")   : opts.quiet = 1
         elif c in ("v", "version") : version(); sys.exit(0)
         elif c in ("h", "help")    : usage(); sys.exit(0)
@@ -122,16 +117,12 @@ def doMyFdThing(fd):
 
 
 def doMyThing(code):
-    compiled = je.compile(code)
-    result = compiled.eval()
-
-    if(opts.tree):
-        tree = compiled.nodetree()
-
-        sys.stderr.write(f"{tree}\n")
+    instance = je.instance()
+    parsed = instance.parse(code)
+    result = parsed.eval()
 
     if(not opts.quiet):
-        print(json.dumps(result))
+        print(json.dumps(result, cls=je.JsonEncoder))
 
     return result
 

@@ -1,38 +1,36 @@
-# jsonexpr
+# JSONexpr
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/markuskimius/jsonexpr?include_prereleases&label=Pre-release)](https://github.com/markuskimius/jsonexpr/releases)
 ![clang17](https://img.shields.io/badge/clang-17-blue.svg)
 ![python38](https://img.shields.io/badge/python-3.8-blue.svg)
 ![javascript](https://img.shields.io/badge/javascript-grey.svg)
 
-A light, JSON-based expression language.
+An expression language built on JSON.
 
 
-## Overview
+## Motivation
 
-jsonexpr is a general-purpose expression language that uses JSON as its data type.
-It can manipulate JSON, use JSON as its input, and output JSON.
-As a matter of fact, a vanilla JSON is a valid expression in jsonexpr.
+Wouldn't it be great if...
 
-A jsonexpr expression is evaluted in a sandbox,
-so one common use case for jsonexpr is to evaluate a user-submitted expression safely
-from a *host language*.
-Currently supported host languages include C, Python, and Javascript;
-a library is offered in each of the host languages to be able to evaluate
-jsonexpr expression.
-A stand-alone binary is also offered so a user can evaluate a jsonexpr
-expression from the command line.
+* You could embed comments and expressions in JSON?
+* You could evaluate such "JSON expression" from any programming language?
 
-Another use case for jsonexpr is to share a common language between the client
-and the server written in two different languages.
-For example, the user may be asked to enter some expression for evaluation,
-and the application can choose to execute the expression on the client side in
-Javascript, or on the server side in Python.
+So that you can:
+
+* Add comments and expressions to JSON files used by your application?
+* Ask the user for an expression and evaluate it in a safe sandbox?
+* And do that evaluation from either the client or the server, regardless of what language they're written in?
+* Have the option to change the programming language your application is written in without changing the expresion language used by the JSON file or the users?
+
+JSONexpr executes in an WASM runtime so it executes in a safe sandbox and is
+portable to any language that supports WASM runtime.
 
 
 ## Example
 
-```
+```bash
+$ cat students.je
 [
   {
     "name": "Alice",
@@ -47,41 +45,37 @@ Javascript, or on the server side in Python.
     "score": (75 + 78 + 74) / 3.0
   }
 ]
-```
-
-The result of the above expression is the following JSON:
-
-```json
+$ je students.je | jq .
 [
   {
     "name": "Alice",
-    "score": 95.666667
+    "score": 95.66666666666667
   },
   {
     "name": "Bob",
-    "score": 85.666667
+    "score": 85.66666666666667
   },
   {
     "name": "Charlie",
-    "score": 75.666667
+    "score": 75.66666666666667
   }
 ]
+$
 ```
-
-The expression may be evaluated from a host language or from the command line.
 
 
 ## Documentation
 
+* [Overview](doc/overview.md)
 * [Installation](doc/install.md)
 * Usage
   * [C](src/README.md)
   * [Python](py/README.md)
   * [Javascript](js/README.md)
 * Language Reference
-  * [Data Types](doc/datatype.md)
-  * [Operators](doc/op.md)
-  * [Functions](doc/fn.md)
+  * [Data Types](doc/datatypes.md)
+  * [Operators](doc/operators.md)
+  * [Functions](doc/functions.md)
 
 
 ## License

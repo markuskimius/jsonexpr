@@ -1,0 +1,15 @@
+# Host may also be pass this data into the evaluation environment
+students = [ "Alice", "Bob", "Charlie" ];
+
+FOR(i=0, i<LEN(students), i=i+1,
+    note = "";
+
+    IF(students[i] == "Alice",
+        note = " (she's my favorite)"
+    );
+
+    PRINT("Student #" + (i+1) + "'s name is " + students[i] + note);
+);
+
+# Return the number of students (last expression returns its value)
+LEN(students)

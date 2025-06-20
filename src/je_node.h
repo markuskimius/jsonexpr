@@ -1,8 +1,9 @@
 #ifndef JE_NODE_H_
 #define JE_NODE_H_
 
-#include <inttypes.h>
+#include <stddef.h>
 #include "je_parse.h"
+#include "je_value.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,60 +11,10 @@ extern "C" {
 
 
 /* ***************************************************************************
-* FORWARD DECLARATIONS
+* FORWARD DECLARATION
 */
 
-typedef struct JE_VAL JE_VAL;
-typedef struct JE_TOKEN JE_TOKEN;
-typedef struct JE_YYLTYPE JE_YYLTYPE;
-
-
-/* ***************************************************************************
-* CONSTANTS
-*/
-
-enum {
-    JE_NULL_N = 0x100,
-    JE_BOOL_N,
-    JE_INT_N,
-    JE_FLOAT_N,
-    JE_STRING_N,
-    JE_ARRAY_N,
-    JE_OBJECT_N,
-    JE_CALL_N,
-    JE_IDENT_N,
-    JE_UPLUS_N,
-    JE_UMINUS_N,
-    JE_POW_N,
-    JE_EQ_N,
-    JE_NE_N,
-    JE_LT_N,
-    JE_LE_N,
-    JE_GT_N,
-    JE_GE_N,
-    JE_OR_N,
-    JE_AND_N,
-    JE_SHL_N,
-    JE_ASR_N,
-    JE_SHR_N,
-    JE_PREINC_N,
-    JE_POSTINC_N,
-    JE_PREDEC_N,
-    JE_POSTDEC_N,
-    JE_PLEQ_N,
-    JE_MIEQ_N,
-    JE_TIEQ_N,
-    JE_DIEQ_N,
-    JE_MOEQ_N,
-    JE_SHLEQ_N,
-    JE_ASREQ_N,
-    JE_SHREQ_N,
-    JE_ANDEQ_N,
-    JE_XOREQ_N,
-    JE_OREQ_N,
-    JE_POWEQ_N,
-    JE_MAX_N
-};
+typedef struct JE_NTYPE JE_NTYPE;
 
 
 /* ***************************************************************************
@@ -71,36 +22,94 @@ enum {
 */
 
 typedef struct JE_NODE {
-    int type;
-    struct JE_NODE* left;
-    struct JE_NODE* right;
-    struct JE_NODE* righter;
-    struct JE_NODE* parent;
+    JE_NTYPE* ntype;
 
     union {
-        int64_t i;
-        double f;
-        char* s;
-    } value;
+        JE_STR   id;    /* This node is an identifier */
+        JE_VALUE val;   /* This node is a value */
+        size_t   next;  /* Offset to the second child node, if any */
+    } data;
 
-    JE_YYLTYPE loc;
-    JE_TOKEN* head;
+    size_t skip;        /* Offset to the next sibling node */
+    size_t tmi;         /* Token map index */
 } JE_NODE;
 
 
 /* ***************************************************************************
-* PUBLIC FUNCTIONS
+* MACROS
 */
 
-JE_NODE* JE_NodeNew(int type, JE_NODE* left, JE_NODE* right, JE_NODE* righter, JE_YYLTYPE* loc);
-JE_NODE* JE_NodeNewInt(int type, int64_t i, JE_YYLTYPE* loc);
-JE_NODE* JE_NodeNewFloat(int type, double f, JE_YYLTYPE* loc);
-JE_NODE* JE_NodeNewStr(int type, char* s, JE_YYLTYPE* loc);
-void JE_NodeDelete(JE_NODE* node);
+#define JE_NCALL(np,method,...) ((np)->ntype->method((np),##__VA_ARGS__))
 
-char* JE_NodeTreeAstr(JE_NODE* node);
-char* JE_NodeAstr(JE_NODE* node);
-const char* JE_NodeTypeCstr(JE_NODE* node);
+
+/* ***************************************************************************
+* FUNCTIONS
+*/
+
+JE_NODE JE_NodeArray(size_t llen, size_t tmi);
+JE_NODE JE_NodeArray2(size_t llen, size_t tmi);
+JE_NODE JE_NodeAsr(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssn(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeBitwiseAnd(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeBitwiseInv(size_t llen, size_t tmi);
+JE_NODE JE_NodeBitwiseOr(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeBitwiseXor(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeCall(size_t llen, size_t tmi);
+JE_NODE JE_NodeCall2(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeDivby(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeEqual(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeGreater(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeGreaterEq(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeIdent(JE_STR ident, size_t tmi);
+JE_NODE JE_NodeIndex(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeLess(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeLessEq(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeList(size_t llen, size_t tmi);
+JE_NODE JE_NodeList2(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeLogicalAnd(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeLogicalNot(size_t llen, size_t tmi);
+JE_NODE JE_NodeLogicalOr(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeMember(size_t llen, JE_STR right, size_t tmi);
+JE_NODE JE_NodeMinus(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeMod(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeMtArray(size_t tmi);
+JE_NODE JE_NodeMtObject(size_t tmi);
+JE_NODE JE_NodeNeg(size_t llen, size_t tmi);
+JE_NODE JE_NodeNotEqual(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeObject(size_t llen, size_t tmi);
+JE_NODE JE_NodeObject2(size_t llen, size_t tmi);
+JE_NODE JE_NodePair(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodePairlist(size_t llen, size_t tmi);
+JE_NODE JE_NodePairlist2(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeParen(size_t llen, size_t tmi);
+JE_NODE JE_NodePlus(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodePos(size_t llen, size_t tmi);
+JE_NODE JE_NodePostDec(size_t llen, size_t tmi);
+JE_NODE JE_NodePostInc(size_t llen, size_t tmi);
+JE_NODE JE_NodePow(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodePreDec(size_t llen, size_t tmi);
+JE_NODE JE_NodePreInc(size_t llen, size_t tmi);
+JE_NODE JE_NodeShl(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeShr(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeStmt(size_t llen, size_t tmi);
+JE_NODE JE_NodeStmt2(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeTernary(size_t llen, size_t rlen, size_t rrlen, size_t tmi);
+JE_NODE JE_NodeTernary2(size_t rlen, size_t rrlen, size_t tmi);
+JE_NODE JE_NodeTimes(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeVal(JE_VALUE value, size_t tmi);
+
+JE_NODE JE_NodeAssnAsr(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnBitAnd(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnBitOr(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnBitXor(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnDivby(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnMinus(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnMod(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnPlus(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnPow(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnShl(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnShr(size_t llen, size_t rlen, size_t tmi);
+JE_NODE JE_NodeAssnTimes(size_t llen, size_t rlen, size_t tmi);
 
 
 #ifdef __cplusplus

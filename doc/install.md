@@ -1,12 +1,14 @@
 # Installation
 
-jsonexpr may be built from scratch
-or installed from a package.
+JSONexpr may be built from scratch or installed from a package.
+
+The command-line version of JSONexpr, `je`, comes with the C version and the
+Python version of JSONexpr.
 
 
 ## Building from Scratch
 
-To build jsonexpr from scratch,
+To build JSONexpr from scratch,
 first install [libc-wasm](https://github.com/markuskimius/libc-wasm) then run:
 
 ```bash
@@ -31,7 +33,7 @@ Build from scratch then run `pip3 install .` from `py/`.
 Build from scratch then copy `js/lib/je.js` and `js/lib/je.wasm` into your project.
 
 
-## Installing from package
+## Installing from a Package
 
 ### C
 

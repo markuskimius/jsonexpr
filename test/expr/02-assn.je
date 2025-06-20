@@ -1,0 +1,16 @@
+a = 0xf0f; PRINT("a &= 0xff0");  PRINT(a &= 0xff0); PRINT(a);  PRINT();
+a = 1024;  PRINT("a %= 7");      PRINT(a %= 7);     PRINT(a);  PRINT();
+a = 1024;  PRINT("a *= 2");      PRINT(a *= 2);     PRINT(a);  PRINT();
+a = 1024;  PRINT("a **= 2");     PRINT(a **= 2);    PRINT(a);  PRINT();
+a = 1024;  PRINT("a += 2");      PRINT(a += 2);     PRINT(a);  PRINT();
+a = 1024;  PRINT("a -= 2");      PRINT(a -= 2);     PRINT(a);  PRINT();
+a = 1024;  PRINT("a /= 2");      PRINT(a /= 2);     PRINT(a);  PRINT();
+a = 1024;  PRINT("a <<= 2");     PRINT(a <<= 2);    PRINT(a);  PRINT();
+a = 1024;  PRINT("a >>= 2");     PRINT(a >>= 2);    PRINT(a);  PRINT();
+a = 1024;  PRINT("a >>>= 2");    PRINT(a >>>= 2);   PRINT(a);  PRINT();
+a = 0xf0f; PRINT("a ^= 0xff0");  PRINT(a ^= 0xff0); PRINT(a);  PRINT();
+a = 0xf0f; PRINT("a |= 0xff0");  PRINT(a |= 0xff0); PRINT(a);  PRINT();
+
+a = -1024; PRINT("a <<= 2");     PRINT(a <<= 2);    PRINT(a);  PRINT();
+a = -1024; PRINT("a >>= 2");     PRINT(a >>= 2);    PRINT(a);  PRINT();
+a = -1024; PRINT("a >>>= 2");    PRINT(a >>>= 2);   PRINT(a);  PRINT();

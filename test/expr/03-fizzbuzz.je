@@ -1,0 +1,17 @@
+fizzbuzz = FUNCTION("I",
+    x = ARGS[0];
+
+    FOR(i=1, i<x+1, i++,
+        IF(i%3 == 0 && i%5 == 0,
+            PRINT(i, "fizzbuzz")
+        ,i%3 == 0,
+            PRINT(i, "fizz")
+        ,i%5 == 0,
+            PRINT(i, "buzz")
+        ,
+            PRINT(i)
+        )
+    );
+);
+
+fizzbuzz(30);

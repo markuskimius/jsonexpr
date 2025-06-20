@@ -1,0 +1,16 @@
+memo = [ 0, 1 ];
+
+fib = FUNCTION("I",
+    x = ARGS[0];
+
+    IF(LEN(memo)-1 < x,
+        x1 = fib(x-1);
+        x2 = fib(x-2);
+
+        memo[x] = x1 + x2
+    );
+
+    memo[x]
+);
+
+PRINT(fib(92));

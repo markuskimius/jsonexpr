@@ -1,1 +1,3 @@
-je.h
+*.o
+/build
+/je_parse.output

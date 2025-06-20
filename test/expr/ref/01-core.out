@@ -1,0 +1,17 @@
+null
+true
+false
+0
+1
+-1
+-1
+-1
+-1
+Hello, world!
+[ 101, 211, 321, 642 ]
+{ "age": 30, "email": "Bob@Bob", "name": "Bob" }
+211
+Bob@Bob
+30
+[ 101, 211, 321, 642, null, 431, null, 7431 ]
+{ "age": 31, "email": "Bob@Bob", "name": "Bob", "phone": "111-111-1111" }

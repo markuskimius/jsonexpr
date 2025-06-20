@@ -1,0 +1,32 @@
+myvar = "Hello, world!";
+myarr = [ 101, 211, 321, THIS[2]*2 ];
+myobj = {
+    "name"  : "Bob",
+    "email" : THIS.name + "@" + THIS.name,
+    "age"   : 30,
+};
+
+PRINT(null);
+PRINT(true);
+PRINT(false);
+PRINT(0);
+PRINT(1);
+PRINT(-1);
+PRINT(03777777777777777777777);
+PRINT(0xffffffffffffffff);
+PRINT(0b11111111111111111111111111111111111111111111111111111111111111111111111111111111);
+
+PRINT(myvar);
+PRINT(myarr);
+PRINT(myobj);
+PRINT(myarr[1]);
+PRINT(myobj["email"]);
+PRINT(myobj.age);
+
+myarr[5] = 431;
+myarr[7] = myarr[5] + 7000;
+myobj.age = myobj["age"] + 1;
+myobj.phone = "111-111-1111";
+
+PRINT(myarr);
+PRINT(myobj);

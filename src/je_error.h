@@ -10,34 +10,24 @@ extern "C" {
 * FORWARD DECLARATIONS
 */
 
-typedef struct JE_YYLTYPE JE_YYLTYPE;
+typedef struct JE_AST JE_AST;
+typedef struct JE_TOKEN JE_TOKEN;
 
 
 /* ***************************************************************************
 * MACROS
 */
 
-#define JE_Die(args...) _JE_Die(__FILE__, __FUNCTION__, __LINE__, args)
-#define JE_LogicError(args...) JE_Throwx(__FILE__, __FUNCTION__, __LINE__, "JE_LogicError", args)
-#define JE_ParseError(args...) JE_Throw("JE_ParseError", args)
-#define JE_RuntimeError(args...) JE_Throw("JE_RuntimeError", args)
-
-
-/* ***************************************************************************
-* GLOBALS
-*/
-
-extern char* JE_throwText;
+#define JE_SyntaxError(args...) JE_Error("JE_SyntaxError", args)
+#define JE_RuntimeError(args...) JE_Error("JE_RuntimeError", args)
+#define JE_InternalError(args...) JE_Error("JE_InternalError", args)
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-void _JE_Die(const char* file, const char* func, size_t line, const char* format, ...);
-void JE_Throw(const char* type, JE_YYLTYPE* loc, const char* format, ...);
-void JE_Throwx(const char* file, const char* func, size_t line, const char* type, JE_YYLTYPE* loc, const char* format, ...);
-void JE_ThrowLater(const char* format, ...);
+void JE_Error(const char* type, const JE_TOKEN* begin, const JE_TOKEN* end, const char* format, ...);
 
 
 #ifdef __cplusplus

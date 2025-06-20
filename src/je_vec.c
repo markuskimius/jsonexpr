@@ -1,9 +1,8 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "je_error.h"
+#include "je_type.h"
 #include "je_util.h"
-#include "je_val.h"
+#include "je_value.h"
 #include "je_vec.h"
 
 
@@ -11,175 +10,230 @@
 * CONSTANTS
 */
 
-#define _INITSIZE 8
+#define _MINSIZE 32
 
 
 /* ***************************************************************************
-* MACROS
+* PRIVATE FUNCTIONS
 */
 
-#define _MAX(a,b) ((a)>(b)?(a):(b))
+static void _resize(JE_VEC* vec, size_t nmemb) {
+    vec->data = JE_Realloc(vec->data, sizeof(JE_VALUE) * nmemb);
+}
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
-JE_VEC* JE_VecNew() {
-    JE_VEC* vec = JE_Calloc(1, sizeof(JE_VEC));
-
-    vec->item = JE_Calloc(_INITSIZE, sizeof(JE_VAL*));
-    vec->count = 1;
-    vec->length = 0;
-    vec->capacity = _INITSIZE;
-
-    return vec;
-}
-
-JE_VEC* JE_VecDup(JE_VEC* vec) {
-    vec->count++;
-
-    return vec;
-}
-
-void JE_VecDelete(JE_VEC* vec) {
-    vec->count--;
-
-    if(vec->count == 0) {
-        for(size_t i=0; i<vec->length; i++) {
-            JE_ValDelete(vec->item[i]);
-        }
-
-        if(vec->item) free(vec->item);
-        vec->item = NULL;
-        vec->capacity = 0;
-        vec->length = 0;
-        vec->count = 0;
-        free(vec);
-    }
-}
-
-int JE_VecSet(JE_VEC* vec, size_t index, JE_VAL* item) {
-    int isok = 1;
-
-    if(index == vec->length) {
-        JE_VecPush(vec, item);
-    }
-    else if(index < vec->length) {
-        JE_ValDelete(vec->item[index]);
-        vec->item[index] = item;
-    }
-    else {
-        JE_ThrowLater("Insert to invalid index %zd (max %zd)", index, vec->length);
-        isok = 0;
-    }
-
-    return isok;
-}
-
-void JE_VecPop(JE_VEC* vec) {
-    if(vec->length) {
-        JE_ValDelete(vec->item[vec->length-1]);
-        vec->length--;
-    }
-}
-
-void JE_VecPush(JE_VEC* vec, JE_VAL* item) {
-    /* Allocate more memory if needed */
-    if(vec->length >= vec->capacity) {
-        vec->item = JE_Realloc(vec->item, vec->capacity*2, sizeof(JE_VAL*));
-        vec->capacity *= 2;
-    }
-
-    /* Insert */
-    vec->item[vec->length] = item;
-    vec->length++;
-}
-
-void JE_VecUnset(JE_VEC* vec, size_t index) {
-    if(index < vec->length) {
-        JE_ValDelete(vec->item[index]);
-
-        for(size_t i=index; i<vec->length-1; i++) {
-            vec->item[i] = vec->item[i+1];
-        }
-
-        vec->length--;
-    }
-}
-
-JE_VAL* JE_VecGet(JE_VEC* vec, size_t index) {
-    JE_VAL* item = NULL;
-
-    if(index < vec->length) {
-        item = vec->item[index];
-    }
-
-    return item;
-}
-
-JE_VAL* JE_VecBack(JE_VEC* vec) {
-    JE_VAL* item = NULL;
-
-    if(vec->length) item = vec->item[vec->length-1];
-
-    return item;
-}
-
-int JE_VecCmp(JE_VEC* vec1, JE_VEC* vec2) {
-    size_t len = _MAX(vec1->length, vec2->length);
-    int cmp = 0;
-
-    for(size_t i=0; i<len; i++) {
-        if     (i<vec1->length && i<vec2->length) cmp = JE_ValCmp(vec1->item[i], vec2->item[i]);
-        else if(i<vec1->length)                   cmp = 1;
-        else                                      cmp = -1;
-
-        if(cmp != 0) break;
-    }
-
-    return cmp;
-}
-
-char* JE_VecToAstr(JE_VEC* vec) {
-    char* str = JE_Calloc(1, strlen("[  ]")+1);
-
-    /* Opening bracket */
-    snprintf(str, 2, "[");
-
-    /* Items */
-    for(size_t i=0; i<vec->length; i++) {
-        if(i > 0) str = JE_AstrCat(str, ",");
-        str = JE_AstrCat(str, " ");
-        str = JE_AstrCat(str, JE_ValToQstr(vec->item[i]));
-    }
-
-    /* Closing bracket */
-    str = JE_AstrCat(str, " ]");
-
-    return str;
-}
-
-size_t JE_VecLen(JE_VEC* vec) {
-    return vec->length;
-}
-
-
-/* ***************************************************************************
-* TEST FUNCTIONS
+/**
+* Create a new JE_VEC, optionally specifying the initial capacity.  0 can be
+* passed instead of the capacity to default to a reasonable initial capacity.
 */
+JE_VEC JE_VecCreate(size_t capacity) {
+    JE_VEC vec;
 
-void _JE_VecTest() {
-    JE_VEC* vec = JE_VecNew();
+    vec.data = JE_Malloc(sizeof(JE_VALUE) * (capacity ? capacity : _MINSIZE));
+    vec.length = 0;
 
-    JE_VecPush(vec, JE_ValNewFromCstr("Hello, world!"));
-    JE_VecPush(vec, JE_ValNewFromCstr("Bye, world!"));
+    return vec;
+}
 
-    for(int i=0; i<vec->length; i++) {
-        JE_VAL* val = vec->item[i];
+/**
+* Return a clone of vec.
+*/
+JE_VEC JE_VecClone(const JE_VEC vec) {
+    JE_VEC dup;
 
-        printf("%s\n", val->value.s);
+    dup.data = vec.length<_MINSIZE ? JE_Malloc(sizeof(JE_VALUE)*_MINSIZE) : JE_Malloc(sizeof(JE_VALUE)*vec.length);
+    dup.length = vec.length;
+
+    for(size_t i=0; i<vec.length; i++) {
+        dup.data[i] = JE_VCALL(&vec.data[i],clone);
     }
 
-    JE_VecDelete(vec);
+    return dup;
+}
+
+/**
+* Concatenate two JE_VEC's, return a new JE_VEC.
+*/
+JE_VEC JE_VecPlusVec(const JE_VEC x, const JE_VEC y) {
+    size_t length = x.length + y.length;
+    JE_VEC vec;
+
+    vec.data = length<_MINSIZE ? JE_Malloc(sizeof(JE_VALUE)*_MINSIZE) : JE_Malloc(sizeof(JE_VALUE)*(length));
+    vec.length = length;
+
+    for(size_t i=0; i<x.length; i++) {
+        vec.data[i] = JE_VCALL(&x.data[i],clone);
+    }
+
+    for(size_t i=0; i<y.length; i++) {
+        vec.data[x.length + i] = JE_VCALL(&y.data[i],clone);
+    }
+
+    return vec;
+}
+
+/**
+* Compare x to y.  Return a value less than, equal to, or greater than 0 if
+* x is less than, equal to, or greater than y, respectively.
+*/
+int64_t JE_VecCompare(const JE_VEC x, const JE_VEC y) {
+    size_t length = x.length<y.length ? x.length : y.length;
+
+    for(size_t i=0; i<length; i++) {
+        int64_t cmp = JE_VCALL(&x.data[i],compare,y.data[i]);
+
+        if(cmp) return cmp;
+    }
+
+    return x.length - y.length;
+}
+
+/**
+* Concatenate y to x.
+*/
+void JE_VecPlusAssnVec(JE_VEC* x, const JE_VEC y) {
+    size_t length = x->length + y.length;
+
+    _resize(x, length);
+    for(size_t i=0; i<y.length; i++) x->data[x->length + i] = JE_VCALL(&y.data[i],clone);
+    x->length = length;
+}
+
+/**
+* Destroy vec.
+*/
+void JE_VecDestroy(JE_VEC* vec) {
+    for(size_t i=0; i<vec->length; i++) {
+        JE_VCALL(&vec->data[i],destroy);
+    }
+
+    JE_Free(vec->data);
+    memset(vec, 0, sizeof(JE_VEC));
+}
+
+/**
+* Set the value at index i to val.
+*
+* Once pushed into vec, val may no longer be operated on by the caller.  If it
+* needs to be modified after the push, modify the returned pointer instead.
+*/
+JE_VALUE* JE_VecSet(JE_VEC* vec, size_t i, JE_VALUE val) {
+    /* Add more room if needed */
+    if(vec->length <= i) {
+        JE_VALUE null = JE_ValueNul();
+
+        /* Allocate memory */
+        vec->data = JE_Realloc(vec->data, sizeof(JE_VALUE) * (i+1));
+
+        /* Fill it with NUL */
+        while(vec->length <= i) {
+            vec->data[vec->length++] = null;
+        }
+    }
+
+    vec->data[i] = val;
+
+    return &vec->data[i];
+}
+
+/**
+* Push val to the end of vec.
+*
+* Once pushed into vec, val may no longer be operated on by the caller.  If it
+* needs to be modified after the push, modify the returned pointer instead.
+*/
+JE_VALUE* JE_VecPush(JE_VEC* vec, JE_VALUE val) {
+    vec->data = JE_Realloc(vec->data, sizeof(JE_VALUE) * (vec->length+1));
+    vec->data[vec->length++] = val;
+
+    return &vec->data[vec->length-1];
+}
+
+/**
+* Pop the last value in vec.
+*
+* If vec is empty, return a JE_NUL value instead.
+*/
+JE_VALUE JE_VecPop(JE_VEC* vec) {
+    return vec->length ? vec->data[--vec->length] : JE_ValueNul();
+}
+
+/**
+* Remove a value at the index in vec.
+*/
+void JE_VecRemove(JE_VEC* vec, size_t i) {
+    if(i < vec->length) {
+        size_t delta = vec->length - i - 1;
+
+        JE_VCALL(&vec->data[i],destroy);
+
+        if(delta) memmove(&vec->data[i], &vec->data[i+1], delta * sizeof(JE_VALUE));
+        vec->length--;
+    }
+}
+
+/**
+* Return a pointer to the value at the nth index of the vector.
+*/
+JE_VALUE* JE_VecGet(const JE_VEC vec, size_t i) {
+    JE_VALUE* value = NULL;
+
+    if(i < vec.length) value = &vec.data[i];
+
+    return value;
+}
+
+/**
+* Return the number of elements in JE_VEC.
+*/
+size_t JE_VecLength(const JE_VEC vec) {
+    return vec.length;
+}
+
+/**
+* Convert JE_VEC to a C string.  The returned C string must be freed.
+*/
+char* JE_VecToCstr(const JE_VEC vec) {
+    char* cstr = JE_Malloc(_MINSIZE);
+    size_t capacity = _MINSIZE;
+    size_t clen = 0;
+
+    cstr[clen++] = '[';
+
+    for(size_t i=0; i<vec.length; i++) {
+        char* istr = JE_VCALL(&vec.data[i],toQstr);
+        size_t ilen = strlen(istr);
+
+        if(i) {
+            cstr[clen++] = ',';
+            cstr[clen++] = ' ';
+        }
+        else {
+            cstr[clen++] = ' ';
+        }
+
+        cstr = JE_Realloc(cstr, clen+ilen+3);
+        memcpy(cstr+clen, istr, ilen);
+        clen += ilen;
+
+        JE_Free(istr);
+    }
+
+    cstr[clen++] = ' ';
+    cstr[clen++] = ']';
+    cstr[clen++] = '\0';
+
+    return cstr;
+}
+
+/**
+* Convert JE_VEC to a quoted C string.  The returned quoted C string must be
+* freed.
+*/
+char* JE_VecToQstr(const JE_VEC vec) {
+    return JE_VecToCstr(vec);
 }

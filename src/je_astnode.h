@@ -1,0 +1,108 @@
+#ifndef JE_ASTNODE_H_
+#define JE_ASTNODE_H_
+
+#include <stddef.h>
+#include "je_astinfo.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+/* ***************************************************************************
+* FORWARD DECLARATIONS
+*/
+
+typedef struct JE_NODE JE_NODE;
+typedef struct JE_STR JE_STR;
+typedef struct JE_VALUE JE_VALUE;
+typedef struct JE_YYLTYPE JE_YYLTYPE;
+
+
+/* ***************************************************************************
+* TYPES
+*/
+
+typedef struct JE_ASTNODE {
+    JE_NODE* node;
+    size_t nlen;
+} JE_ASTNODE;
+
+
+/* ***************************************************************************
+* FUNCTIONS
+*/
+
+JE_ASTNODE JE_AstNodeCreate();
+void JE_AstNodeDestroy(JE_ASTNODE* node);
+
+JE_ASTNODE JE_AstNodeArray(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeArray2(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3, JE_YYLTYPE loc4);
+JE_ASTNODE JE_AstNodeAsr(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssn(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeBitwiseAnd(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeBitwiseInv(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodeBitwiseOr(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeBitwiseXor(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeCall(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeCall2(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3, JE_YYLTYPE loc4);
+JE_ASTNODE JE_AstNodeDivby(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeEqual(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeGreater(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeGreaterEq(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeIdent(JE_STR ident, JE_ASTINFO* info, JE_YYLTYPE loc1);
+JE_ASTNODE JE_AstNodeIndex(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3, JE_YYLTYPE loc4);
+JE_ASTNODE JE_AstNodeLess(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeLessEq(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeList(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1);
+JE_ASTNODE JE_AstNodeList2(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeLogicalAnd(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeLogicalNot(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodeLogicalOr(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeMember(JE_ASTNODE left, JE_STR right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeMinus(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeMod(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeMtArray(JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodeMtObject(JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodeNeg(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodeNotEqual(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeObject(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeObject2(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3, JE_YYLTYPE loc4);
+JE_ASTNODE JE_AstNodePair(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodePairlist(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1);
+JE_ASTNODE JE_AstNodePairlist2(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeParen(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodePlus(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodePos(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodePostDec(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodePostInc(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodePow(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodePreDec(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodePreInc(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodeShl(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeShr(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeStmt(JE_ASTNODE left, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2);
+JE_ASTNODE JE_AstNodeStmt2(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeTernary(JE_ASTNODE left, JE_ASTNODE right, JE_ASTNODE righter, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3, JE_YYLTYPE loc4, JE_YYLTYPE loc5);
+JE_ASTNODE JE_AstNodeTimes(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeVal(JE_VALUE value, JE_ASTINFO* info, JE_YYLTYPE loc1);
+
+JE_ASTNODE JE_AstNodeAssnAsr(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnBitAnd(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnBitOr(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnBitXor(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnDivby(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnMinus(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnMod(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnPlus(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnPow(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnShl(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnShr(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+JE_ASTNODE JE_AstNodeAssnTimes(JE_ASTNODE left, JE_ASTNODE right, JE_ASTINFO* info, JE_YYLTYPE loc1, JE_YYLTYPE loc2, JE_YYLTYPE loc3);
+
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* JE_ASTNODE_H_ */

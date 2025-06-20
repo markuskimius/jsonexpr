@@ -1,139 +1,30 @@
 /* ***************************************************************************
-* GLOBALS
+* CONSTANTS
 */
 
-const JE_WASM = fetch(new URL("./je.wasm", import.meta.url))
-    .then((response) => response.arrayBuffer());
+const _WASMFILE = new URL("./je.wasm", import.meta.url);
+const _WASMREADY = fetch(_WASMFILE).then((response) => response.arrayBuffer());
+const _TARGET = Symbol.for("target");
+const _LENGTH = Symbol.for("length");
 
 
 /* ***************************************************************************
-* PUBLIC FUNCTIONS
+* OS INTERFACE
 */
 
-async function _eval(code, symbols={}) {
-    const compiled = await compile(code);
-
-    compiled.setSymbols(symbols);
-
-    return compiled.eval();
-}
-
-async function evalurl(codeUrl, symbols=null) {
-    const code = await fetch(codeUrl).then((response) => response.text());
-
-    return await _eval(code, symbols);
-}
-
-async function compile(code) {
-    const compiled = new Compiled(code);
-
-    await compiled.promise;
-
-    return compiled;
-}
-
-async function compileurl(codeUrl) {
-    const code = await fetch(codeUrl).then((response) => response.text());
-
-    return await compile(code);
-}
-
-
-/* ***************************************************************************
-* HELPER CLASSES
-*/
-
-class Compiled {
-    constructor(code) {
-        this.adapter = new Adapter();
-        this.instance = null;
-        this.symtbl = null;
-        this.iface = null;
-        this.wtree = null;
-        this.wsymtbl = null;
-        this.promise = JE_WASM
-            .then((bytes) => WebAssembly.instantiate(bytes, {
-                env : {
-                    read  : (fd,buf,count) => this.adapter.read(fd,buf,count),
-                    write : (fd,buf,count) => this.adapter.write(fd,buf,count),
-                    _exit : (exitcode)     => this.adapter.exit(exitcode),
-                },
-            }))
-            .then((result) => {
-                const instance = result.instance;
-
-                this.adapter.instance = instance;
-                this.instance = instance;
-
-                return instance;
-            })
-            .then((instance) => {
-                const iface = new Interface(instance);
-                const wcode = iface.strdup(code);
-                const wtree = iface.parse(wcode);
-                const wsymtbl = iface.symnew();
-                const wsymmap = iface.valmap(iface.symget(wsymtbl,0));
-
-                this.wsymtbl = wsymtbl;
-                this.wtree = wtree;
-                this.iface = iface;
-                this.symtbl = new Proxy({}, new ObjectHandler(instance, wsymmap));
-
-                this.iface.free(wcode);
-
-                return instance;
-            });
-    }
-
-    get(name) {
-        return this.symtbl[name];
-    }
-
-    set(name, value) {
-        this.symtbl[name] = value;
-    }
-
-    setSymbols(symbols) {
-        for(const [k,v] of Object.entries(symbols)) {
-            this.set(k, v);
-        }
-    }
-
-    clearSymbols(localonly=1) {
-        this.iface.symclear(this.wsymtbl, localonly);
-    }
-
-    destructor(code) {
-        this.promise
-            .then(() => delete this.iface);
-    }
-
-    eval() {
-        const wresult = this.iface.eval(this.wtree, this.wsymtbl);
-        const wquoted = this.iface.valqstr(wresult);
-        const quoted = this.iface.strat(wquoted);
-        const result = json_parse(quoted, this.instance, wresult);
-
-        this.iface.valfree(wresult)
-
-        return result;
-    }
-}
-
-class Adapter {
+class OS {
     constructor() {
-        this.instance = null;
-        this.fdbuf = ["", "", ""]
+        this.fdbuf = [ "", "", "" ];
     }
 
     read(fd, buf, count) {
-        console.log("read(", fd, buf, count, ")");
+        console.log("OS.read(" + fd + ", buf, " + count + ")");
+
         return 0;
     }
 
     write(fd, buf, count) {
-        const buffer = new Uint8Array(this.instance.exports.memory.buffer, buf, count);
-        const str = new TextDecoder().decode(buffer);
+        const str = new TextDecoder().decode(buf.subarray(0,count));
         const lines = str.split("\n");
 
         for(let i=0; i<lines.length-1; i++) {
@@ -148,185 +39,380 @@ class Adapter {
 
         return count;
     }
+}
+
+
+/* ***************************************************************************
+* WASM INTERFACE
+*/
+
+class Iface {
+    constructor(os=null) {
+        this.instance = null;
+        this.encoder = new TextEncoder();
+        this.decoder = new TextDecoder("utf-8");
+        this.os = os ? os : new OS();
+
+        /* Load jsonexpr */
+        this.ready = _WASMREADY
+            .then((bytes) => WebAssembly.instantiate(bytes, {
+                env : {
+                    read  : (fd,buf,count) => this.read(fd,buf,count),
+                    write : (fd,buf,count) => this.write(fd,buf,count),
+                    _exit : (exitcode)     => this.exit(exitcode),
+                },
+            }))
+            .then((result) => {
+                /* Instantiate */
+                this.instance = result.instance;
+
+                return this;
+            });
+    }
+
+    read(fd, buf, count) {
+        const memory8 = new Uint8Array(this.instance.exports.memory.buffer, buf, count);
+
+        return this.os.read(fd, memory8, count);
+    }
+
+    write(fd, buf, count) {
+        const memory8 = new Uint8Array(this.instance.exports.memory.buffer, buf, count);
+
+        return this.os.write(fd, memory8, count);
+    }
 
     exit(code) {
         throw new Exit(code);
     }
-}
-
-class Interface {
-    constructor(instance) {
-        this.instance = instance;
-        this.wallocated = [];
-    }
-
-    destructor() {
-        for(let waddr of this.wallocated) {
-            this.instance.exports.free(waddr);
-        }
-    }
 
     strat(waddr) {
-        const buffer = new Uint8Array(this.instance.exports.memory.buffer);
+        const memory8 = new Uint8Array(this.instance.exports.memory.buffer, waddr);
         let count = 0;
-        let buf = null;
-        let str = null;
 
-        while(buffer[waddr+count] != 0) {
+        while(memory8[count] != 0) {
             count++;
         }
 
-        buf = new Uint8Array(this.instance.exports.memory.buffer, waddr, count);
-        str = new TextDecoder("utf-8").decode(buf);
-
-        return str;
+        return this.decoder.decode(memory8.subarray(0,count));
     }
 
     strdup(string) {
-        const buffer = new Uint8Array(this.instance.exports.memory.buffer);
-        const buf = new TextEncoder().encode(string);
-        const waddr = this.instance.exports.calloc(1, buf.length+1);
+        const encoded = this.encoder.encode(string);
+        const waddr = this.instance.exports.calloc(1, encoded.length+1);
+        const memory8 = new Uint8Array(this.instance.exports.memory.buffer, waddr);
 
-        for(let i=0; i<buf.length; i++) {
-            buffer[waddr+i] = buf[i];
-        }
-
-        this.wallocated.push(waddr);
+        memory8.set(encoded);
+        encoded[encoded.length] = 0;
 
         return waddr;
     }
 
     free(waddr) {
-        const index = this.wallocated.indexOf(waddr);
-
-        if(index >= 0) {
-            this.wallocated.splice(index, 1);
-        }
-
         this.instance.exports.free(waddr);
     }
 
     parse(wcode) {
-        return this.instance.exports.JE_Parse(wcode);
+        return this.instance.exports.parse(wcode);
     }
 
-    eval(wtree, wsymtbl) {
-        return this.instance.exports.JE_EvalNode(wtree, wsymtbl);
+    asteval(wast, wsymmap) {
+        return this.instance.exports.asteval(wast, wsymmap);
     }
 
-    nodefree(wnode) {
-        this.instance.exports.JE_NodeDelete(wnode);
+    astfree(wast) {
+        this.instance.exports.astfree(wast);
     }
 
-    symnew(wsymtbl=0) {
-        return this.instance.exports.JE_SymtblNew(wsymtbl);
+    newsym(wparent=0) {
+        return this.instance.exports.newsym(wparent);
     }
 
-    symclear(wsymtbl, localonly=1) {
-        return this.instance.exports.JE_SymtblClear(wsymtbl, localonly);
+    symget(wsymmap, wkey) {
+        return this.instance.exports.symget(wsymmap, wkey);
     }
 
-    symget(wsymtbl, wkey) {
-        return this.instance.exports.JE_SymtblGet(wsymtbl, wkey);
+    symset(wsymmap, wkey, wvalue) {
+        return this.instance.exports.symset(wsymmap, wkey, wvalue, 0);
     }
 
-    mapset(wmap, wkey, wval) {
-        return this.instance.exports.JE_MapSet(wmap, wkey, wval);
+    symunset(wsymmap, wkey) {
+        return this.instance.exports.symunset(wsymmap, wkey);
+    }
+
+    symfree(wsymmap) {
+        return this.instance.exports.symfree(wsymmap);
+    }
+
+    nullval() {
+        return this.instance.exports.nullval();
+    }
+
+    boolval(bool) {
+        return this.instance.exports.boolval(bool);
+    }
+
+    i64val(i64) {
+        return this.instance.exports.i64val(BigInt(i64));
+    }
+
+    f64val(f64) {
+        return this.instance.exports.f64val(f64);
+    }
+
+    strval(wcstr) {
+        return this.instance.exports.strval(wcstr);
+    }
+
+    mapval() {
+        return this.instance.exports.mapval();
+    }
+
+    vecval() {
+        return this.instance.exports.vecval();
+    }
+
+    valdup(wval) {
+        return this.instance.exports.valdup(wval);
+    }
+
+    valtype(wval) {
+        return this.strat(this.instance.exports.valtype(wval));
+    }
+
+    valfree(wval) {
+        return this.instance.exports.valfree(wval);
+    }
+
+    valtobool(wval) {
+        return this.instance.exports.valtobool(wval);
+    }
+
+    valtoi64(wval) {
+        return this.instance.exports.valtoi64(wval);
+    }
+
+    valtof64(wval) {
+        return this.instance.exports.valtof64(wval);
+    }
+
+    valtocstr(wval) {
+        return this.instance.exports.valtocstr(wval);
+    }
+
+    valtoqstr(wval) {
+        return this.instance.exports.valtoqstr(wval);
+    }
+
+    maplen(wmap) {
+        return this.instance.exports.maplen(wmap);
     }
 
     mapget(wmap, wkey) {
-        return this.instance.exports.JE_MapGet(wmap, wkey);
+        return this.instance.exports.mapget(wmap, wkey);
     }
 
-    mapkey(wmap) {
-        return this.instance.exports.JE_MapKey(wmap);
+    mapset(wmap, wkey, wval) {
+        return this.instance.exports.mapset(wmap, wkey, wval);
     }
 
-    mapnext(wmap) {
-        return this.instance.exports.JE_MapNext(wmap);
+    mapunset(wmap, wkey) {
+        return this.instance.exports.mapunset(wmap, wkey);
     }
 
-    vecset(wvec, index, wval) {
-        return this.instance.exports.JE_VecSet(wvec, index, wval);
+    mapbegin(wmap) {
+        return this.instance.exports.mapbegin(Number(wmap));
     }
 
-    vecget(wvec, index) {
-        return this.instance.exports.JE_VecGet(wvec, index);
+    mapend(wmap) {
+        return this.instance.exports.mapend(wmap);
+    }
+
+    mapnext(wmap, witer) {
+        return this.instance.exports.mapnext(wmap, witer);
+    }
+
+    mapgetkey(wmap, witer) {
+        return this.instance.exports.mapgetkey(wmap, witer);
+    }
+
+    mapgetval(wmap, witer) {
+        return this.instance.exports.mapgetval(wmap, witer);
     }
 
     veclen(wvec) {
-        return this.instance.exports.JE_VecLen(wvec);
+        return this.instance.exports.veclen(wvec);
     }
 
-    valmap(wval) {
-        return this.instance.exports.JE_ValGetMap(wval);
+    vecget(wvec, index) {
+        return this.instance.exports.vecget(wvec, index);
     }
 
-    valvec(wval) {
-        return this.instance.exports.JE_ValGetVec(wval);
+    vecset(wvec, index, wval) {
+        return this.instance.exports.vecset(wvec, index, wval);
     }
 
-    valstr(wval) {
-        return this.instance.exports.JE_ValToCstr(wval);
+    vecpush(wvec, wval) {
+        return this.instance.exports.vecpush(wvec, wval);
     }
 
-    valqstr(wval) {
-        return this.instance.exports.JE_ValToQstr(wval);
+    vecpop(wvec) {
+        return this.instance.exports.vecpop(wvec);
     }
 
-    valfree(wresult) {
-        this.instance.exports.JE_ValDelete(wresult);
+    vecunset(wvec, index) {
+        return this.instance.exports.vecunset(wvec, index);
     }
 }
 
-class HandlerBase {
-    constructor(instance) {
-        this.instance = instance;
-        this.iface = new Interface(instance);
+
+/* ***************************************************************************
+* INSTANCE
+*/
+
+class Instance {
+    constructor(iface) {
+        this.iface = iface;
     }
 
-    _promote(value, wvalue) {
-        if(value instanceof ObjectHandler)     { /* Pass */ }
-        else if(value instanceof ArrayHandler) { /* Pass */ }
-        else if(value instanceof Array) {
-            const warray = this.iface.valvec(wvalue);
+    symmap(symbols=null) {
+        const symmap = new Symmap(this.iface, symbols);
 
-            value = new Proxy(value, new ArrayHandler(this.instance, warray));
-        }
-        else if(value instanceof Object) {
-            const wobject = this.iface.valmap(wvalue);
+        return new Proxy(symmap, new _SymmapHandler());
+    }
 
-            value = new Proxy(value, new ObjectHandler(this.instance, wobject));
+    parse(code) {
+        return new Parsed(this.iface, code);
+    }
+}
+
+
+/* ***************************************************************************
+* PARSED
+*/
+
+class Parsed {
+    constructor(iface, code) {
+        const wcode = iface.strdup(code);
+
+        this.iface = iface;
+        this.wast = iface.parse(wcode);
+        this.iface.free(wcode);
+    }
+
+    destructor() {
+        this.iface.astfree(this.wast);
+    }
+
+    eval(symmap=null) {
+        const _symmap = symmap===null ? new Symmap(this.iface) : symmap[_TARGET];
+
+        if(_symmap.iface === this.iface) {
+            const wvalue = this.iface.asteval(this.wast, _symmap.wsymmap);
+            const value = _getvalue(this.iface, wvalue);
+
+            this.iface.valfree(wvalue);
+
+            return value;
         }
+
+        throw new UsageError("Code and Symmap must be from the same JSONexpr Instance");
+    }
+}
+
+
+/* ***************************************************************************
+* TYPES
+*/
+
+class Symmap {
+    constructor(iface, symbols=null) {
+        this.iface = iface;
+        this.wsymmap = iface.newsym();
+
+        if(symbols !== null) {
+            this.merge(symbols);
+        }
+    }
+
+    destructor() {
+        this.iface.symfree(this.wsymmap);
+    }
+
+    has(name) {
+        const wname = this.iface.strdup(name);
+        const wvalue = this.iface.symget(this.wsymmap, wname);
+
+        this.iface.free(wname);
+        /* wvalue is a pointer to a value in wsymmap; do not free */
+
+        return wvalue != 0;
+    }
+
+    get(name) {
+        const wname = this.iface.strdup(name);
+        const wvalue = this.iface.symget(this.wsymmap, wname);
+        const value = _getvalue(this.iface, wvalue);
+
+        this.iface.free(wname);
+        /* wvalue is a pointer to a value in wsymmap; do not free */
 
         return value;
     }
+
+    set(name, value) {
+        const wname = this.iface.strdup(name);
+        const wvalue = _mkvalue(this.iface, value);
+
+        this.iface.symset(this.wsymmap, wname, wvalue);
+
+        /* wname and wvalue are now in wsymmap; do not free */
+
+        return value;
+    }
+
+    unset(name) {
+        const wname = this.iface.strdup(name);
+
+        this.iface.symunset(this.wsymmap, wname);
+        this.iface.free(wname);
+    }
+
+    merge(obj) {
+        for(const [name,value] of Object.entries(obj)) {
+            this.set(name, value);
+        }
+    }
 }
 
-class ObjectHandler extends HandlerBase {
-    constructor(instance, wmap) {
-        super(instance);
-
-        this.wmap = wmap;
+class Map {
+    constructor(iface, wmap) {
+        this.iface = iface;
+        this.wmap = iface.valdup(wmap);
     }
 
-    has(map, name) {
+    destructor() {
+        this.iface.valfree(this.wmap);
+    }
+
+    has(name) {
         const wname = this.iface.strdup(name);
         const wresult = this.iface.mapget(this.wmap, wname);
-        const result = wresult ? true : false;
 
         this.iface.free(wname);
+        /* wvalue is a pointer to a value in wsymmap; do not free */
 
-        return result;
+        return wresult != 0;
     }
 
-    ownKeys(map) {
+    keys() {
         const keys = [];
-        let iter = this.wmap;
 
-        while((iter = this.iface.mapnext(iter))) {
-            const wkey = this.iface.mapkey(iter);
+        for(let i = this.iface.mapbegin(this.wmap); i != this.iface.mapend(this.wmap); i = this.iface.mapnext(this.wmap, i)) {
+            const wkey = this.iface.mapgetkey(this.wmap, i);
             const key = this.iface.strat(wkey);
+
+            /* wkey is in wmap, do not free */
 
             keys.push(key);
         }
@@ -334,154 +420,336 @@ class ObjectHandler extends HandlerBase {
         return keys;
     }
 
-    getOwnPropertyDescriptor(k) {
-        return {
-            enumerable: true,
-            configurable: true,
-        };
-    }
-
-    get(map, name, receiver) {
+    get(name) {
         const wname = this.iface.strdup(name);
-        const wresult = this.iface.mapget(this.wmap, wname);
-        const wquoted = this.iface.valqstr(wresult);
-        const quoted = this.iface.strat(wquoted);
-        const result = json_parse(quoted);
+        const wvalue = this.iface.mapget(this.wmap, wname);
+        const value = _getvalue(this.iface, wvalue);
 
         this.iface.free(wname);
+        /* wvalue is a pointer to a value in wmap; do not free */
 
-        return this._promote(result, wresult);
+        return value;
     }
 
-    set(map, name, value, receiver) {
+    set(name, value) {
         const wname = this.iface.strdup(name);
-        const wexpr = this.iface.strdup(json_encode(value));
-        const wtree = this.iface.parse(wexpr);
-        const wresult = this.iface.eval(wtree,0);
+        const wvalue = _mkvalue(this.iface, value);
 
-        this.iface.mapset(this.wmap, wname, wresult);
+        this.iface.mapset(this.wmap, wname, wvalue);
 
-        this.iface.nodefree(wtree);
-        this.iface.free(wexpr);
+        /* wname and wvalue are now in wmap; do not free */
+
+        return value;
+    }
+
+    unset(name) {
+        const wname = this.iface.strdup(name);
+
+        this.iface.mapunset(this.wmap, wname);
         this.iface.free(wname);
+    }
 
-        return this._promote(value, wresult);
+    get length() {
+        return this.iface.maplen(this.wmap);
+    }
+
+    toString() {
+        const wqstr = this.iface.valtoqstr(this.wmap);
+        const qstr = this.iface.strat(wqstr);
+
+        this.iface.free(wqstr);
+
+        return qstr;
     }
 }
 
-class ArrayHandler extends HandlerBase {
-    constructor(instance, wvec) {
-        super(instance);
-
-        this.wvec = wvec;
+class Vec {
+    constructor(iface, wvec) {
+        this.iface = iface;
+        this.wvec = iface.valdup(wvec);
     }
 
-    get(vec, property, receiver) {
-        const index = Number(property);
+    destructor() {
+        this.iface.valfree(this.wvec);
+    }
 
-        if(Number.isInteger(index)) {
-            const wresult = this.iface.vecget(this.wvec, index);
-            const wquoted = this.iface.valqstr(wresult);
-            const quoted = this.iface.strat(wquoted);
-            const result = json_parse(quoted);
+    get(index) {
+        const wvalue = this.iface.vecget(this.wvec, index);
+        const value = _getvalue(this.iface, wvalue);
 
-            return this._promote(result, wresult);
-        }
+        /* wvalue is a pointer to a value in wvec; do not free */
 
+        return value;
+    }
+
+    set(index, value) {
+        const wvalue = _mkvalue(this.iface, value);
+
+        this.iface.vecset(this.wvec, index, wvalue);
+
+        /* wvalue is now in wvec; do not free */
+
+        return value;
+    }
+
+    unset(index) {
+        this.iface.vecunset(this.wvec, index);
+    }
+
+    get length() {
+        return this.iface.veclen(this.wvec);
+    }
+
+    toString() {
+        const wqstr = this.iface.valtoqstr(this.wvec);
+        const qstr = this.iface.strat(wqstr);
+
+        this.iface.free(wqstr);
+
+        return qstr;
+    }
+}
+
+
+/* ***************************************************************************
+* PROXY HANDLERS
+*/
+
+class _SymmapHandler {
+    has(target, name) {
+        return target.has(name);
+    }
+
+    get(target, property, receiver) {
         switch(property) {
-            case "length": return this.iface.veclen(this.wvec); break;
+            case _TARGET            : return target;
+        }
+
+        /* Key */
+        return target.get(String(property));
+    }
+
+    set(target, name, value, receiver) {
+        return target.set(name, value);
+    }
+
+    deleteProperty(target, property) {
+        target.unset(String(property));
+
+        return true;
+    }
+}
+
+class _MapHandler {
+    has(target, name) {
+        return target.has(name);
+    }
+
+    ownKeys(target) {
+        return target.keys();
+    }
+
+    getOwnPropertyDescriptor(target, property) {
+        const pd = {
+            configurable : true,
+            enumerable   : true,
+        }
+
+        return pd;
+    }
+
+    get(target, property, receiver) {
+        switch(property) {
+            case _TARGET            : return target;
+            case _LENGTH            : return Number(target.length);
+            case Symbol.toPrimitive : return () => target.toString();
+        }
+
+        /* Key */
+        return target.get(String(property));
+    }
+
+    set(target, name, value, receiver) {
+        return target.set(name, value);
+    }
+
+    deleteProperty(target, property) {
+        target.unset(String(property));
+
+        return true;
+    }
+}
+
+class _VecHandler {
+    get(target, property, receiver) {
+        switch(property) {
+            case _TARGET            : return target;
+            case _LENGTH            : return Number(target.length);
+            case "length"           : return Number(target.length);
+            case Symbol.toPrimitive : return () => target.toString();
+        }
+
+        /* Index */
+        if(/^\d+$/.test(String(property))) {
+            return target.get(BigInt(property));
         }
     }
 
-    set(vec, index, value, receiver) {
-        const wexpr = this.iface.strdup(json_encode(value));
-        const wtree = this.iface.parse(wexpr);
-        const wresult = this.iface.eval(wtree,0);
+    set(target, index, value, receiver) {
+        return target.set(index, value);
+    }
 
-        this.iface.vecset(this.wvec, index, wresult);
+    deleteProperty(target, index) {
+        target.unset(index);
 
-        this.iface.nodefree(wtree);
-        this.iface.free(wexpr);
-
-        return this._promote(value, wresult);
+        return true;
     }
 }
 
 
 /* ***************************************************************************
-* HELPER FUNCTIONS
+* PRIVATE FUNCTIONS
 */
 
-function json_encode(value) {
-    return JSON.stringify(value);
+function _getvalue(iface, wvalue) {
+    let value = null;
+
+    if(wvalue) {
+        const value_t = iface.valtype(wvalue);
+
+        switch(value_t) {
+            case "OBJECT" : value = new Proxy(new Map(iface, wvalue), new _MapHandler()); break;
+            case "ARRAY"  : value = new Proxy(new Vec(iface, wvalue), new _VecHandler()); break;
+            default       :
+                const wqstr = iface.valtoqstr(wvalue);
+                const qstr = iface.strat(wqstr);
+
+                iface.free(wqstr);
+
+                value = JSON.parse(qstr);
+        }
+    }
+
+    return value;
 }
 
-function json_parse(quoted) {
-    return JSON.parse(quoted);
+function _mkvalue(iface, value, ext="") {
+    let wvalue = null;
+
+    switch(typeof(value)) {
+        case "boolean": {
+            wvalue = iface.boolval(value);
+            break;
+        }
+        case "number" : {
+            if(Number.isInteger(value)) wvalue = iface.i64val(value);
+            else                        wvalue = iface.f64val(value);
+            break;
+        }
+        default : {
+            if(value === null)                     wvalue = iface.nullval();
+            else if(value[_TARGET] instanceof Map) wvalue = iface.valdup(value[_TARGET].wmap);
+            else if(value[_TARGET] instanceof Vec) wvalue = iface.valdup(value[_TARGET].wvec);
+            else if(value instanceof Array) {
+                wvalue = iface.vecval();
+
+                for(const v of value) {
+                    iface.vecpush(wvalue, _mkvalue(iface, v, ext+"  "));
+                }
+            }
+            else if(value instanceof Object) {
+                wvalue = iface.mapval();
+
+                for(const [k,v] of Object.entries(value)) {
+                    iface.mapset(wvalue, iface.strdup(String(k)), _mkvalue(iface, v, ext+"  "));
+                }
+            }
+            else {
+                wvalue = iface.strval(iface.strdup(String(value)));
+            }
+        }
+    }
+
+    return wvalue;
 }
 
 
 /* ***************************************************************************
-* EXCEPTIONS
+* PUBLIC EXCEPTIONS
 */
 
-export class Exit {
-    constructor(code) {
-        this.code = code;
-    }
-}
-
-export class SyntaxError {
+class JeException extends Error {
     constructor(text) {
+        super(text);
+
         this.text = text;
     }
 }
 
+class UsageError extends JeException {
+    constructor(text) {
+        super(text);
+    }
+}
 
-/* ***************************************************************************
-* TEST FUNCTIONS
-*/
+class SyntaxError extends JeException {
+    constructor(text) {
+        super(text);
+    }
+}
 
-async function main() {
-    const symbols = { students : [ "Alice", "Bob", "Charlie" ] };
-    const compiled = await compile(\`
-        FOR(i = 0, i < LEN(students), i++,
-            note = "";
+class Exit extends JeException {
+    constructor(code) {
+        super(str(code));
 
-            IF(students[i] == "Alice",
-                note = " (she's my favorite)"
-            );
-
-            PRINT("Student #" + (i+1) + "'s name is " + students[i] + note)
-        );
-
-        LEN(students);
-    \`);
-
-    compiled.setSymbols(symbols);
-
-    console.log("result =", JSON.stringify(compiled.eval()));
+        this.code = code;
+    }
 }
 
 
 /* ***************************************************************************
-* EXPORT
+* PUBLIC FUNCTIONS
+*/
+
+async function instance(os=null) {
+    const iface = new Iface(os);
+
+    await iface.ready;
+
+    return new Instance(iface);
+}
+
+async function _eval(code, symbols=null) {
+    const instance = await instance();
+    const parsed = instance.parse(code);
+    const symmap = instance.symmap(symbols);
+
+    return parsed.eval(symmap)
+}
+
+
+/* ***************************************************************************
+* EXPORTS
 */
 
 export default {
-    main          : main,
-    eval          : _eval,
-    evalurl       : evalurl,
-    compile       : compile,
-    compileurl    : compileurl,
+    /* CONSTANTS */
+    VERSION       : "${JE_VERSION}",
+    VERSION_MAJOR : ${JE_VERSION%%.*},
+    VERSION_MINOR : $(t=${JE_VERSION#*.}; printf "%s" "${t%.*}"),
+    VERSION_PATCH : ${JE_VERSION##*.},
 
-    version       : "${JE_VERSION}",
-    version_major : ${JE_VERSION%%.*},
-    version_minor : $(t=${JE_VERSION#*.}; printf "%s" "${t%.*}"),
-    version_patch : ${JE_VERSION##*.},
+    /* CLASSES */
+    OS            : OS,
 
+    /* EXCEPTIONS */
     Exit          : Exit,
     SyntaxError   : SyntaxError,
+
+    /* FUNCTIONS */
+    instance      : instance,
+    eval          : _eval,
+    length        : (x) => x[_LENGTH],
 };
 
 

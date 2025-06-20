@@ -1,0 +1,16 @@
+i = 1010;
+
+FUNCTION("",
+    j = 2020;
+
+    FUNCTION("",
+        UPSCOPE.i = 2010;
+
+        PRINT("Level 3", i++, j++);
+    )();
+
+    PRINT("Level 2", i++, j++);
+)();
+
+PRINT("Level 1", i);
+PRINT(j);

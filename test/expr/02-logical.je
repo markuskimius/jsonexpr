@@ -1,0 +1,83 @@
+PRINT("== TRUTHINESS - TRUE ==");
+PRINT(       true &&           1);
+PRINT(          1 &&         1.0);
+PRINT(        1.0 &&     "Hello");
+PRINT(    "Hello" &&       [ 0 ]);
+PRINT(      [ 0 ] && { "" : "" });
+PRINT({ "" : "" } &&        true);
+PRINT();
+
+PRINT(  null ||        true);
+PRINT( false ||        true);
+PRINT(     0 ||           1);
+PRINT(   0.0 ||         1.0);
+PRINT(    "" ||     "Hello");
+PRINT(   [ ] ||       [ 0 ]);
+PRINT(   { } || { "" : "" });
+PRINT();
+
+PRINT(!  null);
+PRINT(! false);
+PRINT(!     0);
+PRINT(!   0.0);
+PRINT(!    "");
+PRINT(!   [ ]);
+PRINT(!   { });
+PRINT();
+
+PRINT("== TRUTHINESS - FALSE ==");
+PRINT(  null && true);
+PRINT( false && true);
+PRINT(     0 && true);
+PRINT(   0.0 && true);
+PRINT(    "" && true);
+PRINT(   [ ] && true);
+PRINT(   { } && true);
+PRINT();
+
+PRINT(  null || false);
+PRINT( false || false);
+PRINT(     0 || false);
+PRINT(   0.0 || false);
+PRINT(    "" || false);
+PRINT(   [ ] || false);
+PRINT(   { } || false);
+PRINT();
+
+PRINT(!       true);
+PRINT(!          1);
+PRINT(!        1.0);
+PRINT(!    "Hello");
+PRINT(!      [ 0 ]);
+PRINT(!{ "" : "" });
+PRINT();
+
+PRINT("== AND ==");
+PRINT( true && true);
+PRINT( true && false);
+PRINT(false && true);
+PRINT(false && false);
+PRINT();
+
+PRINT("== OR ==");
+PRINT( true || true);
+PRINT( true || false);
+PRINT(false || true);
+PRINT(false || false);
+PRINT();
+
+PRINT("== NOT ==");
+PRINT(! true);
+PRINT(!false);
+PRINT();
+
+PRINT("== PRECEDENCE ==");
+PRINT(!false &&   true);
+PRINT(  true && !false);
+PRINT(!false ||  false);
+PRINT( false || !false);
+PRINT();
+
+PRINT(1 || 2 && 3);
+PRINT(1 && 2 || 3);
+PRINT();

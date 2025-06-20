@@ -1,273 +1,248 @@
-#define _GNU_SOURCE
-#include <stdarg.h>
+#include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "je_parse.h"
+#include "je_str.h"
 #include "je_util.h"
-#include "je_token.h"
 
 
 /* ***************************************************************************
 * CONSTANTS
 */
 
-#define _IBUFSIZE   32
-#define _DBUFSIZE   320
-
-
-/* ***************************************************************************
-* MACROS
-*/
-
-#define _MAX(a,b)   (a>b?a:b)
-#define _MIN(a,b)   (a<b?a:b)
-#define _WORDSIZE   (sizeof(long))
-#define _ROUNDUP(x) ((x + (_WORDSIZE-1)) & -_WORDSIZE)
-
-
-/* ***************************************************************************
-* PRIVATE VARIABLES
-*/
-
-static char _utf8buf[8];
+#define F64_MAXDECPREC  17  /* maximum decimal precisions representable by f64 */
+#define F64_MAXDECLEN   345 /* maximum decimal string length possible by f64 = -0.<324 zeros><17 digits>\0 */
 
 
 /* ***************************************************************************
 * PUBLIC FUNCTIONS
 */
 
+/**
+* Like malloc() but guarantees the returned pointer has the requested memory.
+* If the memory cannot be allocated, the program exits.
+*/
+void* JE_Malloc(size_t size) {
+    void* ptr = malloc(size);
+
+    if(!ptr && size) {
+        perror("JE_Malloc");
+        exit(1);
+    }
+
+    return ptr;
+}
+
+/**
+* Like calloc() but guarantees the returned pointer has the requested memory.
+* If the memory cannot be allocated, the program exits.
+*/
 void* JE_Calloc(size_t nmemb, size_t size) {
-    void* mem = calloc(nmemb, size);
+    void* ptr = calloc(nmemb, size);
 
-    if(mem == NULL) {
-        perror(__FUNCTION__);
+    if(!ptr && size) {
+        perror("JE_Calloc");
         exit(1);
     }
 
-    return mem;
+    return ptr;
 }
 
-void* JE_Realloc(void *ptr, size_t nmemb, size_t size) {
-    void* mem = realloc(ptr, nmemb * _ROUNDUP(size));
+/**
+* Like realloc() but guarantees the returned pointer has the requested memory.
+* If the memory cannot be allocated, the program exits.
+*/
+void* JE_Realloc(void *ptr, size_t size) {
+    ptr = realloc(ptr, size);
 
-    if(mem == NULL) {
-        perror(__FUNCTION__);
+    if(!ptr && size) {
+        perror("JE_Realloc");
         exit(1);
     }
 
-    return mem;
-}
-
-
-/* ***************************************************************************
-* SCALAR
-*/
-
-/**
-* Convert a unicode value to utf8 character string sequence.  The returned
-* sequence is allocated globally and overwritten on subsequent calls to the
-* function.
-*/
-char* JE_UcharToCstr(uint32_t c) {
-    char* cp = _utf8buf;
-
-    if     (c <   0x0080) { *cp++ = c; }
-    else if(c <   0x0800) { *cp++ = (c >>  6) | 0xc0;                                                                      *cp++ = (c & 0x3f) | 0x80; }
-    else if(c <  0x10000) { *cp++ = (c >> 12) | 0xe0;                                    *cp++ = ((c >> 6) & 0x3f) | 0x80; *cp++ = (c & 0x3f) | 0x80; }
-    else if(c < 0x110000) { *cp++ = (c >> 18) | 0xf0; *cp++ = ((c >> 12) & 0x3f) | 0x80; *cp++ = ((c >> 6) & 0x3f) | 0x80; *cp++ = (c & 0x3f) | 0x80; }
-    else                  { *cp++ = 0xf4; *cp++ = 0x8f; *cp++ = 0xbf; *cp++ = 0xbf; }
-
-    *cp = '\0';
-
-    return _utf8buf;
-}
-
-char* JE_IntToAstr(int64_t src) {
-    char* dest = JE_Calloc(1, _IBUFSIZE);
-
-    snprintf(dest, _IBUFSIZE, "%lld", src);
-
-    return dest;
-}
-
-char* JE_FloatToAstr(double src) {
-    char* dest = JE_Calloc(1, _DBUFSIZE);
-
-    snprintf(dest, _DBUFSIZE, "%lf", src);
-
-    return dest;
+    return ptr;
 }
 
 /**
-* Like strcat, but dest is assumed to be reallocatable.
+* Like strdup() but guarantees the returned pointer has the requested memory.
+* If the memory cannot be allocated, the program exits.
 */
-char* JE_AstrCat(char* dest, const char* src) {
-    if(dest) {
-        size_t dlen = strlen(dest);
-        size_t slen = strlen(src);
+char* JE_Strdup(const char* s) {
+    char* dup = strdup(s);
 
-        dest = JE_Realloc(dest, 1, dlen+slen+1);
-        snprintf(dest+dlen, slen+1, "%s", src);
-    }
-    else {
-        dest = strdup(src);
+    if(!dup) {
+        perror("JE_Strdup");
+        exit(1);
     }
 
-    return dest;
+    return dup;
 }
 
 /**
-* Like asprintf, but append to dest and return new memory.
+* Like free() but NUL-terminates the memory before freeing.
+*
+* Zeroing out the entire allocated memory before freeing helps the program fail
+* fast, but we don't actually know the size of the entire memory block here
+* and, even if we did, zeroing out the entire memory block could be slow.  So
+* we zero out just the first byte of the memory block instead as a low-overhead
+* compromise to handle the subset of cases where it could be useful for failing
+* fast.
 */
-char* JE_AstrCatFormat(char* dest, const char* format, ...) {
-    size_t dlen = strlen(dest);
-    size_t slen = 0;
-    va_list ap;
-    char* src;
+void JE_Free(void* ptr) {
+    uint8_t* ptr8 = ptr;
 
-    /* source */
-    va_start(ap, format);
-    vasprintf(&src, format, ap);
-    va_end(ap);
-
-    /* append */
-    slen = strlen(src);
-    dest = JE_Realloc(dest, 1, dlen+slen+1);
-    snprintf(dest+dlen, slen+1, "%s", src);
-
-    /* free */
-    free(src);
-
-    return dest;
-}
-
-char* JE_CstrToQstr(const char* src) {
-    char* dest = JE_Calloc(1, strlen(src) + 3);
-    const char* cp = src;
-
-    /* Opening quote */
-    dest = JE_AstrCat(dest, "\"");
-
-    /* Decode each character */
-    while(*cp) {
-        char buf[] = { *cp, '\0' };
-
-        switch(*cp) {
-            case '"':
-            case '\\':
-                dest = JE_AstrCat(dest, "\\");
-                dest = JE_AstrCat(dest, buf);
-                break;
-
-            case '\b' : buf[0] = 'b'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
-            case '\f' : buf[0] = 'f'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
-            case '\n' : buf[0] = 'n'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
-            case '\r' : buf[0] = 'r'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
-            case '\t' : buf[0] = 't'; dest = JE_AstrCat(dest, "\\"); dest = JE_AstrCat(dest, buf); break;
-            default   : dest = JE_AstrCat(dest, buf); break;
-        }
-
-        cp++;
+    if(ptr) {
+        *ptr8 = 0;
+        free(ptr);
     }
-
-    /* Closing quote */
-    dest = JE_AstrCat(dest, "\"");
-
-    return dest;
 }
 
-char* JE_LocToAstr(JE_YYLTYPE* loc) {
-    return JE_TokenToAstr(loc->first, loc->last->next);
-}
-
-char* JE_CstrAcat(const char* s1, const char* s2) {
-    JE_LINE_ITER* iter1 = JE_LineIterNew(s1);
-    JE_LINE_ITER* iter2 = JE_LineIterNew(s2);
-    size_t width1 = JE_CstrGetColumns(s1);
-    size_t width2 = JE_CstrGetColumns(s2);
-    size_t height1 = JE_CstrGetLines(s1);
-    size_t height2 = JE_CstrGetLines(s2);
-    char* result = JE_Calloc(1, (width1+width2+1)*(height1+height2)+1);
-    char* rend = result;
+int64_t JE_BinToI64(const char* s) {
+    int64_t i64 = 0;
 
     while(1) {
-        const char* line1 = JE_LineIterNext(iter1);
-        const char* line2 = JE_LineIterNext(iter2);
+        switch(*s++) {
+            case '0' : i64 = (i64 << 1) | 0x0; continue;
+            case '1' : i64 = (i64 << 1) | 0x1; continue;
+            default  : break;
+        }
 
-        if(!line1 && !line2) break;
-        if(!line1) line1 = "";
-        if(!line2) line2 = "";
-
-        rend += snprintf(rend, width1+strlen(line2)+2, "%-*s%s\n", (int)width1, line1, line2);
+        break;
     }
 
-    /* Remove last newline */
-    rend[-1] = '\0';
-
-    return result;
+    return i64;
 }
 
-size_t JE_CstrGetLines(const char* s) {
-    JE_LINE_ITER* iter = JE_LineIterNew(s);
-    size_t nlines = 0;
+int64_t JE_OctToI64(const char* s) {
+    int64_t i64 = 0;
 
-    while(JE_LineIterNext(iter)) nlines++;
-    JE_LineIterDelete(iter);
+    while(1) {
+        switch(*s++) {
+            case '0' : i64 = (i64 << 3) | 0x0; continue;
+            case '1' : i64 = (i64 << 3) | 0x1; continue;
+            case '2' : i64 = (i64 << 3) | 0x2; continue;
+            case '3' : i64 = (i64 << 3) | 0x3; continue;
+            case '4' : i64 = (i64 << 3) | 0x4; continue;
+            case '5' : i64 = (i64 << 3) | 0x5; continue;
+            case '6' : i64 = (i64 << 3) | 0x6; continue;
+            case '7' : i64 = (i64 << 3) | 0x7; continue;
+            default  : break;
+        }
 
-    return nlines;
-}
-
-size_t JE_CstrGetColumns(const char* s) {
-    JE_LINE_ITER* iter = JE_LineIterNew(s);
-    const char* line = NULL;
-    size_t maxwidth = 0;
-
-    while((line = JE_LineIterNext(iter))) {
-        maxwidth = _MAX(maxwidth, strlen(line));
+        break;
     }
 
-    JE_LineIterDelete(iter);
-
-    return maxwidth;
+    return i64;
 }
 
-JE_LINE_ITER* JE_LineIterNew(const char* s) {
-    JE_LINE_ITER* iter = JE_Calloc(1, sizeof(JE_LINE_ITER));
+int64_t JE_HexToI64(const char* s) {
+    int64_t i64 = 0;
 
-    iter->next = s;
-    iter->line = NULL;
+    while(1) {
+        switch(*s++) {
+            case '0' : i64 = (i64 << 4) | 0x0; continue;
+            case '1' : i64 = (i64 << 4) | 0x1; continue;
+            case '2' : i64 = (i64 << 4) | 0x2; continue;
+            case '3' : i64 = (i64 << 4) | 0x3; continue;
+            case '4' : i64 = (i64 << 4) | 0x4; continue;
+            case '5' : i64 = (i64 << 4) | 0x5; continue;
+            case '6' : i64 = (i64 << 4) | 0x6; continue;
+            case '7' : i64 = (i64 << 4) | 0x7; continue;
+            case '8' : i64 = (i64 << 4) | 0x8; continue;
+            case '9' : i64 = (i64 << 4) | 0x9; continue;
+            case 'a' : case 'A' : i64 = (i64 << 4) | 0xA; continue;
+            case 'b' : case 'B' : i64 = (i64 << 4) | 0xB; continue;
+            case 'c' : case 'C' : i64 = (i64 << 4) | 0xC; continue;
+            case 'd' : case 'D' : i64 = (i64 << 4) | 0xD; continue;
+            case 'e' : case 'E' : i64 = (i64 << 4) | 0xE; continue;
+            case 'f' : case 'F' : i64 = (i64 << 4) | 0xF; continue;
+            default  : break;
+        }
 
-    return iter;
-}
-
-const char* JE_LineIterNext(JE_LINE_ITER* iter) {
-    const char* line = NULL;
-
-    if(iter->next) {
-        const char* next1 = iter->next;
-        const char* next2 = strchr(next1, '\n') ? strchr(next1, '\n') : strchr(next1, '\0');
-        size_t len = next2-next1;
-
-        /* Copy text */
-        iter->line = JE_Realloc(iter->line, 1, len+1);
-        snprintf(iter->line, len+1, "%s", next1);
-
-        /* Setup next */
-        if(strchr(next1, '\n')) iter->next = next2+1;
-        else iter->next = NULL;
-
-        line = iter->line;
+        break;
     }
 
-    return line;
+    return i64;
 }
 
-void JE_LineIterDelete(JE_LINE_ITER* iter) {
-    if(iter->line) free(iter->line);
+/**
+* Convert a double to a C string with full precision.  The returned C string
+* must be freed.
+*/
+char* JE_F64ToCstr(double f64) {
+    uint64_t u64 = * (uint64_t*) &f64;
 
-    iter->next = NULL;
-    iter->line = NULL;
+    if     (0x0000000000000000 == u64                             ) return JE_Strdup("0.0");
+    else if(0x8000000000000000 == u64                             ) return JE_Strdup("-0.0");
+    else if(0x7ff0000000000000 == u64                             ) return JE_Strdup("inf");
+    else if(0xfff0000000000000 == u64                             ) return JE_Strdup("-inf");
+    else if(0x7ff0000000000001 <= u64 && u64 <= 0x7fffffffffffffff) return JE_Strdup("nan");
+    else {
+        char* buf = JE_Malloc(F64_MAXDECLEN);
+        double e = 1e308;
+        int i = 0;  /* next buf index */
+        int n = 0;  /* # of significant decimal digits printed */
 
-    free(iter);
+        /* Sign */
+        if(f64 < 0.0) {
+            buf[i++] = '-';
+            f64 *= -1.0;
+        }
+
+        /* Numeral */
+        for(int e=308; e>=0; e--) {
+            double p = pow(10.0, e);
+            int digit = f64 / pow(10.0, e);
+
+            if(digit || n) n++;
+
+            if(n) {
+                buf[i++] = digit + '0';
+
+                f64 -= digit * p;
+            }
+        }
+
+        /* . */
+        if(!n) buf[i++] = '0';
+        buf[i++] = '.';
+        if(!f64 || F64_MAXDECPREC<n || F64_MAXDECLEN-1<i) buf[i++] = '0';
+
+        /* Decimal */
+        while(f64 && n<F64_MAXDECPREC && i<F64_MAXDECLEN-1) {
+            int digit = (f64 *= 10.0);
+
+            if(digit || n) n++;
+
+            buf[i++] = digit + '0';
+            f64 -= digit;
+        }
+
+        /* Terminator */
+        buf[i] = '\0';
+
+        return buf;
+    }
+}
+
+/**
+* Convert a double to a quoted C string with full precision.  The returned
+* quoted C string must be freed.
+*/
+char* JE_F64ToQstr(double f64) {
+    char* qstr = JE_F64ToCstr(f64);
+
+    if(strcmp(qstr, "inf")==0 || strcmp(qstr, "-inf")==0 || strcmp(qstr, "nan")==0) {
+        size_t len = strlen(qstr);
+
+        qstr = JE_Realloc(qstr, len+3);
+        memmove(qstr+1, qstr, len);
+
+        qstr[0] = '"';
+        qstr[len+1] = '"';
+        qstr[len+2] = '\0';
+    }
+
+    return qstr;
 }

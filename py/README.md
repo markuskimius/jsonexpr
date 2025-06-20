@@ -16,21 +16,23 @@ Python 3.8 and later are supported.
 ## Example
 
 ```python
-import jsonexpr
+import jsonexpr as je
 
-compiled = jsonexpr.compile("""
+instance = je.instance()
+parsed = instance.parse("""
     PRINT("I have " + LEN(grades) + " students");
     PRINT("Alice's grade is " + grades.alice);
+    grades
 """)
-
-compiled.setSymbols({
+symmap = instance.symmap({
     "grades" : {
-        "alice" : "A",
-        "bob"   : "B",
+        "alice"   : "A",
+        "bob"     : "B",
+        "charlie" : "B",
     }
-});
+})
 
-result = compiled.eval()
+result = parsed.eval(symmap)
 ```
 
 Output:
@@ -44,4 +46,3 @@ Alice's grade is A
 ## License
 
 [Apache 2.0](https://github.com/markuskimius/jsonexpr/blob/main/LICENSE)
-

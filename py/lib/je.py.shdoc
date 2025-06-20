@@ -1,4 +1,4 @@
-__copyright__ = "Copyright 2024 Mark Kim"
+__copyright__ = "Copyright 2024-2025 Mark Kim"
 __license__ = "Apache 2.0"
 __version__ = "${JE_VERSION}"
 __author__ = "Mark Kim"
@@ -11,130 +11,38 @@ import wasmer_compiler_cranelift
 
 
 ##############################################################################
-# PUBLIC FUNCTIONS
+# CONSTANTS
 
-def eval(code, symbols=None):
-    compiled = compile(str(code)) 
-
-    if symbols is not None:
-        compiled.setSymbols(symbols)
-
-    return compiled.eval()
-
-def evalfd(fd, symbols=None):
-    code = fd.read()
-
-    return eval(code, symbols)
-
-def compile(code):
-    return Compiled(code)
-
-def compilefd(fd):
-    code = fd.read()
-
-    return compile(code)
+SCRIPTDIR     = os.path.dirname(__file__)
+WASMFILE      = os.path.join(SCRIPTDIR, "je.wasm")
+VERSION       = "${JE_VERSION}"
+VERSION_MAJOR = ${JE_VERSION%%.*}
+VERSION_MINOR = $(t=${JE_VERSION#*.}; printf "%s" "${t%.*}")
+VERSION_PATCH = ${JE_VERSION##*.}
 
 
 ##############################################################################
-# HELPER CLASSES
+# INTERFACE
 
-class Compiled:
-    def __init__(self, code):
-        scriptdir = os.path.dirname(__file__)
-        wasmfile = os.path.join(scriptdir, "je.wasm")
-
-        # Setup
-        with open(wasmfile, mode="rb") as fd:
+class Iface:
+    def __init__(self):
+        # Load jsonexpr
+        with open(WASMFILE, mode="rb") as fd:
             self.store = wasmer.Store()
             self.module = wasmer.Module(self.store, fd.read())
 
-        self.iface = Interface()
+        # Instantiate
         self.instance = wasmer.Instance(self.module, {
             "env": {
-                "read"   : wasmer.Function(self.store, self.iface.read),
-                "write"  : wasmer.Function(self.store, self.iface.write),
-                "_exit"  : wasmer.Function(self.store, self.iface._exit),
+                "read"   : wasmer.Function(self.store, self.read),
+                "write"  : wasmer.Function(self.store, self.write),
+                "_exit"  : wasmer.Function(self.store, self._exit),
             }
         })
-        self.iface.memory8 = self.instance.exports.memory.uint8_view()
-        self.util = Util(self.instance)
-        self.wsymtbl = self.util.symnew()
 
-        # Parse
-        self.code = self.util.strdup(code)
-        self.wtree = self.util.parse(self.code)
+        # Cache memory
+        self.memory8 = self.instance.exports.memory.uint8_view()
 
-    def eval(self):
-        wresult = self.util.eval(self.wtree, self.wsymtbl)
-        wquoted = self.util.valqstr(wresult)
-        quoted = self.util.strat(wquoted)
-        result = json_loads(quoted, self.instance, wresult)
-
-        self.util.valfree(wresult)
-
-        return result
-
-    def __contains__(self, name):
-        wname = self.util.strdup(name)
-        result = self.util.symget(self.wsymtbl, wname)
-
-        self.util.free(wname)
-
-        return result != 0
-    
-    def __getitem__(self, name):
-        jstr = self.getJson(name)
-        wname = self.util.strdup(name)
-        wsymval = self.util.symget(self.wsymtbl, wname)
-
-        self.util.free(wname)
-
-        return json_loads(jstr, self.instance, wsymval)
-    
-    def __setitem__(self, name, value):
-        self.setJson(name, json_dumps(value))
-
-    def __delitem__(self, name):
-        wname = self.util.strdup(name)
-
-        self.util.symunset(self.wsymtbl, wname)
-        self.util.free(wname)
-
-    def setSymbols(self, symbols):
-        for key,value in symbols.items():
-            self.setJson(key, json_dumps(value))
-
-    def clearSymbols(self, localonly=1):
-        self.util.symclear(self.wsymtbl, localonly)
-
-    def setJson(self, name, jstr):
-        # Verify name is an identifier
-        if not re.match(r"^[_a-zA-Z][_a-zA-Z0-9]*\$", name, re.MULTILINE):
-            raise SyntaxError(f"Identifier expected, got \`{name}\`")
-
-        expr = f"{name} = {jstr};"
-        wexpr = self.util.strdup(expr)
-        wtree = self.util.parse(wexpr)
-        wresult = self.util.eval(wtree, self.wsymtbl)
-
-        self.util.nodefree(wtree)
-        self.util.valfree(wresult)
-        self.util.free(wexpr)
-
-    def getJson(self, name):
-        wname = self.util.strdup(name)
-        wresult = self.util.symget(self.wsymtbl, wname)
-        wstr = self.util.valqstr(wresult)
-        jstr = self.util.strat(wstr)
-
-        self.util.free(wname)
-
-        return jstr
-
-    def nodetree(self):
-        return self.util.nodetree(self.wtree)
-
-class Interface:
     def read(self, fd:"i32", buf:"i32", count:"i32") -> "i32":
         data = os.read(fd, count)
         count = len(data)
@@ -148,28 +56,13 @@ class Interface:
     def _exit(self, status:"i32") -> None:
         raise Exit(status)
 
-class Util:
-    def __init__(self, instance):
-        self.memory8 = instance.exports.memory.uint8_view()
-        self.instance = instance
-        self.allocated = []
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        for waddr in self.allocated:
-            self.instance.exports.free(waddr)
-
-        self.allocated = []
-
     def strat(self, waddr):
-        len = 0
+        count = 0
 
-        while(self.memory8[waddr+len] != 0):
-            len += 1
+        while(self.memory8[waddr+count] != 0):
+            count += 1
 
-        return bytearray(self.memory8[waddr:waddr+len]).decode("utf-8")
+        return bytearray(self.memory8[waddr:waddr+count]).decode("utf-8")
 
     def strdup(self, string):
         encoded = string.encode("utf-8")
@@ -177,228 +70,417 @@ class Util:
         self.memory8[waddr:waddr+len(string)] = encoded
         self.memory8[waddr+len(encoded)] = 0
 
-        self.allocated += [waddr]
-
         return waddr
 
     def free(self, waddr):
-        if waddr in self.allocated:
-            self.allocated.remove(waddr)
-
         self.instance.exports.free(waddr)
 
     def parse(self, wcode):
-        return self.instance.exports.JE_Parse(wcode)
+        return self.instance.exports.parse(wcode)
 
-    def eval(self, wtree, wsymtbl):
-        return self.instance.exports.JE_EvalNode(wtree, wsymtbl)
+    def asteval(self, wast, wsymmap):
+        return self.instance.exports.asteval(wast, wsymmap)
 
-    def nodefree(self, wnode):
-        self.instance.exports.JE_NodeDelete(wnode)
+    def astfree(self, wast):
+        self.instance.exports.astfree(wast)
 
-    def nodetree(self, wnode):
-        wtree = self.instance.exports.JE_NodeTreeAstr(wnode)
-        tree = self.strat(wtree)
+    def newsym(self, wparent=0):
+        return self.instance.exports.newsym(wparent)
 
-        self.free(wtree)
+    def symget(self, wsymmap, wkey):
+        return self.instance.exports.symget(wsymmap, wkey)
 
-        return tree
+    def symset(self, wsymmap, wkey, wvalue):
+        return self.instance.exports.symset(wsymmap, wkey, wvalue, 0)
 
-    def strval(self, wstr):
-        return self.instance.exports.JE_ValNewFromCstr(wstr)
+    def symfree(self, wsymmap):
+        return self.instance.exports.symfree(wsymmap)
 
-    def symnew(self, wsymtbl=0):
-        return self.instance.exports.JE_SymtblNew(wsymtbl)
+    def nullval(self):
+        return self.instance.exports.nullval()
 
-    def symclear(self, wsymtbl, localonly=1):
-        return self.instance.exports.JE_SymtblClear(wsymtbl, localonly)
+    def boolval(self, _bool):
+        return self.instance.exports.boolval(_bool)
 
-    def symget(self, wsymtbl, wkey):
-        return self.instance.exports.JE_SymtblGet(wsymtbl, wkey)
+    def i64val(self, i64):
+        return self.instance.exports.i64val(i64)
 
-    def mapset(self, wmap, wkey, wval):
-        return self.instance.exports.JE_MapSet(wmap, wkey, wval)
+    def f64val(self, f64):
+        return self.instance.exports.f64val(f64)
 
-    def mapunset(self, wmap, wkey):
-        self.instance.exports.JE_MapUnset(wmap, wkey)
+    def strval(self, wcstr):
+        return self.instance.exports.strval(wcstr)
+
+    def mapval(self):
+        return self.instance.exports.mapval()
+
+    def vecval(self):
+        return self.instance.exports.vecval()
+
+    def valdup(self, wval):
+        return self.instance.exports.valdup(wval)
+
+    def valtype(self, wval):
+        return self.strat(self.instance.exports.valtype(wval))
+
+    def valfree(self, wval):
+        self.instance.exports.valfree(wval)
+
+    def valtobool(self, wval):
+        return self.instance.exports.valtobool(wval)
+
+    def valtoi64(self, wval):
+        return self.instance.exports.valtoi64(wval)
+
+    def valtof64(self, wval):
+        return self.instance.exports.valtof64(wval)
+
+    def valtocstr(self, wval):
+        return self.instance.exports.valtocstr(wval)
+
+    def valtoqstr(self, wval):
+        return self.instance.exports.valtoqstr(wval)
+
+    def maplen(self, wmap):
+        return self.instance.exports.maplen(wmap)
 
     def mapget(self, wmap, wkey):
-        return self.instance.exports.JE_MapGet(wmap, wkey)
+        return self.instance.exports.mapget(wmap, wkey)
 
-    def mapkey(self, wmap):
-        return self.instance.exports.JE_MapKey(wmap)
+    def mapset(self, wmap, wkey, wval):
+        return self.instance.exports.mapset(wmap, wkey, wval)
 
-    def mapnext(self, wmap):
-        return self.instance.exports.JE_MapNext(wmap)
+    def mapunset(self, wmap, wkey):
+        self.instance.exports.mapunset(wmap, wkey)
 
-    def vecset(self, wvec, index, wval):
-        return self.instance.exports.JE_VecSet(wvec, index, wval)
+    def mapbegin(self, wmap):
+        return self.instance.exports.mapbegin(wmap)
 
-    def vecpush(self, wvec, wval):
-        return self.instance.exports.JE_VecPush(wvec, wval)
+    def mapend(self, wmap):
+        return self.instance.exports.mapend(wmap)
 
-    def vecunset(self, wvec, index):
-        self.instance.exports.JE_VecUnset(wvec, index)
+    def mapnext(self, wmap, witer):
+        return self.instance.exports.mapnext(wmap, witer)
 
-    def vecget(self, wvec, index):
-        return self.instance.exports.JE_VecGet(wvec, index)
+    def mapgetkey(self, wmap, witer):
+        return self.instance.exports.mapgetkey(wmap, witer)
+
+    def mapgetval(self, wmap, witer):
+        return self.instance.exports.mapgetval(wmap, witer)
 
     def veclen(self, wvec):
-        return self.instance.exports.JE_VecLen(wvec)
+        return self.instance.exports.veclen(wvec)
 
-    def valbool(self, wval):
-        return self.instance.exports.JE_ValNewFromBool(wval)
+    def vecget(self, wvec, index):
+        return self.instance.exports.vecget(wvec, index)
 
-    def valint(self, wval):
-        return self.instance.exports.JE_ValNewFromInt(wval)
+    def vecset(self, wvec, index, wval):
+        return self.instance.exports.vecset(wvec, index, wval)
 
-    def valdbl(self, wval):
-        return self.instance.exports.JE_ValNewFromFloat(wval)
+    def vecpush(self, wvec, wval):
+        return self.instance.exports.vecpush(wvec, wval)
 
-    def valmap(self, wval):
-        if(wval): return self.instance.exports.JE_ValGetMap(wval)
-        else: return self.instance.exports.JE_ValNewFromMap(0)
+    def vecpop(self, wvec):
+        return self.instance.exports.vecpop(wvec)
 
-    def valvec(self, wval):
-        if(wval): return self.instance.exports.JE_ValGetVec(wval)
-        else: return self.instance.exports.JE_ValNewFromVec(0)
-
-    def valstr(self, wval):
-        return self.instance.exports.JE_ValToCstr(wval)
-
-    def valqstr(self, wval):
-        return self.instance.exports.JE_ValToQstr(wval)
-
-    def valfree(self, wresult):
-        self.instance.exports.JE_ValDelete(wresult)
-
-def _wvalue(instance, value):
-    with Util(instance) as util:
-        if   isinstance(value, bool):
-            wvalue = util.valbool(value)
-        elif isinstance(value, int):
-            wvalue = util.valint(value)
-        elif isinstance(value, float):
-            wvalue = util.valdbl(value)
-        elif isinstance(value, list):
-            wvalue = util.valvec(0)
-            warray = util.valvec(wvalue)
-
-            for i in range(len(value)):
-                item = value[i]
-                (wval, pval) = _wvalue(instance, item)
-
-                util.vecpush(warray, wval)
-                value[i] = pval
-
-            value = Array(value, instance, warray)
-
-        elif isinstance(value, dict):
-            wvalue = util.mapvec(0)
-            wobject = util.valmap(wvalue)
-
-            with Util(instance) as util:
-                for k,v in value.items():
-                    wk = util.strdup(str(k))
-                    (wv, v2) = _wvalue(instance, v)
-
-                    util.mapset(wobject, wk, wv)
-                    value[k] = v2
-
-            value = Object(value, instance, wobject)
-
-        else:
-            value = str(value)
-            wstr = util.strdup(value)
-            wvalue = util.strval(wstr)
-
-    return (wvalue, value)
-
-class Object(dict):
-    def __init__(self, obj, instance, wsymmap):
-        super().__init__(obj)
-        self.__instance = instance
-        self.__wsymmap = wsymmap
-
-    def __setitem__(self, name, value):
-        with Util(self.__instance) as util:
-            wname = util.strdup(str(name))
-            (wvalue, pvalue) = _wvalue(self.__instance, value)
-
-            util.mapset(self.__wsymmap, wname, wvalue)
-
-        return super().__setitem__(name, pvalue)
-
-    def __delitem__(self, name):
-        with Util(self.__instance) as util:
-            wname = util.strdup(name)
-
-            util.mapunset(self.__wsymmap, wname)
-
-        return super().__delitem__(name)
-
-class Array(list):
-    def __init__(self, array, instance, wsymvec):
-        super().__init__(array)
-        self.__instance = instance
-        self.__wsymvec = wsymvec
-
-    def __setitem__(self, index, value):
-        (wvalue, pvalue) = _wvalue(self.__instance, value)
-
-        with Util(self.__instance) as util:
-            util.vecset(self.__wsymvec, index, wvalue)
-
-        return super().__setitem__(index, pvalue)
-
-    def __delitem__(self, index):
-        with Util(self.__instance) as util:
-            util.vecunset(self.__wsymvec, index)
-
-        return super().__delitem__(index)
+    def vecunset(self, wvec, index):
+        self.instance.exports.vecunset(wvec, index)
 
 
 ##############################################################################
-# HELPER FUNCTIONS
+# INSTANCE
 
-def json_dumps(value):
-    return json.dumps(value, default=str)
+class Instance:
+    def __init__(self):
+        self.iface = Iface()
 
-def json_loads(jstr, instance, symval):
-    result = json.loads(jstr)
+    def symmap(self, symbols):
+        return Symmap(self.iface, symbols)
 
-    return _enrich(result, instance, symval)
+    def parse(self, code):
+        return Parsed(self.iface, code)
 
-def _enrich(value, instance, symval):
-    if   isinstance(value, dict):
-        with Util(instance) as util:
-            symmap = util.valmap(symval)
 
-            for k,v in value.items():
-                wname = util.strdup(k)
-                wsymval = util.mapget(symmap, wname)
-                value[k] = _enrich(v, instance, wsymval)
+##############################################################################
+# PARSED
 
-            value = Object(value, instance, symmap)
+class Parsed:
+    def __init__(self, iface, code):
+        wcode = iface.strdup(code)
 
-    elif isinstance(value, list):
-        with Util(instance) as util:
-            symvec = util.valvec(symval)
+        self.wast = iface.parse(wcode)
+        self.iface = iface
+        self.iface.free(wcode)
 
-            for i in range(len(value)):
-                wsymval = util.vecget(symvec, i)
-                value[i] = _enrich(value[i], instance, wsymval)
+    def __del__(self):
+        self.iface.astfree(self.wast)
 
-            value = Array(value, instance, symvec)
+    def eval(self, symmap=None):
+        _symmap = Symmap(self.iface) if symmap is None else symmap
+
+        if(_symmap.iface is self.iface):
+            wvalue = self.iface.asteval(self.wast, _symmap.wsymmap)
+            value = _getvalue(self.iface, wvalue)
+
+            self.iface.valfree(wvalue)
+
+            return value
+
+        raise UsageError("Code and Symmap must be from the same Jsonexpr Instance")
+
+
+##############################################################################
+# TYPES
+
+class Symmap:
+    def __init__(self, iface, symbols=None):
+        self.iface = iface
+        self.wsymmap = iface.newsym()
+
+        if symbols:
+            self.merge(symbols)
+
+    def __del__(self):
+        if self.wsymmap:
+            self.iface.symfree(self.wsymmap)
+
+        self.wsymmap = None
+
+    def __contains__(self, name):
+        wname = self.iface.strdup(name)
+        wvalue = self.iface.symget(self.wsymmap, wname)
+
+        self.iface.free(wname)
+        # wvalue is a pointer to a value in wsymmap; do not free
+
+        return wvalue != 0
+
+    def __getitem__(self, name):
+        wname = self.iface.strdup(name)
+        wvalue = self.iface.symget(self.wsymmap, wname)
+        value = _getvalue(self.iface, wvalue)
+
+        self.iface.free(wname)
+        # wvalue is a pointer to a value in wsymmap; do not free
+
+        return value
+
+    def __setitem__(self, name, value):
+        wname = self.iface.strdup(name)
+        wvalue = _mkvalue(self.iface, value)
+
+        self.iface.symset(self.wsymmap, wname, wvalue)
+
+        # wname and wvalue are now in wsymmap; do not free
+
+        return value
+
+    def __delitem__(self, name):
+        wname = self.iface.strdup(name)
+
+        self.iface.symunset(self.wsymmap, wname)
+        self.iface.free(wname)
+
+    def merge(self, dict_):
+        for name,value in dict_.items():
+            self.__setitem__(name, value)
+
+class Map:
+    def __init__(self, iface, wmap):
+        self.iface = iface
+        self.wmap = iface.valdup(wmap)
+
+    def __del__(self):
+        self.iface.valfree(self.wmap)
+
+    def __contains__(self, name):
+        wname = self.iface.strdup(name)
+        wvalue = self.iface.mapget(self.wmap, wname)
+
+        self.iface.free(wname)
+        # wvalue is a pointer to a value in wmap; do not free
+
+        return wvalue != 0
+
+    def __getitem__(self, name):
+        wname = self.iface.strdup(name)
+        wvalue = self.iface.mapget(self.wmap, wname)
+        value = _getvalue(self.iface, wvalue)
+
+        self.iface.free(wname)
+        # wvalue is a pointer to a value in wmap; do not free
+
+        if not wvalue:
+            raise KeyError(name)
+
+        return value
+
+    def __setitem__(self, name, value):
+        wname = self.iface.strdup(name)
+        wvalue = _mkvalue(self.iface, value)
+
+        self.iface.mapset(self.wmap, wname, wvalue)
+
+        # wname and wvalue are now in wmap; do not free
+
+        return value
+
+    def __delitem__(self, name):
+        wname = self.iface.strdup(name)
+
+        self.iface.mapunset(self.wmap, wname)
+        self.iface.free(wname)
+
+    def __len__(self):
+        return self.iface.maplen(self.wmap)
+
+    def __str__(self):
+        wqstr = self.iface.valtoqstr(self.wmap)
+        qstr = self.iface.strat(wqstr)
+
+        self.iface.free(wqstr)
+
+        return qstr
+
+    def items(self):
+        i = self.iface.mapbegin(self.wmap)
+        j = self.iface.mapend(self.wmap)
+
+        while i != j:
+            wkey = self.iface.mapgetkey(self.wmap, i)
+            wvalue = self.iface.mapgetval(self.wmap, i)
+            key = self.iface.strat(wkey)
+            value = _getvalue(self.iface, wvalue)
+
+            yield (key,value)
+
+            # wname and wvalue are pointers into wmap; do not free
+            i = self.iface.mapnext(self.wmap, i)
+
+    def toDict(self):
+        result = {}
+
+        for key,value in self.items():
+            result[key] = value
+
+        return result
+
+class Vec:
+    def __init__(self, iface, wvec):
+        self.iface = iface
+        self.wvec = iface.valdup(wvec)
+
+    def __del__(self):
+        self.iface.valfree(self.wvec)
+
+    def __getitem__(self, index):
+        wvalue = self.iface.vecget(self.wvec, index)
+        value = _getvalue(self.iface, wvalue)
+
+        # wvalue is a pointer to a value in wvec; do not free
+
+        if not wvalue:
+            raise KeyError(name)
+
+        return value
+
+    def __setitem__(self, index, value):
+        wvalue = _mkvalue(self.iface, value)
+
+        self.iface.vecset(self.wvec, index, wvalue)
+
+        # wvalue is now in wvec; do not free
+
+        return value
+
+    def __delitem__(self, index):
+        self.iface.vecunset(self.wvec, index)
+
+    def __len__(self):
+        return self.iface.veclen(self.wvec)
+
+    def __str__(self):
+        wqstr = self.iface.valtoqstr(self.wvec)
+        qstr = self.iface.strat(wqstr)
+
+        self.iface.free(wqstr)
+
+        return qstr
+
+    def toList(self):
+        result = []
+
+        for i in range(self.__len__()):
+            result += [self.__getitem__(i)]
+
+        return result
+
+
+##############################################################################
+# JSON ENCODER
+
+class JsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Map): return obj.toDict()
+        if isinstance(obj, Vec): return obj.toList()
+
+        return super().default(obj)
+
+
+##############################################################################
+# PRIVATE FUNCTIONS
+
+def _getvalue(iface, wvalue):
+    value = None
+
+    if wvalue:
+        value_t = iface.valtype(wvalue)
+
+        if   value_t == "OBJECT" : value = Map(iface, wvalue)
+        elif value_t == "ARRAY"  : value = Vec(iface, wvalue)
+        else                     :
+            wqstr = iface.valtoqstr(wvalue)
+            qstr = iface.strat(wqstr)
+            value = json.loads(qstr)
+
+            iface.free(wqstr)
 
     return value
 
+def _mkvalue(iface, value):
+    if   isinstance(value, dict):
+        wvalue = iface.mapval()
+
+        for k,v in value.items():
+            iface.mapset(wvalue, iface.strdup(str(k)), _mkvalue(iface, v))
+
+    elif isinstance(value, list):
+        wvalue = iface.vecval()
+
+        for v in value:
+            iface.vecpush(wvalue, _mkvalue(iface, v))
+
+    elif value is None              : wvalue = iface.nullval()
+    elif isinstance(value, bool)    : wvalue = iface.boolval(value)
+    elif isinstance(value, int)     : wvalue = iface.i64val(value)
+    elif isinstance(value, float)   : wvalue = iface.f64val(value)
+    elif isinstance(value, Map)     : wvalue = iface.valdup(value.wmap)
+    elif isinstance(value, Vec)     : wvalue = iface.valdup(value.wvec)
+    else                            : wvalue = iface.strval(iface.strdup(str(value)))
+
+    return wvalue
+
 
 ##############################################################################
-# EXCEPTIONS
+# PUBLIC EXCEPTIONS
 
 class JeException(Exception):
-    pass
+    def __init__(self, text):
+        super().__init__(text)
+
+class UsageError(JeException):
+    def __init__(self, text):
+        self.text = text
 
 class SyntaxError(JeException):
     def __init__(self, text):
@@ -410,61 +492,17 @@ class Exit(JeException):
 
 
 ##############################################################################
-# TEST CODE
+# PUBLIC FUNCTIONS
 
-if __name__ == "__main__":
-    import sys
-    import errno
+def instance():
+    return Instance()
 
-    def main():
-        compiled = compile("""
-            PRINT("I have " + LEN(grades) + " students");
-            PRINT("Alice's grade is " + grades.alice);
-        """)
+def eval(code, symbols=None):
+    instance = Instance()
+    parsed = instance.parse(str(code))
+    symmap = instance.symmap(symbols)
 
-        compiled.setSymbols({
-            "grades" : {
-                "alice" : "A",
-                "bob"   : "B",
-            },
-        #     "nested" : {
-        #         "alice" : {
-        #             "grade"     : [ "A", "B", "C" ],
-        #             "last_name" : "Smith",
-        #         },
-        #         "bob"   : {
-        #             "grade"     : "B",
-        #             "last_name" : "Johnson",
-        #         },
-        #     },
-        })
-
-        result = compiled.eval()
-
-        # compiled["nested"]["alice"]["grade"] = [ 1, 3, 2 ]
-        # compiled["nested"]["alice"]["grade"][1] = {
-        #     "a" : True,
-        #     "b" : True,
-        #     "c" : False,
-        # }
-        # compiled["nested"]["alice"]["grade"][1]["b"] = "Hello!"
-        # compiled["nested"]["alice"]["grade"] = {
-        #     "a" : "b",
-        #     "c" : "d",
-        # }
-        # print("hello" in compiled)
-        # print("grades" in compiled)
-        print(json.dumps(compiled["grades"], indent=2))
-
-        # print(type(result), result)
-
-    try:
-        main()
-    except Exit as e:
-        sys.exit(e.code)
-    except KeyboardInterrupt:
-        print("")
-        sys.exit(errno.EOWNERDEAD)
+    return parsed.eval(symmap)
 
 
 # vim:ft=python:

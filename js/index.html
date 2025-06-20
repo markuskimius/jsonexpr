@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <html>
-        <title>Jsonexpr Test</title>
+        <title>JSONexpr Test</title>
         <style>
             html, body {
                 background-color: #000000;
@@ -43,9 +43,9 @@
 memo = [ 0, 1 ];
 
 fib = FUNCTION("I",
-  x = ARG[0];
+  x = ARGS[0];
 
-  IF(x &gt;= LEN(memo),
+  IF(LEN(memo)-1 &lt; x,
     x1 = fib(x-1);
     x2 = fib(x-2);
 
@@ -55,9 +55,12 @@ fib = FUNCTION("I",
   memo[x]
 );
 
-PRINT(fib(20));
-        </textarea>
-        <div><button id="runButton">Run</button></div>
+fib(92);
+		</textarea>
+        <div>
+            <button id="runButton">Run</button>
+            <input type="checkbox" id="quietOption">Quiet</input>
+        </div>
 
         <div class="section">Output:</div>
         <textarea id="console" rows="25" cols="125" readonly scroll></textarea>
@@ -75,9 +78,18 @@ PRINT(fib(20));
             function main() {
                 const code = document.querySelector("#code");
                 const stdout = document.querySelector("#console");
+                const opts = {
+                    "quiet" : document.querySelector("#quietOption"),
+                };
 
                 document.querySelector("#runButton").addEventListener("click", async () => {
-                    const result = await je.eval(code.value);
+                    const instance = await je.instance();
+                    const parsed = instance.parse(code.value);
+                    const result = parsed.eval();
+
+                    if(!opts.quiet.checked) {
+                        console.log(result);
+                    }
                 });
 
                 document.querySelector("#clearButton").addEventListener("click", () => {
@@ -87,13 +99,13 @@ PRINT(fib(20));
                 /* Redirect the output to the page */
                 console.log = function(...args) {
                     /* Output */
-                    stdout.value = stdout.value.slice(0,-1) + args.join(" ") + "\n_";
+                    stdout.value = stdout.value.slice(0,-1) + args.map((x) => String(x)).join(" ") + "\n_";
 
                     /* Scroll to bottom */
                     stdout.scrollTop = stdout.scrollHeight;
                 }
 
-                console.log(`jsonexpr ${je.version}`);
+                console.log(`jsonexpr ${je.VERSION}`);
             }
 
             main();

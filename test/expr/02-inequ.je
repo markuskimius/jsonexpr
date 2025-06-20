@@ -1,0 +1,173 @@
+PRINT("## < ##");
+PRINT(0 < 0);
+PRINT(0 < 1);
+PRINT(0 < -1);
+PRINT(1 < 0);
+PRINT(-1 < 0);
+PRINT();
+
+PRINT(0 < 0.0);
+PRINT(0 < 1.0);
+PRINT(0 < -1.0);
+PRINT(1 < 0.0);
+PRINT(-1 < 0.0);
+PRINT();
+
+PRINT(0.0 < 0);
+PRINT(0.0 < 1);
+PRINT(0.0 < -1);
+PRINT(1.0 < 0);
+PRINT(-1.0 < 0);
+PRINT();
+
+PRINT(0.0 < 0.0);
+PRINT(0.0 < 1.0);
+PRINT(0.0 < -1.0);
+PRINT(1.0 < 0.0);
+PRINT(-1.0 < 0.0);
+PRINT();
+
+PRINT("## <= ##");
+PRINT(0 <= 0);
+PRINT(0 <= 1);
+PRINT(0 <= -1);
+PRINT(1 <= 0);
+PRINT(-1 <= 0);
+PRINT();
+
+PRINT(0 <= 0.0);
+PRINT(0 <= 1.0);
+PRINT(0 <= -1.0);
+PRINT(1 <= 0.0);
+PRINT(-1 <= 0.0);
+PRINT();
+
+PRINT(0.0 <= 0);
+PRINT(0.0 <= 1);
+PRINT(0.0 <= -1);
+PRINT(1.0 <= 0);
+PRINT(-1.0 <= 0);
+PRINT();
+
+PRINT(0.0 <= 0.0);
+PRINT(0.0 <= 1.0);
+PRINT(0.0 <= -1.0);
+PRINT(1.0 <= 0.0);
+PRINT(-1.0 <= 0.0);
+PRINT();
+
+PRINT("## > ##");
+PRINT(0 > 0);
+PRINT(0 > 1);
+PRINT(0 > -1);
+PRINT(1 > 0);
+PRINT(-1 > 0);
+PRINT();
+
+PRINT(0 > 0.0);
+PRINT(0 > 1.0);
+PRINT(0 > -1.0);
+PRINT(1 > 0.0);
+PRINT(-1 > 0.0);
+PRINT();
+
+PRINT(0.0 > 0);
+PRINT(0.0 > 1);
+PRINT(0.0 > -1);
+PRINT(1.0 > 0);
+PRINT(-1.0 > 0);
+PRINT();
+
+PRINT(0.0 > 0.0);
+PRINT(0.0 > 1.0);
+PRINT(0.0 > -1.0);
+PRINT(1.0 > 0.0);
+PRINT(-1.0 > 0.0);
+PRINT();
+
+PRINT("## >= ##");
+PRINT(0 >= 0);
+PRINT(0 >= 1);
+PRINT(0 >= -1);
+PRINT(1 >= 0);
+PRINT(-1 >= 0);
+PRINT();
+
+PRINT(0 >= 0.0);
+PRINT(0 >= 1.0);
+PRINT(0 >= -1.0);
+PRINT(1 >= 0.0);
+PRINT(-1 >= 0.0);
+PRINT();
+
+PRINT(0.0 >= 0);
+PRINT(0.0 >= 1);
+PRINT(0.0 >= -1);
+PRINT(1.0 >= 0);
+PRINT(-1.0 >= 0);
+PRINT();
+
+PRINT(0.0 >= 0.0);
+PRINT(0.0 >= 1.0);
+PRINT(0.0 >= -1.0);
+PRINT(1.0 >= 0.0);
+PRINT(-1.0 >= 0.0);
+PRINT();
+
+PRINT("## == ##");
+PRINT(0 == 0);
+PRINT(0 == 1);
+PRINT(0 == -1);
+PRINT(1 == 0);
+PRINT(-1 == 0);
+PRINT();
+
+PRINT(0 == 0.0);
+PRINT(0 == 1.0);
+PRINT(0 == -1.0);
+PRINT(1 == 0.0);
+PRINT(-1 == 0.0);
+PRINT();
+
+PRINT(0.0 == 0);
+PRINT(0.0 == 1);
+PRINT(0.0 == -1);
+PRINT(1.0 == 0);
+PRINT(-1.0 == 0);
+PRINT();
+
+PRINT(0.0 == 0.0);
+PRINT(0.0 == 1.0);
+PRINT(0.0 == -1.0);
+PRINT(1.0 == 0.0);
+PRINT(-1.0 == 0.0);
+PRINT();
+
+PRINT("## != ##");
+PRINT(0 != 0);
+PRINT(0 != 1);
+PRINT(0 != -1);
+PRINT(1 != 0);
+PRINT(-1 != 0);
+PRINT();
+
+PRINT(0 != 0.0);
+PRINT(0 != 1.0);
+PRINT(0 != -1.0);
+PRINT(1 != 0.0);
+PRINT(-1 != 0.0);
+PRINT();
+
+PRINT(0.0 != 0);
+PRINT(0.0 != 1);
+PRINT(0.0 != -1);
+PRINT(1.0 != 0);
+PRINT(-1.0 != 0);
+PRINT();
+
+PRINT(0.0 != 0.0);
+PRINT(0.0 != 1.0);
+PRINT(0.0 != -1.0);
+PRINT(1.0 != 0.0);
+PRINT(-1.0 != 0.0);
+PRINT();
