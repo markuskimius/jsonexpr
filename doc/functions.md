@@ -114,8 +114,11 @@ If no expression was evaluated, it returns `null`.
 
 `LEN(string or array or object) -> int`
 
-Return the length of a string, the number of items in an array, or the number
+Return the byte length of a string, the number of items in an array, or the number
 of keys in an object.
+
+Note that `LEN(string)` returns the number of bytes in a string.  To get the
+number of unicode characters, use `STRLEN(string)` instead.
 
 
 ## PRINT
@@ -139,6 +142,13 @@ x.5 is rounded up.
 `SQRT(int or double) -> double`
 
 Return the square root of an integer or double.
+
+
+## STRLEN
+
+`STRLEN(string) -> int`
+
+Return the number of unicode characters of a string.
 
 
 ## WHILE
