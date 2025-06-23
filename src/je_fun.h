@@ -1,6 +1,8 @@
 #ifndef JE_FUN_H_
 #define JE_FUN_H_
 
+#include "je_value.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

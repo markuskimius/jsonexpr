@@ -2,7 +2,6 @@
 #define JE_VALUE_H_
 
 #include <inttypes.h>
-#include "je_fun.h"
 #include "je_nod.h"
 #include "je_str.h"
 
@@ -15,6 +14,7 @@ extern "C" {
 * FORWARD DECLARATIONS
 */
 
+typedef struct JE_FUN JE_FUN;
 typedef struct JE_MAP JE_MAP;
 typedef struct JE_TYPE JE_TYPE;
 typedef struct JE_VEC JE_VEC;

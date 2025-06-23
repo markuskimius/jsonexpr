@@ -42,7 +42,7 @@ typedef struct JE_TYPE {
     JE_TYPE_T (*getType)(const JE_VALUE*);
     const char* (*getTypeCstr)(const JE_VALUE*);
 
-    JE_VALUE (*and)(const JE_VALUE*, const JE_VALUE);
+    JE_VALUE (*_and)(const JE_VALUE*, const JE_VALUE);
     JE_VALUE (*asr)(const JE_VALUE*, const JE_VALUE);
     void (*assn)(JE_VALUE*, JE_VALUE);
     JE_VALUE (*call)(const JE_VALUE*, const JE_VEC, const JE_NODE*, JE_MAP*, const JE_ASTINFO*);
@@ -53,14 +53,14 @@ typedef struct JE_TYPE {
     JE_VALUE (*minus)(const JE_VALUE*, const JE_VALUE);
     JE_VALUE (*mod)(const JE_VALUE*, const JE_VALUE);
     JE_VALUE (*neg)(const JE_VALUE*);
-    JE_VALUE (*or)(const JE_VALUE*, const JE_VALUE);
+    JE_VALUE (*_or)(const JE_VALUE*, const JE_VALUE);
     JE_VALUE (*plus)(const JE_VALUE*, const JE_VALUE);
     JE_VALUE (*pos)(const JE_VALUE*);
     JE_VALUE (*pow)(const JE_VALUE*, const JE_VALUE);
     JE_VALUE (*shl)(const JE_VALUE*, const JE_VALUE);
     JE_VALUE (*shr)(const JE_VALUE*, const JE_VALUE);
     JE_VALUE (*times)(const JE_VALUE*, const JE_VALUE);
-    JE_VALUE (*xor)(const JE_VALUE*, const JE_VALUE);
+    JE_VALUE (*_xor)(const JE_VALUE*, const JE_VALUE);
     void (*assnasr)(JE_VALUE*, const JE_VALUE);
     void (*assnbitand)(JE_VALUE*, const JE_VALUE);
     void (*assnbitor)(JE_VALUE*, const JE_VALUE);

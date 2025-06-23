@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <inttypes.h>
+#include "je_value.h"
 
 #ifdef __cplusplus
 extern "C" {
