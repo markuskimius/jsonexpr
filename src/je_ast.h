@@ -2,6 +2,7 @@
 #define JE_AST_H_
 
 #include "je_astnode.h"
+#include "je_value.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -140,10 +140,13 @@ je_parse.tab.c je_parse.tab.h: je_parse.y je_ast.h je_error.h je_node.h je_parse
 je.h: je_ast.h je_const.h je_parse.h je_symbols.h je_symmap.h je_type.h je_value.h
 	touch $@
 
-je_ast.h: je_astnode.h
+je_ast.h: je_astnode.h je_value.h
 	touch $@
 
 je_astnode.h: je_astinfo.h
+	touch $@
+
+je_fun.h: je_astinfo.h
 	touch $@
 
 je_node.h: je_parse.h je_value.h
@@ -158,7 +161,10 @@ je_symmap.h: je_map.h
 je_token.h: je_parse.h je_str.h
 	touch $@
 
-je_value.h: je_fun.h je_nod.h je_str.h
+je_value.h: je_nod.h je_str.h
+	touch $@
+
+je_vec.h: je_value.h
 	touch $@
 
 

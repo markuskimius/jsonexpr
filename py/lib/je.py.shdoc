@@ -226,7 +226,7 @@ class Parsed:
 
             return value
 
-        raise UsageError("Code and Symmap must be from the same Jsonexpr Instance")
+        raise UsageError("Code and Symmap must be from the same JSONexpr Instance")
 
 
 ##############################################################################

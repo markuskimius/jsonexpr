@@ -263,7 +263,7 @@ static JE_VALUE _BitwiseAndEval(const JE_NODE* node, JE_MAP* symmap, const JE_AS
     const JE_NODE* right = node + node->data.next;
     JE_VALUE lvalue = JE_NCALL(left,eval,symmap,info,NULL);
     JE_VALUE rvalue = JE_NCALL(right,eval,symmap,info,NULL);
-    JE_VALUE result = JE_VCALL(&lvalue,and,rvalue);
+    JE_VALUE result = JE_VCALL(&lvalue,_and,rvalue);
 
     JE_VCALL(&lvalue,destroy);
     JE_VCALL(&rvalue,destroy);
@@ -360,7 +360,7 @@ static JE_VALUE _BitwiseOrEval(const JE_NODE* node, JE_MAP* symmap, const JE_AST
     const JE_NODE* right = node + node->data.next;
     JE_VALUE lvalue = JE_NCALL(left,eval,symmap,info,NULL);
     JE_VALUE rvalue = JE_NCALL(right,eval,symmap,info,NULL);
-    JE_VALUE result = JE_VCALL(&lvalue,or,rvalue);
+    JE_VALUE result = JE_VCALL(&lvalue,_or,rvalue);
 
     JE_VCALL(&lvalue,destroy);
     JE_VCALL(&rvalue,destroy);
@@ -410,7 +410,7 @@ static JE_VALUE _BitwiseXorEval(const JE_NODE* node, JE_MAP* symmap, const JE_AS
     const JE_NODE* right = node + node->data.next;
     JE_VALUE lvalue = JE_NCALL(left,eval,symmap,info,NULL);
     JE_VALUE rvalue = JE_NCALL(right,eval,symmap,info,NULL);
-    JE_VALUE result = JE_VCALL(&lvalue,xor,rvalue);
+    JE_VALUE result = JE_VCALL(&lvalue,_xor,rvalue);
 
     JE_VCALL(&lvalue,destroy);
     JE_VCALL(&rvalue,destroy);
