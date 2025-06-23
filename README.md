@@ -70,6 +70,7 @@ $
 * [Installation](doc/install.md)
 * Usage
   * [C](src/README.md)
+  * [C++](cpp/README.md)
   * [Python](py/README.md)
   * [Javascript](js/README.md)
 * Language Reference
