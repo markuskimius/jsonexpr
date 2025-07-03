@@ -7,10 +7,10 @@ clean:
 	$(RM) -r build dist lib/__pycache__ lib/je.wasm src/*.egg-info
 
 install: all
-	pip install .
+	pip3 install .
 
 uninstall:
-	pip uninstall jsonexpr
+	pip3 uninstall jsonexpr
 
 dist: all
 	python3 setup.py sdist
