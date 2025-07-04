@@ -64,7 +64,7 @@ $
 ```
 
 
-## Interactive Demo
+## Demo
 
 Interactive demo [here](https://cdn-test.cbreak.org/jsonexpr/je-latest.html)
 
