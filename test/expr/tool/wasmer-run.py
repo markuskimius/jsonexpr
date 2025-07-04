@@ -28,7 +28,7 @@ import sys
 import errno
 import getopts
 from wasmer import engine, Store, Module, Instance, ImportObject, Function, FunctionType, Type
-from wasmer_compiler_llvm import Compiler
+from wasmer_compiler_cranelift import Compiler
 
 __copyright__ = "Copyright 2024-2025 Mark Kim"
 __license__ = "Apache 2.0"
