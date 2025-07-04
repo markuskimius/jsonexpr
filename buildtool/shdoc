@@ -1,10 +1,42 @@
 #!/bin/bash
 
+unset OUTPUT
+
 function main() {
+    local OPTARG
+    local OPTIND
+    local exitcode=0
+    local o
+
+    while getopts "o:" o; do
+        case "${o}" in
+            o) OUTPUT=${OPTARG}         ;;
+            *) exitcode=$((errcount+1)) ;;
+        esac
+    done
+    shift $((OPTIND-1))
+
+    if [[ -n "$OUTPUT" ]] && (( $# > 1 )); then
+        printf "Cannot specify multiple files with the -o option\n" 1>&2
+        exitcode=1
+    fi
+
+    if (( exitcode )); then
+        exit $exitcode
+    fi
+
+    doMyThing "$@"
+}
+
+function doMyThing() {
     local shdoc
 
     for shdoc; do
         local doc=${shdoc%.shdoc}
+
+        if [[ -n "$OUTPUT" ]]; then
+            doc=$OUTPUT
+        fi
 
         if [[ "$shdoc" == "$doc" ]]; then
             printf "%s: Filename does not end in .shdoc\n" "$shdoc" 1>&2

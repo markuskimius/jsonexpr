@@ -127,21 +127,21 @@ test-distclean: test-clean
 # FILES
 
 src/je_const.h: src/je_const.h.shdoc Makefile
-	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 444 $@
 
 js/lib/je.js: js/lib/je.js.shdoc Makefile
-	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 444 $@
 
 py/setup.py: py/setup.py.shdoc Makefile
-	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 555 $@
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 555 $@
 
-py/bin/je: py/bin/je.shdoc Makefile
-	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 555 $@
+py/bin/je: py/bin/je-wasmer.shdoc Makefile
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 555 $@
 
 py/lib/je.py: py/lib/je.py.shdoc Makefile
-	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 444 $@
 
 py/lib/__init__.py: py/lib/__init__.py.shdoc Makefile
-	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc $< && chmod 444 $@
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 444 $@
 
 # vim:noet:
