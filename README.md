@@ -64,6 +64,11 @@ $
 ```
 
 
+## Interactive Demo
+
+Interactive demo [here](https://cdn-test.cbreak.org/jsonexpr/je-latest.html)
+
+
 ## Documentation
 
 * [Overview](doc/overview.md)
