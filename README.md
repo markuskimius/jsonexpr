@@ -18,8 +18,8 @@ Wouldn't it be great if...
 
 So that you can:
 
-* Add comments and expressions to JSON files used by your application?
-* Ask the user for an expression and evaluate it in a safe sandbox?
+* Make JSON files used by your applications more readable and dynamic?
+* Get expressions from the user and evaluate it in a safe sandbox?
 * And do that evaluation from either the client or the server, regardless of what language they're written in?
 * Have the option to change the programming language your application is written in without changing the expresion language used by the JSON file or the users?
 
