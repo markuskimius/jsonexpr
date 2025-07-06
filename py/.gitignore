@@ -3,3 +3,5 @@ build
 dist
 setup.py
 jsonexpr.egg-info
+lib/je_wasmer.py
+lib/je_wasmtime.py

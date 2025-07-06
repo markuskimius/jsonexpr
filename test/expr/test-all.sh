@@ -35,7 +35,8 @@ source "getopt.sh" || exit 1
 SCRIPTNAME=$(basename "${BASH_SOURCE}")
 BINARY=../../build/$(uname -m)/bin/je
 PYTHON=$(command -v je)
-SCRIPT=tool/wasmer-run.py
+SCRIPT=tool/wasmtime-run.py
+PYTHONCMD=python
 WASMFILE=lib/je.wasm
 OUT=var/output/%s-%s.out
 DIFF=var/diff/%s-%s.diff
@@ -44,6 +45,14 @@ REFOUT=ref/%s.out
 REFDIFF=ref/%s.diff
 FILES=()
 MODE=()
+
+if command -v python3 >/dev/null; then
+    PYTHONCMD=python3
+fi
+
+if "$PYTHONCMD" -c 'import wasmer' 2>/dev/null; then
+    SCRIPT=tool/wasmer-run.py
+fi
 
 function main() {
     local OPTOPT OPTARG

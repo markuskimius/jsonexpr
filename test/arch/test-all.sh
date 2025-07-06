@@ -31,10 +31,20 @@ SCRIPTNAME=$(basename "${BASH_SOURCE}")
 ARCH=$(uname -m)
 ARCHBIN=build/${ARCH}/%s
 WASMBIN=build/wasm/%s.wasm
+WASMRUNNER=tool/wasmtime-run.py
+PYTHONCMD=python
 OUT=var/output/%s-%s.out
 DIFF=var/diff/%s.diff
 REFDIFF=ref/%s.diff
 FILES=()
+
+if command -v python3 >/dev/null; then
+    PYTHONCMD=python3
+fi
+
+if "$PYTHONCMD" -c 'import wasmer' 2>/dev/null; then
+    WASMRUNNER=tool/wasmer-run.py
+fi
 
 function main() {
     local OPTOPT OPTARG
@@ -90,7 +100,7 @@ function doMyThing() {
         printf "%-15s .. " "$file"
 
         "$archbin" > "$archout"
-        tool/wasmer-run.py "$wasmbin" > "$wasmout"
+        "$WASMRUNNER" "$wasmbin" > "$wasmout"
 
         if diff -u "$archout" "$wasmout" > "$diff"; then
             printf "[PASS]\n"

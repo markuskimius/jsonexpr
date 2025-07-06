@@ -27,13 +27,7 @@ import os
 import sys
 import errno
 import getopts
-import importlib.util
-from wasmer import engine, Store, Module, Instance, ImportObject, Function, FunctionType, Type
-
-if importlib.util.find_spec("wasmer_compiler_llvm") is not None:
-    from wasmer_compiler_llvm import Compiler
-else:
-    from wasmer_compiler_cranelift import Compiler
+from wasmtime import Store, Module, FuncType, ValType, Linker, Engine
 
 __copyright__ = "Copyright 2024-2025 Mark Kim"
 __license__ = "Apache 2.0"
@@ -97,18 +91,15 @@ def main():
         sys.stderr.write("Type '{SCRIPTNAME} --help' for help.\n".format(**globals()))
         sys.exit(1)
 
-    with open(opts.wasmfile, mode="rb") as wasmfd:
-        wasm = wasmfd.read()
+    for expr in opts.eval:
+        doMyThing(expr)
 
-        for expr in opts.eval:
-            doMyThing(wasm, expr)
+    if len(opts.files) == 0 and len(opts.eval) == 0:
+        doMyFdThing(sys.stdin)
 
-        if len(opts.files) == 0 and len(opts.eval) == 0:
-            doMyFdThing(wasm, sys.stdin)
-
-        for f in opts.files:
-            with open(f, mode="rt") as exprfd:
-                doMyFdThing(wasm, exprfd)
+    for f in opts.files:
+        with open(f, mode="rt") as exprfd:
+            doMyFdThing(exprfd)
 
 class Exit(Exception):
     def __init__(self, code):
@@ -116,69 +107,85 @@ class Exit(Exception):
 
 class Iface:
     def __init__(self):
-        self.allocated = [];
+        self.engine = Engine()
+        self.store = Store(self.engine)
+        self.linker = Linker(self.engine)
+
+        self.linker.define_func("env", "read" , FuncType([ValType.i32(), ValType.i32(), ValType.i32()], [ValType.i32()]), self.read)
+        self.linker.define_func("env", "write", FuncType([ValType.i32(), ValType.i32(), ValType.i32()], [ValType.i32()]), self.write)
+        self.linker.define_func("env", "_exit", FuncType([ValType.i32()], []), self._exit)
+
+        self.module = Module.from_file(self.engine, opts.wasmfile)
+        self.instance = self.linker.instantiate(self.store, self.module)
+        self.memory8 = self.instance.exports(self.store)["memory"].get_buffer_ptr(self.store)
+        self._start = self.instance.exports(self.store)["_start"]
 
     def read(self, fd:"i32", buf:"i32", count:"i32") -> "i32":
         data = os.read(fd, count)
-        count = len(data);
-        self.memory8[buf:buf+count] = data;
+        count = len(data)
+
+        self.memory8 = self.instance.exports(self.store)["memory"].get_buffer_ptr(self.store)
+        self.memory8[buf:buf+count] = data
 
         return count
 
     def write(self, fd:"i32", buf:"i32", count:"i32") -> "i32":
+        self.memory8 = self.instance.exports(self.store)["memory"].get_buffer_ptr(self.store)
+
         return os.write(fd, bytearray(self.memory8[buf:buf+count]))
-
-    def strdup(self, string) -> int:
-        encoded = string.encode("utf-8")
-        waddr = self.instance.exports.calloc(1, len(encoded)+1)
-        self.memory8[waddr:waddr+len(string)] = encoded
-        self.memory8[waddr+len(encoded)] = 0
-
-        self.allocated += [waddr]
-
-        return waddr;
-
-    def free(self, waddr):
-        if waddr in self.allocated:
-            self.allocated.remove(waddr)
-
-        self.instance.exports.free(waddr)
 
     def _exit(self, status:"i32") -> None:
         raise Exit(status)
 
-def doMyFdThing(wasm, exprfd):
+    def strdup(self, string):
+        encoded = string.encode("utf-8")
+        waddr = self.instance.exports(self.store)["calloc"](self.store, 1, len(encoded)+1)
+        self.memory8 = self.instance.exports(self.store)["memory"].get_buffer_ptr(self.store)
+        self.memory8[waddr:waddr+len(string)] = encoded
+        self.memory8[waddr+len(encoded)] = 0
+
+        return waddr
+
+    def free(self, waddr):
+        self.instance.exports(self.store)["free"](self.store, waddr)
+
+    def parse(self, wcode):
+        return self.instance.exports(self.store)["parse"](self.store, wcode)
+
+    def newsym(self, wparent=0):
+        return self.instance.exports(self.store)["newsym"](self.store, wparent)
+
+    def asteval(self, wast, wsymmap):
+        return self.instance.exports(self.store)["asteval"](self.store, wast, wsymmap)
+
+    def valfree(self, wval):
+        self.instance.exports(self.store)["valfree"](self.store, wval)
+
+    def symfree(self, wsymmap):
+        return self.instance.exports(self.store)["symfree"](self.store, wsymmap)
+
+    def astfree(self, wast):
+        self.instance.exports(self.store)["astfree"](self.store, wast)
+
+def doMyFdThing(exprfd):
     expr = exprfd.read()
 
-    return doMyThing(wasm, expr)
+    return doMyThing(expr)
 
-def doMyThing(wasm, expr):
-    store = Store()
+def doMyThing(expr):
     iface = Iface()
     exitcode = 0
 
-    module = Module(store, wasm)
-    instance = Instance(module, {
-        "env": {
-            "read"   : Function(store, iface.read),
-            "write"  : Function(store, iface.write),
-            "_exit"  : Function(store, iface._exit),
-        }
-    })
-
-    iface.instance = instance;
-    iface.memory8 = instance.exports.memory.uint8_view()
-
     try:
         code = iface.strdup(expr)
-        ast = instance.exports.parse(code)
-        symmap = instance.exports.newsym(0)
-        value = instance.exports.asteval(ast, symmap)
+        ast = iface.parse(code)
+        symmap = iface.newsym(0)
+        value = iface.asteval(ast, symmap)
 
-        instance.exports.valfree(value)
-        instance.exports.symfree(symmap)
-        instance.exports.astfree(ast)
-        iface.free(code);
+        iface.valfree(value)
+        iface.symfree(symmap)
+        iface.astfree(ast)
+        iface.free(code)
     except Exit as e:
         exitcode = e.code
 

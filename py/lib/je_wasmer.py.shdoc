@@ -7,7 +7,12 @@ import re
 import os
 import json
 import wasmer
-import wasmer_compiler_cranelift
+import importlib.util
+
+if importlib.util.find_spec("wasmer_compiler_llvm") is not None:
+    import wasmer_compiler_llvm
+else:
+    import wasmer_compiler_cranelift
 
 
 ##############################################################################

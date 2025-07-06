@@ -3,4 +3,16 @@ __license__ = "Apache 2.0"
 __version__ = "${JE_VERSION}"
 __author__ = "Mark Kim"
 
-from .je import *
+import importlib.util
+
+#
+# Import the wasmer version if available (it's faster) otherwise import the
+# wasmtime version (it's more widely available)
+#
+if importlib.util.find_spec("wasmer") is not None:
+    from .je_wasmer import *
+else:
+    from .je_wasmtime import *
+
+
+# vim:ft=python:

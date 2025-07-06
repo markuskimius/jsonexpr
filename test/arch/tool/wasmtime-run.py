@@ -27,13 +27,7 @@ import os
 import sys
 import errno
 import getopts
-import importlib.util
-from wasmer import engine, Store, Module, Instance, ImportObject, Function, FunctionType, Type
-
-if importlib.util.find_spec("wasmer_compiler_llvm") is not None:
-    from wasmer_compiler_llvm import Compiler
-else:
-    from wasmer_compiler_cranelift import Compiler
+from wasmtime import Store, Module, FuncType, ValType, Linker, Engine
 
 __copyright__ = "Copyright 2024-2025 Mark Kim"
 __license__ = "Apache 2.0"
@@ -108,44 +102,43 @@ class Exit(Exception):
         self.code = code
 
 
-class Iface:
-    def read(self, fd:"i32", buf:"i32", count:"i32") -> "i32":
+def doMyThing(file):
+    last = 0
+
+    def __read(fd, buf, count):
         data = os.read(fd, count)
         count = len(data);
-        self.memory8[buf:buf+count] = data;
+        memory8[buf:buf+count] = data;
 
         return count
 
-    def write(self, fd:"i32", buf:"i32", count:"i32") -> "i32":
-        return os.write(fd, bytearray(self.memory8[buf:buf+count]))
+    def __write(fd, buf, count):
+        return os.write(fd, bytearray(memory8[buf:buf+count]))
 
-    def _exit(self, status:"i32") -> None:
+    def __exit(status):
         raise Exit(status)
 
+    engine = Engine()
+    store = Store(engine)
+    linker = Linker(engine)
 
-def doMyThing(file):
-    last = 0
-    store = Store()
-    iface = Iface()
+    linker.define_func("env",  "read", FuncType([ValType.i32(), ValType.i32(), ValType.i32()], [ValType.i32()]), __read)
+    linker.define_func("env", "write", FuncType([ValType.i32(), ValType.i32(), ValType.i32()], [ValType.i32()]), __write)
+    linker.define_func("env", "_exit", FuncType([ValType.i32()], []), __exit)
 
-    with open(file, mode="rb") as fd:
-        wasm = fd.read()
-        module = Module(store, wasm)
-        instance = Instance(module, {
-            "env": {
-                "read"   : Function(store, iface.read),
-                "write"  : Function(store, iface.write),
-                "_exit"  : Function(store, iface._exit),
-            }
-        })
+    module = Module.from_file(engine, file)
+    instance = linker.instantiate(store, module)
 
-        iface.memory8 = instance.exports.memory.uint8_view()
+    memory8 = instance.exports(store)["memory"].get_buffer_ptr(store)
+    _start = instance.exports(store)["_start"]
 
-        for i in range(opts.nrun):
-            try:
-                instance.exports._start()
-            except Exit as e:
-                last = e.code
+    for i in range(opts.nrun):
+        try:
+            _start(store)
+        except Exit as e:
+            last = e.code
+
+    return last
 
 
 ##############################################################################
