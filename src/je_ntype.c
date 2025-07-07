@@ -837,7 +837,7 @@ static JE_VALUE* _IndexRef(const JE_NODE* node, int create, JE_MAP* symmap, cons
             const JE_TOKEN* rbegin = JE_NCALL(right,tokenBegin,info);
             const JE_TOKEN* rend = JE_NCALL(right,tokenEnd,info);
 
-            JE_RuntimeError(rbegin, rend, "Array index must be non-negative, got %zu\n", i64);
+            JE_RuntimeError(rbegin, rend, "Array index must be non-negative, got %zd\n", i64);
         }
         else if(i64 < vec->length) {
             result = JE_VecGet(*vec, i64);
