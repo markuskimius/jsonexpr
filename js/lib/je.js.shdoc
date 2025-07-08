@@ -711,7 +711,7 @@ class Exit extends JeException {
 * PUBLIC FUNCTIONS
 */
 
-async function instance(os=null) {
+async function _instance(os=null) {
     const iface = new Iface(os);
 
     await iface.ready;
@@ -720,11 +720,18 @@ async function instance(os=null) {
 }
 
 async function _eval(code, symbols=null) {
-    const instance = await instance();
+    const instance = await _instance();
     const parsed = instance.parse(code);
     const symmap = instance.symmap(symbols);
 
     return parsed.eval(symmap)
+}
+
+async function _evalfile(url, symbols=null) {
+    const response = await fetch(url);
+    const code = await response.text();
+
+    return await _eval(code, symbols);
 }
 
 
@@ -747,8 +754,9 @@ export default {
     SyntaxError   : SyntaxError,
 
     /* FUNCTIONS */
-    instance      : instance,
+    instance      : _instance,
     eval          : _eval,
+    evalfile      : _evalfile,
     length        : (x) => x[_LENGTH],
 };
 

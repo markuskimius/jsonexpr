@@ -19,6 +19,8 @@ namespace je {
 Instance instance();
 Value eval(const std::string& code);
 Value eval(const std::string& code, Symmap& symmap);
+Value evalfile(const std::string& path);
+Value evalfile(const std::string& path, Symmap& symmap);
 
 
 } /* namespace je */

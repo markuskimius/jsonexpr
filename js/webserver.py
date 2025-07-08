@@ -46,6 +46,7 @@ class opts:
     port = 8080
     server = "localhost"
     libdir = os.path.join(SCRIPTDIR, "lib")
+    staticdir = os.path.join(SCRIPTDIR)
 
 
 ##############################################################################
@@ -103,10 +104,13 @@ def isInt(value):
     return is_int
 
 def doMyThing():
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
     app = tornado.web.Application([
         (r"/", Index),
         (r"/lib/(.*)", tornado.web.StaticFileHandler, {"path": opts.libdir}),
+        (r"/(.*)", tornado.web.StaticFileHandler, {"path": opts.staticdir}),
     ], template_whitespace="all")
 
     app.listen(opts.port, opts.server)

@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include "jepp.h"
 
@@ -19,13 +20,38 @@ Value eval(const std::string& code) {
     Parsed parsed = instance.parse(code);
     Symmap symmap = instance.symmap();
 
-    return eval(code, symmap);
+    return parsed.eval(symmap);
 }
 
 Value eval(const std::string& code, Symmap& symmap) {
-    Value value;
+    Instance instance = Instance();
+    Parsed parsed = instance.parse(code);
 
-    return value;
+    return parsed.eval(symmap);
+}
+
+Value evalfile(const std::string& path) {
+    std::ifstream file(path);
+    std::string line;
+    std::string code;
+
+    while(std::getline(file, line)) {
+        code += line + "\n";
+    }
+
+    return eval(code);
+}
+
+Value evalfile(const std::string& path, Symmap& symmap) {
+    std::ifstream file(path);
+    std::string line;
+    std::string code;
+
+    while(std::getline(file, line)) {
+        code += line + "\n";
+    }
+
+    return eval(code, symmap);
 }
 
 

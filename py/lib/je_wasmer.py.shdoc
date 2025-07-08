@@ -509,5 +509,13 @@ def eval(code, symbols=None):
 
     return parsed.eval(symmap)
 
+def evalfile(path, symbols=None):
+    data = ""
+
+    with open(path, "r") as fd:
+        data = fd.read()
+
+    return eval(data, symbols)
+
 
 # vim:ft=python:
