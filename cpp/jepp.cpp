@@ -23,9 +23,10 @@ Value eval(const std::string& code) {
     return parsed.eval(symmap);
 }
 
-Value eval(const std::string& code, Symmap& symmap) {
+Value eval(const std::string& code, const std::string& symbols) {
     Instance instance = Instance();
     Parsed parsed = instance.parse(code);
+    Symmap symmap = instance.symmap(symbols);
 
     return parsed.eval(symmap);
 }
@@ -42,7 +43,7 @@ Value evalfile(const std::string& path) {
     return eval(code);
 }
 
-Value evalfile(const std::string& path, Symmap& symmap) {
+Value evalfile(const std::string& path, const std::string& symbols) {
     std::ifstream file(path);
     std::string line;
     std::string code;
@@ -51,7 +52,7 @@ Value evalfile(const std::string& path, Symmap& symmap) {
         code += line + "\n";
     }
 
-    return eval(code, symmap);
+    return eval(code, symbols);
 }
 
 
