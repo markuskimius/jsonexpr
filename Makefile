@@ -1,4 +1,4 @@
-JE_VERSION:=0.2.4
+JE_VERSION:=0.2.5
 SHDOC:=src/je_const.h
 JSSHDOC:=js/lib/je.js
 PYSHDOC:=py/setup.py py/bin/je py/lib/je_wasmer.py py/lib/je_wasmtime.py py/lib/__init__.py
