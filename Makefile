@@ -1,7 +1,7 @@
 JE_VERSION:=0.2.5
 SHDOC:=src/je_const.h
 JSSHDOC:=js/lib/je.js
-PYSHDOC:=py/setup.py py/bin/je py/lib/je_wasmer.py py/lib/je_wasmtime.py py/lib/__init__.py
+PYSHDOC:=py/setup.py py/bin/je py/lib/je.py py/lib/je_wasmer.py py/lib/je_wasmtime.py py/lib/__init__.py
 
 ifeq ($(findstring wasm,$(HOST)),wasm)
 	PREFIX:=./build/wasm
@@ -137,6 +137,9 @@ py/setup.py: py/setup.py.shdoc Makefile
 
 py/bin/je: py/bin/je.shdoc Makefile
 	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 555 $@
+
+py/lib/je.py: py/lib/je.py.shdoc Makefile
+	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 444 $@
 
 py/lib/je_wasmer.py: py/lib/je_wasmer.py.shdoc Makefile
 	$(RM) $@ && JE_VERSION="$(JE_VERSION)" buildtool/shdoc -o $@ $< && chmod 444 $@
