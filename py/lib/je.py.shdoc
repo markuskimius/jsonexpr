@@ -204,6 +204,9 @@ class Map:
         result = {}
 
         for key,value in self.items():
+            if isinstance(value, Map): value = value.toDict()
+            if isinstance(value, Vec): value = value.toList()
+
             result[key] = value
 
         return result
@@ -254,7 +257,12 @@ class Vec:
         result = []
 
         for i in range(self.__len__()):
-            result += [self.__getitem__(i)]
+            value = self.__getitem__(i)
+
+            if isinstance(value, Map): value = value.toDict()
+            if isinstance(value, Vec): value = value.toList()
+
+            result += [value]
 
         return result
 
