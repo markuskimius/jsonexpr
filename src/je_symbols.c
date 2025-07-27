@@ -77,7 +77,7 @@ static JE_VALUE _EVAL(JE_VEC* args, const JE_NODE* code, JE_MAP* symmap, const J
         case JE_STR_T : {
             JE_AST ast = JE_Parse((char*) value.data.str.data);
 
-            if(ast.isok) result = JE_AstEval(ast, symmap);
+            if(ast.isok) result = JE_AstEval(ast, symmap, 0);
 
             JE_AstDestroy(&ast);
             break;

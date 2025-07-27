@@ -21,7 +21,7 @@ Parsed::~Parsed() {
 }
 
 Value Parsed::eval(Symmap& symmap) {
-    JE_VALUE wvalue = JE_AstEval(*this->wast, symmap.wsymmap);
+    JE_VALUE wvalue = JE_AstEval(*this->wast, symmap.wsymmap, 0);
 
     return Value(wvalue);
 }

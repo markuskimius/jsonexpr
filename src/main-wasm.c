@@ -197,10 +197,10 @@ JE_AST* parse(const char* code) {
 }
 
 _EXPORT(asteval)
-JE_VALUE* asteval(const JE_AST* ast, JE_MAP* symmap) {
+JE_VALUE* asteval(const JE_AST* ast, JE_MAP* symmap, int64_t inode) {
     JE_VALUE* value = _ValueAlloc();
 
-    *value = JE_AstEval(*ast, symmap);
+    *value = JE_AstEval(*ast, symmap, inode);
 
     return value;
 }

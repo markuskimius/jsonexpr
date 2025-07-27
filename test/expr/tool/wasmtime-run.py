@@ -155,8 +155,8 @@ class Iface:
     def newsym(self, wparent=0):
         return self.instance.exports(self.store)["newsym"](self.store, wparent)
 
-    def asteval(self, wast, wsymmap):
-        return self.instance.exports(self.store)["asteval"](self.store, wast, wsymmap)
+    def asteval(self, wast, wsymmap, inode=0):
+        return self.instance.exports(self.store)["asteval"](self.store, wast, wsymmap, inode)
 
     def valfree(self, wval):
         self.instance.exports(self.store)["valfree"](self.store, wval)
@@ -180,7 +180,7 @@ def doMyThing(expr):
         code = iface.strdup(expr)
         ast = iface.parse(code)
         symmap = iface.newsym(0)
-        value = iface.asteval(ast, symmap)
+        value = iface.asteval(ast, symmap, 0)
 
         iface.valfree(value)
         iface.symfree(symmap)

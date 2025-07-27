@@ -149,7 +149,7 @@ int doMyCodeThing(const char* code) {
 
     if(ast.isok) {
         JE_MAP* symmap = JE_SymmapCreate(JE_SYMBOLS_DEFAULT);
-        JE_VALUE result = JE_AstEval(ast, symmap);
+        JE_VALUE result = JE_AstEval(ast, symmap, 0);
 
         if(!quiet) {
             char* cstr = JE_VCALL(&result,toQstr);

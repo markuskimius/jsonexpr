@@ -35,7 +35,7 @@ typedef struct JE_AST {
 JE_AST JE_AstCreate();
 void JE_AstDestroy(JE_AST* ast);
 
-JE_VALUE JE_AstEval(const JE_AST ast, JE_MAP* symmap);
+JE_VALUE JE_AstEval(const JE_AST ast, JE_MAP* symmap, size_t inode);
 
 
 #ifdef __cplusplus

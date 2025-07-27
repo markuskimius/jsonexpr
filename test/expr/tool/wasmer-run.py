@@ -173,7 +173,7 @@ def doMyThing(wasm, expr):
         code = iface.strdup(expr)
         ast = instance.exports.parse(code)
         symmap = instance.exports.newsym(0)
-        value = instance.exports.asteval(ast, symmap)
+        value = instance.exports.asteval(ast, symmap, 0)
 
         instance.exports.valfree(value)
         instance.exports.symfree(symmap)

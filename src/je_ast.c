@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "je_ast.h"
@@ -36,11 +37,13 @@ void JE_AstDestroy(JE_AST* ast) {
 /**
 * Evaluate a JE_AST.
 */
-JE_VALUE JE_AstEval(const JE_AST ast, JE_MAP* symmap) {
+JE_VALUE JE_AstEval(const JE_AST ast, JE_MAP* symmap, size_t inode) {
     JE_VALUE value = JE_ValueNul();
 
     if(ast.astnode.nlen) {
-        value = JE_NCALL(ast.astnode.node,eval,symmap,&ast.info,NULL);
+        assert(inode < ast.astnode.nlen);
+
+        value = JE_NCALL(ast.astnode.node+inode,eval,symmap,&ast.info,NULL);
     }
 
     return value;

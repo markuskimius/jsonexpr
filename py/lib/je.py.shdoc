@@ -62,7 +62,7 @@ class Parsed:
         _symmap = Symmap(self.iface) if symmap is None else symmap
 
         if(_symmap.iface is self.iface):
-            wvalue = self.iface.asteval(self.wast, _symmap.wsymmap)
+            wvalue = self.iface.asteval(self.wast, _symmap.wsymmap, 0)
             value = _getvalue(self.iface, wvalue)
 
             self.iface.valfree(wvalue)

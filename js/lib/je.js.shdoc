@@ -116,8 +116,8 @@ class Iface {
         return this.instance.exports.parse(wcode);
     }
 
-    asteval(wast, wsymmap) {
-        return this.instance.exports.asteval(wast, wsymmap);
+    asteval(wast, wsymmap, inode=0) {
+        return this.instance.exports.asteval(wast, wsymmap, BigInt(inode));
     }
 
     astfree(wast) {
@@ -308,7 +308,7 @@ class Parsed {
         const _symmap = symmap===null ? new Symmap(this.iface) : symmap[_TARGET];
 
         if(_symmap.iface === this.iface) {
-            const wvalue = this.iface.asteval(this.wast, _symmap.wsymmap);
+            const wvalue = this.iface.asteval(this.wast, _symmap.wsymmap, 0);
             const value = _getvalue(this.iface, wvalue);
 
             this.iface.valfree(wvalue);

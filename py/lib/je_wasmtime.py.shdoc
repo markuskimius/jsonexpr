@@ -74,8 +74,8 @@ class Iface:
     def parse(self, wcode):
         return self.instance.exports(self.store)["parse"](self.store, wcode)
 
-    def asteval(self, wast, wsymmap):
-        return self.instance.exports(self.store)["asteval"](self.store, wast, wsymmap)
+    def asteval(self, wast, wsymmap, inode=0):
+        return self.instance.exports(self.store)["asteval"](self.store, wast, wsymmap, inode)
 
     def astfree(self, wast):
         self.instance.exports(self.store)["astfree"](self.store, wast)

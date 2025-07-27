@@ -21,7 +21,7 @@ Symmap::Symmap(const std::string& symbols) {
     */
     JE_AST ast = JE_Parse(symbols.c_str());
     JE_MAP* tmpmap = JE_SymmapCreate(0);
-    JE_VALUE result = JE_AstEval(ast, tmpmap);
+    JE_VALUE result = JE_AstEval(ast, tmpmap, 0);
     JE_MAP* resmap = result.data.map;
 
     /* Validation */

@@ -14,7 +14,7 @@ int main() {
     JE_MapSet(&grades, JE_StrCreate(strdup("bob")), JE_ValueStr(JE_StrCreate(strdup("B"))));
     JE_MapSet(symmap, JE_StrCreate(strdup("grades")), JE_ValueMap(grades));
 
-    result = JE_AstEval(ast, symmap);
+    result = JE_AstEval(ast, symmap, 0);
 
     JE_VCALL(&result,destroy);
     JE_SymmapDestroy(symmap);
