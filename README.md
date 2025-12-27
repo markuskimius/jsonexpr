@@ -6,28 +6,78 @@
 ![python38](https://img.shields.io/badge/python-3.8-blue.svg)
 ![javascript](https://img.shields.io/badge/javascript-grey.svg)
 
-An expression language built on JSON.
+A safe, language-neutral expression language built on JSON.
 
 
 ## Motivation
 
-Wouldn't it be great if...
+Quite simply,
+I needed a way to pass between processes a code snippet that can be evaluated
+safely, by any process regardless of the language the process was writen in,
+with an identical behavior across the languages.
 
-* You could embed comments and expressions in JSON?
-* You could evaluate such "JSON expression" from any programming language?
+So I made one.
 
-So that you can:
-
-* Make JSON files used by your applications more readable and dynamic?
-* Get expressions from the user and evaluate it in a safe sandbox?
-* And do that evaluation from either the client or the server, regardless of what language they're written in?
-* Have the option to change the programming language your application is written in without changing the expresion language used by the JSON file or the users?
-
-JSONexpr executes in an WASM runtime so it executes in a safe sandbox and is
-portable to any language that supports WASM runtime.
+And it just so happened that using JSON as the datatype of this language was very useful.
 
 
-## Example
+## Basic Examples
+
+Mathematical expressions are valid:
+
+```bash
+$ je -e '1 + 2 + 3 + 4 + 5 + 6 + 7 + 8'
+36
+$
+```
+
+You can use variables:
+
+```bash
+$ je -e 'n=8; n * (n+1) / 2'
+36
+$
+```
+
+A variable can store any valid JSON value:
+
+```bash
+$ je -e 'myvar = { "n" : 8 }; myvar.n * (myvar.n+1) / 2'
+36
+$
+```
+
+You can have loops:
+
+```bash
+$ je -e 'sum=0; FOR(i=0, i<9, i++, sum+=i); sum'
+36
+$
+```
+
+You can have functions:
+
+```bash
+$ je -e 'SQRT(36)'
+6.0
+$
+```
+
+Above examples evaluate JSONexpr expression from the command line using the
+`je` command that comes with the C and Python installations of JSONexpr, but
+JSONexpr is primarily designed to be evaluated programmatically.
+See [documentation](#documentation) for the list of supported programming
+languages that can evaluate JSONexpr expressions today;
+additional language support can be added as long as it supports the WASM
+runtime.
+
+
+## More Examples
+
+Since a value is a valid expression in an expression language,
+JSON is a valid expression in JSONexpr.
+And you can embed expressions in the JSON.
+For example:
 
 ```bash
 $ cat students.je
