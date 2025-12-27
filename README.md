@@ -68,8 +68,7 @@ Above examples evaluate JSONexpr expression from the command line using the
 JSONexpr is primarily designed to be evaluated programmatically.
 See [documentation](#documentation) for the list of supported programming
 languages that can evaluate JSONexpr expressions today;
-additional language support can be added as long as it supports the WASM
-runtime.
+additional language support can be added with a WASM runtime.
 
 
 ## More Examples
